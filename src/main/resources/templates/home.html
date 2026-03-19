@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Quiz Escape Room', ~{::section})}">
+<section>
+    <div class="card app-hero">
+        <h1>Quiz Escape Room</h1>
+        <p>Trải nghiệm giải đố theo phong cách point & click, mở khóa từng phòng và leo bảng xếp hạng.</p>
+
+        <div class="row" th:if="${profile != null}">
+            <span class="badge" th:text="${'Người chơi: ' + profile.displayName}"></span>
+            <span class="badge ok" th:text="${'Tổng điểm: ' + profile.totalScore}"></span>
+            <span class="badge warn" th:text="${'Số trận thắng: ' + profile.totalWin}"></span>
+        </div>
+    </div>
+
+    <div class="grid grid-2 home-menu-grid">
+        <a class="card nav-card nav-card-primary" th:href="@{/game/start}">
+            <h3>Bắt đầu chơi</h3>
+            <p>Chọn chủ đề và vào bản đồ phòng.</p>
+        </a>
+        <a class="card nav-card" th:href="@{/profile}">
+            <h3>Thông tin người chơi</h3>
+            <p>Cập nhật hồ sơ và mật khẩu.</p>
+        </a>
+        <a class="card nav-card" th:href="@{/leaderboard}">
+            <h3>Bảng xếp hạng</h3>
+            <p>Xem top người chơi theo điểm.</p>
+        </a>
+        <a class="card nav-card" th:href="@{/history}">
+            <h3>Lịch sử chơi</h3>
+            <p>Xem lại các ván đã hoàn thành.</p>
+        </a>
+        <a class="card nav-card" th:if="${isAdmin}" th:href="@{/admin}">
+            <h3>Quản trị dữ liệu game</h3>
+            <p>Quản lý chủ đề, phòng, câu hỏi và hotspot.</p>
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="actions">
+            <a class="btn" th:href="@{/game/start}">Vào game</a>
+            <a class="btn secondary" th:href="@{/profile}">Hồ sơ</a>
+        </div>
+
+        <form th:action="@{/logout}" method="post" class="actions">
+            <button type="submit">Đăng xuất</button>
+        </form>
+    </div>
+</section>
+</html>

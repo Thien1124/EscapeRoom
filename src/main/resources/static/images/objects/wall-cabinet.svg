@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 520">
+  <defs>
+    <linearGradient id="cabBlue" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#93c5fd"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+  <rect width="760" height="520" fill="#f8fafc"/>
+  <rect x="122" y="96" width="516" height="320" rx="18" fill="url(#cabBlue)" stroke="#1e3a8a" stroke-width="8"/>
+  <rect x="146" y="126" width="468" height="264" rx="14" fill="#e0f2fe" stroke="#334155" stroke-width="5"/>
+  <line x1="146" y1="214" x2="614" y2="214" stroke="#64748b" stroke-width="4"/>
+  <line x1="146" y1="302" x2="614" y2="302" stroke="#64748b" stroke-width="4"/>
+  <line x1="380" y1="126" x2="380" y2="390" stroke="#334155" stroke-width="5"/>
+  <rect x="436" y="236" width="132" height="58" rx="8" fill="#7e22ce" opacity="0.88"/>
+  <rect x="468" y="314" width="88" height="42" rx="8" fill="#facc15" stroke="#92400e" stroke-width="3"/>
+  <rect x="490" y="332" width="56" height="20" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+  <text x="518" y="346" text-anchor="middle" font-size="12" fill="#dc2626" font-family="Arial" font-weight="700">EXIT</text>
+  <g transform="translate(570 170)">
+    <rect x="0" y="0" width="58" height="86" rx="10" fill="#b45309" stroke="#7c2d12" stroke-width="4"/>
+    <circle cx="16" cy="26" r="10" fill="#fde68a"/><text x="16" y="31" text-anchor="middle" font-size="12" font-family="Arial" font-weight="700">7</text>
+    <circle cx="29" cy="44" r="10" fill="#fde68a"/><text x="29" y="49" text-anchor="middle" font-size="12" font-family="Arial" font-weight="700">4</text>
+    <circle cx="42" cy="62" r="10" fill="#fde68a"/><text x="42" y="67" text-anchor="middle" font-size="12" font-family="Arial" font-weight="700">1</text>
+  </g>
+  <circle cx="366" cy="254" r="6" fill="#334155"/>
+  <circle cx="394" cy="254" r="6" fill="#334155"/>
+</svg>

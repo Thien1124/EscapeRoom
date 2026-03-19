@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-game :: layout('Câu hỏi mở khóa', ~{::section})}">
+<section>
+    <div class="card quiz-card">
+        <h1>Câu hỏi mở khóa vật thể</h1>
+        <p>
+            <span class="badge warn" th:text="${'Bước hiện tại: ' + progress.currentStep}"></span>
+            <span class="badge ok">Point & Click</span>
+        </p>
+        <h2 class="quiz-title" th:text="${question.questionText}"></h2>
+
+        <form th:action="@{'/game/rooms/' + ${roomId} + '/objects/' + ${objectId} + '/quiz'}"
+              th:object="${answerForm}"
+              method="post"
+              class="grid quiz-grid">
+            <label class="quiz-option">
+                <input type="radio" th:field="*{selectedOption}" value="A">
+                <span>A. <span th:text="${question.optionA}"></span></span>
+            </label>
+            <label class="quiz-option">
+                <input type="radio" th:field="*{selectedOption}" value="B">
+                <span>B. <span th:text="${question.optionB}"></span></span>
+            </label>
+            <label class="quiz-option">
+                <input type="radio" th:field="*{selectedOption}" value="C">
+                <span>C. <span th:text="${question.optionC}"></span></span>
+            </label>
+            <label class="quiz-option">
+                <input type="radio" th:field="*{selectedOption}" value="D">
+                <span>D. <span th:text="${question.optionD}"></span></span>
+            </label>
+
+            <small th:if="${#fields.hasErrors('selectedOption')}" th:errors="*{selectedOption}"></small>
+
+            <div class="actions">
+                <button type="submit">Nộp đáp án</button>
+                <a class="btn secondary" th:href="@{'/game/rooms/' + ${roomId}}">Quay lại phòng</a>
+            </div>
+        </form>
+    </div>
+</section>
+</html>

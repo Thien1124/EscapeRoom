@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="18" fill="#f8fafc"/>
+  <rect x="20" y="34" width="88" height="58" rx="10" fill="#ffffff" stroke="#334155" stroke-width="4"/>
+  <rect x="28" y="48" width="72" height="10" rx="4" fill="#111827"/>
+  <text x="64" y="78" text-anchor="middle" font-size="16" fill="#dc2626" font-family="Arial" font-weight="700">EXIT</text>
+  <polygon points="64,94 50,108 78,108" fill="#0ea5e9" opacity="0.9"/>
+</svg>

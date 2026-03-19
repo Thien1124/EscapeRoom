@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Lịch sử chơi', ~{::section})}">
+<section>
+    <div class="card app-hero">
+        <h1>Lịch sử chơi của tôi</h1>
+        <p>Theo dõi kết quả từng ván theo thời gian.</p>
+    </div>
+
+    <div class="card table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Thời gian</th>
+                <th>Phòng</th>
+                <th>Chủ đề</th>
+                <th>Điểm</th>
+                <th>Kết quả</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${histories == null or #lists.isEmpty(histories)}">
+                <td colspan="5">Chưa có lịch sử chơi.</td>
+            </tr>
+            <tr th:each="h : ${histories}">
+                <td th:text="${#temporals.format(h.playedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                <td th:text="${h.room.name}"></td>
+                <td th:text="${h.room.topic.name}"></td>
+                <td><span class="badge ok" th:text="${h.score}"></span></td>
+                <td>
+                    <span class="badge ok" th:if="${h.result.name() == 'WIN'}">WIN</span>
+                    <span class="badge lock" th:if="${h.result.name() == 'LOSE'}">LOSE</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="actions">
+            <a class="btn secondary" th:href="@{/}">Quay lại trang chủ</a>
+        </div>
+    </div>
+</section>
+</html>

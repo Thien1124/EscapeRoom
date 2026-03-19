@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#111827"/>
+      <stop offset="65%" stop-color="#1f2937"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect x="0" y="700" width="1600" height="200" fill="#3f2f23"/>
+  <rect x="190" y="180" width="1220" height="470" rx="26" fill="#0b1220" stroke="#64748b" stroke-width="10"/>
+  <path d="M280 620 L520 360 L780 550 L1080 300 L1320 620" stroke="#7c3aed" stroke-width="14" fill="none"/>
+  <circle cx="520" cy="360" r="20" fill="#facc15"/>
+  <circle cx="780" cy="550" r="20" fill="#facc15"/>
+  <circle cx="1080" cy="300" r="20" fill="#facc15"/>
+  <rect x="640" y="220" width="320" height="120" rx="16" fill="#1e293b" stroke="#94a3b8" stroke-width="8"/>
+  <text x="800" y="292" text-anchor="middle" fill="#e2e8f0" font-size="74" font-family="Arial">MẬT MÃ</text>
+  <rect x="146" y="530" width="120" height="120" rx="12" fill="#334155" stroke="#f59e0b" stroke-width="8"/>
+  <rect x="1330" y="530" width="120" height="120" rx="12" fill="#334155" stroke="#f59e0b" stroke-width="8"/>
+</svg>

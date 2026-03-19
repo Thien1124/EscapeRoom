@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Bản đồ phòng', ~{::section})}">
+<section>
+    <div class="card app-hero">
+        <h1>Bản đồ phòng chơi</h1>
+        <p>
+            Chủ đề: <strong th:text="${topic.name}"></strong>
+            · Chế độ: <strong th:text="${mode}"></strong>
+        </p>
+    </div>
+
+    <div class="notice error" th:if="${roomError}" th:text="${roomError}"></div>
+
+    <div class="grid grid-2">
+        <div class="card map-room-card" th:each="item : ${roomMap}">
+            <h3 th:text="${item.room.roomOrder + '. ' + item.room.name}"></h3>
+            <p th:text="${item.room.description}"></p>
+            <p>
+                <span class="badge ok" th:if="${item.completed}">Đã hoàn thành</span>
+                <span class="badge warn" th:if="${!item.completed and item.unlocked}">Đã mở</span>
+                <span class="badge lock" th:if="${!item.unlocked}">Đang khóa</span>
+            </p>
+
+            <div class="actions">
+                <a class="btn" th:if="${item.unlocked}" th:href="@{'/game/rooms/' + ${item.room.id}}">Vào phòng</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <a class="btn secondary" th:href="@{/game/start}">Đổi chủ đề/chế độ</a>
+        <a class="btn secondary" th:href="@{/}">Trang chủ</a>
+    </div>
+</section>
+</html>

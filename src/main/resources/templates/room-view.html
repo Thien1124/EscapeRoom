@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-game :: layout('Phòng chơi', ~{::section})}">
+<section class="room-page">
+    <div class="room-hud">
+        <div>
+            <h1 th:text="${room.name}"></h1>
+            <p th:text="${room.description}"></p>
+        </div>
+        <div class="row">
+            <span class="badge warn" th:text="${'Bước: ' + progress.currentStep}"></span>
+            <span class="badge ok" th:text="${'Điểm: ' + progress.score}"></span>
+            <span class="badge lock" th:text="${'Sai: ' + progress.wrongAttempts + '/' + maxWrongAttempts}"></span>
+        </div>
+    </div>
+
+    <section class="simple-scene-wrap">
+           <div class="simple-scene"
+               th:classappend="${#strings.contains(room.name, 'Cổ Vật') ? ' scene-bg-history1' : (#strings.contains(room.name, 'Mật Mã') ? ' scene-bg-history2 scene-mystic' : (#strings.contains(room.name, 'Thí Nghiệm') ? ' scene-bg-science1' : (#strings.contains(room.name, 'Cơ Khí') ? ' scene-bg-science2' : '')))}"
+               th:attr="data-success=${roomSuccess},data-error=${roomError}">
+            <div class="scene-topbar">
+                <a class="scene-icon-btn" th:href="@{/}" title="Trang chủ">🏠</a>
+                <button type="button" class="scene-icon-btn" id="scene-sound-toggle" title="Âm thanh">🔊</button>
+                <button type="button" class="scene-icon-btn" id="scene-music-toggle" title="Nhạc nền">🎵</button>
+            </div>
+
+            <div class="scene-feedback" id="scene-feedback" aria-live="polite"></div>
+
+            <div class="mystic-nodes" th:if="${#strings.contains(room.name, 'Mật Mã')}">
+                <span class="mystic-node node-a"></span>
+                <span class="mystic-node node-b"></span>
+                <span class="mystic-node node-c"></span>
+                <span class="mystic-node node-d"></span>
+            </div>
+
+            <img th:if="${#strings.contains(room.name, 'Thí Nghiệm')}"
+                 src="/images/objects/wall-cabinet.svg"
+                 alt="Tủ treo tường phòng thí nghiệm"
+                 class="lab-wall-cabinet">
+
+            <button type="button" class="scene-inventory" id="scene-bag-toggle" title="Mở túi đồ">
+                <span class="scene-inventory-icon">🎒</span>
+                <span class="scene-inventory-count" th:text="${#lists.size(inventoryItems)}"></span>
+            </button>
+
+            <section class="scene-bag-panel game-modal" id="scene-bag-panel" hidden>
+                <div class="scene-bag-header">
+                    <h3>Túi đồ</h3>
+                    <button type="button" class="scene-bag-close" id="scene-bag-close">✕</button>
+                </div>
+
+                <div class="inventory-grid direct-craft-grid" id="direct-craft-grid">
+                    <button th:each="item : ${inventoryItems}"
+                            type="button"
+                            class="inventory-item-chip play-sfx-click collected draggable-item"
+                            th:attr="data-item-key=${item.key},data-item-name=${item.name},data-item-collected=true,draggable=true">
+                        <img th:if="${#strings.startsWith(item.icon, '/')}" class="inventory-icon-image" th:src="${item.icon}" th:alt="${item.name}">
+                        <span th:if="${!#strings.startsWith(item.icon, '/')}" class="inventory-icon" th:text="${item.icon}"></span>
+                        <span class="inventory-item-label" th:text="${item.name}"></span>
+                    </button>
+                    <div class="bag-empty" th:if="${#lists.isEmpty(inventoryItems)}">Chưa có vật phẩm</div>
+                </div>
+
+                <form id="combine-form" th:action="@{'/game/rooms/' + ${room.id} + '/combine'}" method="post" class="hidden-form">
+                    <input type="hidden" name="firstItem" id="combine-first-item">
+                    <input type="hidden" name="secondItem" id="combine-second-item">
+                </form>
+            </section>
+
+            <form th:each="spot : ${collectibleSpots}"
+                  th:if="${!spot.collected}"
+                  th:action="@{'/game/rooms/' + ${room.id} + '/collect'}"
+                th:attr="data-ajax-action=@{'/game/rooms/' + ${room.id} + '/collect-ajax'},data-item-name=${spot.keyName}"
+                  method="post"
+                  class="scene-collect-spot"
+                  th:style="${'left:' + spot.x + '%; top:' + spot.y + '%;'}">
+                <input type="hidden" name="itemKey" th:value="${spot.key}">
+                <div class="cabinet-container" th:attr="data-key-name=${spot.keyName}">
+                    <div class="cabinet-interior">
+                        <button type="submit" class="hidden-key-btn play-sfx-click" th:title="${'Nhặt chìa khóa: ' + spot.keyName}">
+                            <img th:if="${spot.imageUrl != null and !#strings.isEmpty(spot.imageUrl)}"
+                                 th:src="${spot.imageUrl}"
+                                 th:alt="${spot.keyName}"
+                                 class="collect-spot-image">
+                            <span th:if="${spot.imageUrl == null or #strings.isEmpty(spot.imageUrl)}">🗝️</span>
+                        </button>
+                    </div>
+                    <button type="button" class="cabinet-door" th:title="${'Tủ chứa: ' + spot.keyName}" aria-label="Tủ đóng">🗄️</button>
+                </div>
+            </form>
+
+            <div class="simple-scene-player" aria-hidden="true">🕵️</div>
+            <div class="simple-scene-player-name" th:text="${playerName}"></div>
+
+            <div class="simple-hotspot"
+                 th:each="obj, objStat : ${objects}"
+                 th:classappend="${(obj.hotspotX == null or obj.hotspotY == null) ? (objStat.index == 0 ? ' pos-1' : (objStat.index == 1 ? ' pos-2' : (objStat.index == 2 ? ' pos-3' : (objStat.index == 3 ? ' pos-4' : (objStat.index == 4 ? ' pos-5' : ' pos-6'))))) : ''}"
+                 th:style="${(obj.hotspotX != null and obj.hotspotY != null) ? 'left:' + obj.hotspotX + '%; top:' + obj.hotspotY + '%;' : ''}">
+
+                <a th:if="${!progress.completed and obj.requiredStep == progress.currentStep and obj.lockType.name() == 'QUIZ'}"
+                   class="simple-target ready"
+                         th:attr="data-hint=${obj.hint}"
+                         th:href="@{'/game/rooms/' + ${room.id} + '?quizObjectId=' + ${obj.id}}">
+                    <div class="target-arrow" aria-hidden="true">⬇</div>
+                    <div class="simple-target-icon scene-object-visual" th:switch="${obj.objectName}">
+                        <img th:case="'Tủ gỗ khóa mã 3 số'" src="/images/objects/cabinet-lock.svg" alt="Tủ khóa mã">
+                        <img th:case="'Kính hiển vi'" src="/images/objects/microscope-station.svg" alt="Kính hiển vi">
+                        <img th:case="'Máy quét cạnh cửa'" src="/images/objects/scanner-terminal.svg" alt="Máy quét">
+                        <img th:case="'Bảng nhập hình dạng vi khuẩn'" src="/images/objects/shape-console.svg" alt="Bảng nhập hình">
+                        <img th:case="'Cửa thoát hiểm'" src="/images/objects/exit-door.svg" alt="Cửa thoát">
+                        <span th:case="*">🧩</span>
+                    </div>
+                    <strong th:text="${obj.objectName}"></strong>
+                    <span class="simple-target-sub" th:text="${obj.requiredStep == 1 ? 'Nhập mã mở tủ' : 'Chọn hình dạng đúng'}"></span>
+                </a>
+
+                <form th:if="${!progress.completed and obj.requiredStep == progress.currentStep and obj.lockType.name() == 'INTERACTION'}"
+                      th:action="@{'/game/rooms/' + ${room.id} + '/objects/' + ${obj.id} + '/interact'}"
+                      method="post" class="scene-object-form">
+                    <button type="submit" class="simple-target ready" th:attr="data-hint=${obj.hint},data-object-name=${obj.objectName}">
+                        <div class="target-arrow" aria-hidden="true">⬇</div>
+                        <div class="simple-target-icon scene-object-visual" th:switch="${obj.objectName}">
+                            <img th:case="'Tủ gỗ khóa mã 3 số'" src="/images/objects/cabinet-lock.svg" alt="Tủ khóa mã">
+                            <img th:case="'Kính hiển vi'" src="/images/objects/microscope-station.svg" alt="Kính hiển vi">
+                            <img th:case="'Máy quét cạnh cửa'" src="/images/objects/scanner-terminal.svg" alt="Máy quét">
+                            <img th:case="'Bảng nhập hình dạng vi khuẩn'" src="/images/objects/shape-console.svg" alt="Bảng nhập hình">
+                            <img th:case="'Cửa thoát hiểm'" src="/images/objects/exit-door.svg" alt="Cửa thoát">
+                            <span th:case="*">🗝️</span>
+                        </div>
+                        <strong th:text="${obj.objectName}"></strong>
+                        <span class="simple-target-sub" th:text="${obj.requiredStep == 2 ? 'Lắp kính + mẫu vật' : 'Đổ dung dịch tím vào máy quét'}"></span>
+                    </button>
+                </form>
+
+                <div th:if="${obj.requiredStep < progress.currentStep}" class="object-state-badge done" th:title="${obj.objectName}">✓</div>
+
+                <div th:if="${obj.requiredStep > progress.currentStep or progress.completed}" class="object-state-badge locked" th:title="${obj.objectName}">🔒</div>
+            </div>
+
+            <div id="scene-quiz-overlay" class="scene-quiz-overlay game-modal modal-overlay" th:if="${inlineQuestion != null}">
+                <section class="scene-quiz-card input-panel">
+                    <div class="inline-quiz-head">
+                        <h2>Trắc nghiệm thoát hiểm</h2>
+                        <a class="btn secondary" th:href="@{'/game/rooms/' + ${room.id}}">Đóng</a>
+                    </div>
+
+                    <h3 class="quiz-title" th:text="${inlineQuestion.questionText}"></h3>
+                    <form th:action="@{'/game/rooms/' + ${room.id} + '/objects/' + ${inlineQuestionObjectId} + '/quiz'}"
+                          th:object="${answerForm}"
+                          method="post"
+                          class="grid quiz-grid decode-form">
+                        <div class="field" th:if="${inlineQuestion.answerCode != null and !#strings.isEmpty(inlineQuestion.answerCode)}">
+                            <label>Nhập mã</label>
+                            <input type="text" th:field="*{answerCode}" placeholder="Nhập mã 3 số" maxlength="40" autocomplete="off">
+                        </div>
+
+                        <div class="grid quiz-grid" th:if="${inlineQuestion.answerCode == null or #strings.isEmpty(inlineQuestion.answerCode)}">
+                            <label class="quiz-option">
+                                <input type="radio" th:field="*{selectedOption}" value="A">
+                                <span>A. <span th:text="${inlineQuestion.optionA}"></span></span>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" th:field="*{selectedOption}" value="B">
+                                <span>B. <span th:text="${inlineQuestion.optionB}"></span></span>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" th:field="*{selectedOption}" value="C">
+                                <span>C. <span th:text="${inlineQuestion.optionC}"></span></span>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" th:field="*{selectedOption}" value="D">
+                                <span>D. <span th:text="${inlineQuestion.optionD}"></span></span>
+                            </label>
+                        </div>
+
+                        <div class="actions">
+                            <button type="submit" class="play-sfx-ok" th:text="${inlineQuestion.answerCode != null and !#strings.isEmpty(inlineQuestion.answerCode) ? 'Nhập mã mở tủ' : 'Xác nhận đáp án'}"></button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+
+            <div class="finale-overlay" th:if="${progress.completed and progress.won}">
+                <div class="finale-door">🚪</div>
+                <div class="finale-light"></div>
+                <div class="finale-character">🕵️</div>
+                <div class="finale-text">Cửa mở! Bạn đã thoát thành công!</div>
+                <div class="finale-stats">
+                    <span th:text="${'Số click: ' + actionCount}"></span>
+                    <span th:text="${'Thời gian: ' + elapsedSeconds + ' giây'}"></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        (function () {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            const audioContext = AudioCtx ? new AudioCtx() : null;
+
+            const scene = document.querySelector('.simple-scene');
+            const bagToggleButton = document.getElementById('scene-bag-toggle');
+            const bagPanel = document.getElementById('scene-bag-panel');
+            const quizOverlay = document.getElementById('scene-quiz-overlay');
+            const bagCloseButton = document.getElementById('scene-bag-close');
+            const soundToggleButton = document.getElementById('scene-sound-toggle');
+            const musicToggleButton = document.getElementById('scene-music-toggle');
+
+            let isSfxEnabled = localStorage.getItem('game.sfx.enabled') !== 'false';
+            let isMusicEnabled = localStorage.getItem('game.music.enabled') === 'true';
+            let musicOscillator = null;
+            let musicGainNode = null;
+
+            let feedbackQueue = [];
+            let feedbackShowing = false;
+
+            function syncAudioButtons() {
+                if (soundToggleButton) {
+                    soundToggleButton.textContent = isSfxEnabled ? '🔊' : '🔇';
+                    soundToggleButton.title = isSfxEnabled ? 'Tắt âm thanh' : 'Bật âm thanh';
+                }
+                if (musicToggleButton) {
+                    musicToggleButton.textContent = isMusicEnabled ? '🎵' : '🚫';
+                    musicToggleButton.title = isMusicEnabled ? 'Tắt nhạc nền' : 'Bật nhạc nền';
+                }
+            }
+
+            async function ensureAudioReady() {
+                if (!audioContext) {
+                    return false;
+                }
+                if (audioContext.state === 'suspended') {
+                    try {
+                        await audioContext.resume();
+                    } catch (error) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            function startBackgroundMusic() {
+                if (!audioContext || musicOscillator || !isMusicEnabled) {
+                    return;
+                }
+                musicOscillator = audioContext.createOscillator();
+                musicGainNode = audioContext.createGain();
+                musicOscillator.type = 'triangle';
+                musicOscillator.frequency.value = 196;
+                musicGainNode.gain.value = 0.015;
+                musicOscillator.connect(musicGainNode);
+                musicGainNode.connect(audioContext.destination);
+                musicOscillator.start();
+            }
+
+            function stopBackgroundMusic() {
+                if (musicOscillator) {
+                    musicOscillator.stop();
+                    musicOscillator.disconnect();
+                    musicOscillator = null;
+                }
+                if (musicGainNode) {
+                    musicGainNode.disconnect();
+                    musicGainNode = null;
+                }
+            }
+
+            function playTone(frequency, durationMs, type) {
+                if (!audioContext || !isSfxEnabled) {
+                    return;
+                }
+                const oscillator = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                oscillator.type = type || 'sine';
+                oscillator.frequency.value = frequency;
+                gain.gain.value = 0.08;
+                oscillator.connect(gain);
+                gain.connect(audioContext.destination);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + durationMs / 1000);
+            }
+
+            function playErrorSound() {
+                playTone(260, 120, 'sawtooth');
+                setTimeout(() => playTone(210, 130, 'sawtooth'), 90);
+            }
+
+            function showSceneFeedback(message, isError) {
+                const feedback = document.getElementById('scene-feedback');
+                if (!feedback || !message) {
+                    feedbackShowing = false;
+                    return;
+                }
+
+                feedback.textContent = message;
+                feedback.className = 'scene-feedback ' + (isError ? 'error' : 'success') + ' show';
+                if (isError) {
+                    playErrorSound();
+                } else {
+                    playTone(680, 90, 'triangle');
+                    setTimeout(() => playTone(820, 140, 'triangle'), 80);
+                }
+
+                setTimeout(() => {
+                    feedback.classList.remove('show');
+                    feedbackShowing = false;
+                    flushFeedbackQueue();
+                }, 4200);
+            }
+
+            function enqueueFeedback(message, isError) {
+                if (!message) {
+                    return;
+                }
+                feedbackQueue.push({message, isError: !!isError});
+                if (feedbackQueue.length > 6) {
+                    feedbackQueue = feedbackQueue.slice(-6);
+                }
+                flushFeedbackQueue();
+            }
+
+            function flushFeedbackQueue() {
+                if (feedbackShowing || feedbackQueue.length === 0) {
+                    return;
+                }
+                feedbackShowing = true;
+                const next = feedbackQueue.shift();
+                showSceneFeedback(next.message, next.isError);
+            }
+
+            function hideModal(modal) {
+                if (!modal) {
+                    return;
+                }
+                modal.hidden = true;
+                modal.style.display = 'none';
+            }
+
+            function showModal(modal) {
+                if (!modal) {
+                    return;
+                }
+                modal.hidden = false;
+                modal.style.display = '';
+            }
+
+            function closeAllGameModals(exceptId) {
+                document.querySelectorAll('.game-modal').forEach((modal) => {
+                    if (exceptId && modal.id === exceptId) {
+                        showModal(modal);
+                    } else {
+                        hideModal(modal);
+                    }
+                });
+            }
+
+            window.showObjectDetail = function (objectId) {
+                closeAllGameModals(objectId);
+            };
+
+            syncAudioButtons();
+
+            if (soundToggleButton) {
+                soundToggleButton.addEventListener('click', async () => {
+                    await ensureAudioReady();
+                    isSfxEnabled = !isSfxEnabled;
+                    localStorage.setItem('game.sfx.enabled', String(isSfxEnabled));
+                    syncAudioButtons();
+                    enqueueFeedback(isSfxEnabled ? 'Đã bật âm thanh hiệu ứng.' : 'Đã tắt âm thanh hiệu ứng.', false);
+                });
+            }
+
+            if (musicToggleButton) {
+                musicToggleButton.addEventListener('click', async () => {
+                    const ready = await ensureAudioReady();
+                    if (!ready && audioContext) {
+                        enqueueFeedback('Trình duyệt chưa cho phép phát âm thanh.', true);
+                        return;
+                    }
+                    isMusicEnabled = !isMusicEnabled;
+                    localStorage.setItem('game.music.enabled', String(isMusicEnabled));
+                    if (isMusicEnabled) {
+                        startBackgroundMusic();
+                        enqueueFeedback('Đã bật nhạc nền.', false);
+                    } else {
+                        stopBackgroundMusic();
+                        enqueueFeedback('Đã tắt nhạc nền.', false);
+                    }
+                    syncAudioButtons();
+                });
+            }
+
+            if (isMusicEnabled) {
+                ensureAudioReady().then((ready) => {
+                    if (ready) {
+                        startBackgroundMusic();
+                    }
+                });
+            }
+
+            if (scene) {
+                const successMessage = scene.dataset.success;
+                const errorMessage = scene.dataset.error;
+                if (successMessage) {
+                    enqueueFeedback(successMessage, false);
+                }
+                if (errorMessage) {
+                    enqueueFeedback(errorMessage, true);
+                }
+            }
+
+            function closeBagPanel() {
+                closeAllGameModals();
+            }
+
+            function openBagPanel() {
+                if (!bagPanel) {
+                    return;
+                }
+                showObjectDetail('scene-bag-panel');
+            }
+
+            if (bagToggleButton && bagPanel) {
+                bagToggleButton.addEventListener('click', () => {
+                    if (bagPanel.hidden || bagPanel.style.display === 'none') {
+                        openBagPanel();
+                    } else {
+                        closeBagPanel();
+                    }
+                });
+            }
+
+            if (quizOverlay) {
+                showObjectDetail('scene-quiz-overlay');
+            }
+
+            if (bagCloseButton) {
+                bagCloseButton.addEventListener('click', closeBagPanel);
+            }
+
+            document.querySelectorAll('.play-sfx-click').forEach((element) => {
+                element.addEventListener('click', async () => {
+                    await ensureAudioReady();
+                    playTone(520, 100, 'triangle');
+                });
+            });
+
+            document.querySelectorAll('.play-sfx-ok').forEach((element) => {
+                element.addEventListener('click', async () => {
+                    await ensureAudioReady();
+                    playTone(620, 90, 'triangle');
+                    setTimeout(() => playTone(740, 120, 'triangle'), 80);
+                });
+            });
+
+            const inventoryContainer = document.getElementById('direct-craft-grid');
+            const combineForm = document.getElementById('combine-form');
+            const combineFirstItemInput = document.getElementById('combine-first-item');
+            const combineSecondItemInput = document.getElementById('combine-second-item');
+            const scannerTarget = document.querySelector(".scene-object-form .simple-target[data-object-name='Máy quét cạnh cửa']");
+
+            let selectedCollectedItem = null;
+
+            function refreshScannerAttention() {
+                if (!scannerTarget) {
+                    return;
+                }
+                const shouldWiggle = selectedCollectedItem === 'purple_mix';
+                scannerTarget.classList.toggle('scanner-ready', shouldWiggle);
+                if (shouldWiggle) {
+                    enqueueFeedback('Máy quét đang phản hồi với dung dịch tím!', false);
+                }
+            }
+
+            function clearSelectedItem() {
+                selectedCollectedItem = null;
+                document.querySelectorAll('.inventory-item-chip.selected').forEach((node) => node.classList.remove('selected'));
+                refreshScannerAttention();
+            }
+
+            function submitCombine(firstItem, secondItem) {
+                combineFirstItemInput.value = firstItem;
+                combineSecondItemInput.value = secondItem;
+                combineForm.submit();
+            }
+
+            function onInventoryItemClick(button) {
+                const itemKey = button.dataset.itemKey;
+
+                if (!selectedCollectedItem) {
+                    selectedCollectedItem = itemKey;
+                    button.classList.add('selected');
+                    refreshScannerAttention();
+                    return;
+                }
+
+                if (selectedCollectedItem === itemKey) {
+                    clearSelectedItem();
+                    return;
+                }
+
+                submitCombine(selectedCollectedItem, itemKey);
+            }
+
+            function attachInventoryButtonInteractions(button) {
+                button.addEventListener('click', () => onInventoryItemClick(button));
+
+                button.addEventListener('dragstart', (event) => {
+                    if (button.dataset.itemCollected !== 'true') {
+                        event.preventDefault();
+                        return;
+                    }
+                    event.dataTransfer.setData('text/plain', button.dataset.itemKey || '');
+                });
+
+                button.addEventListener('dragover', (event) => {
+                    if (button.dataset.itemCollected === 'true') {
+                        event.preventDefault();
+                    }
+                });
+
+                button.addEventListener('drop', (event) => {
+                    event.preventDefault();
+                    if (button.dataset.itemCollected !== 'true') {
+                        return;
+                    }
+                    const draggedKey = event.dataTransfer.getData('text/plain');
+                    const targetKey = button.dataset.itemKey;
+                    if (!draggedKey || !targetKey || draggedKey === targetKey) {
+                        return;
+                    }
+                    submitCombine(draggedKey, targetKey);
+                });
+            }
+
+            if (inventoryContainer && combineForm && combineFirstItemInput && combineSecondItemInput) {
+                inventoryContainer.querySelectorAll('.inventory-item-chip').forEach((button) => {
+                    attachInventoryButtonInteractions(button);
+                });
+            }
+
+            document.querySelectorAll('.scene-collect-spot .cabinet-container').forEach((cabinet) => {
+                const doorButton = cabinet.querySelector('.cabinet-door');
+                const keyButton = cabinet.querySelector('.hidden-key-btn');
+
+                if (doorButton) {
+                    doorButton.textContent = '🗄️';
+                    doorButton.addEventListener('click', () => {
+                        cabinet.classList.toggle('open');
+                        const opened = cabinet.classList.contains('open');
+                        doorButton.textContent = opened ? '📂' : '🗄️';
+                        doorButton.setAttribute('aria-label', opened ? 'Tủ mở' : 'Tủ đóng');
+                    });
+                }
+
+                if (keyButton) {
+                    keyButton.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                    });
+                }
+            });
+
+            document.querySelectorAll('.scene-collect-spot').forEach((collectForm) => {
+                collectForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const ajaxAction = collectForm.dataset.ajaxAction;
+                    if (!ajaxAction) {
+                        collectForm.submit();
+                        return;
+                    }
+
+                    const formData = new FormData(collectForm);
+                    try {
+                        const response = await fetch(ajaxAction, {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'same-origin'
+                        });
+                        const payload = await response.json();
+
+                        if (!response.ok || !payload.success) {
+                            enqueueFeedback(payload.message || 'Không thể nhặt vật phẩm lúc này.', true);
+                            return;
+                        }
+
+                        collectForm.remove();
+                        const countBadge = document.querySelector('.scene-inventory-count');
+                        if (countBadge && payload.inventoryCount !== undefined) {
+                            countBadge.textContent = String(payload.inventoryCount);
+                        }
+
+                        if (inventoryContainer && payload.itemKey) {
+                            const emptyState = inventoryContainer.querySelector('.bag-empty');
+                            if (emptyState) {
+                                emptyState.remove();
+                            }
+
+                            const exists = inventoryContainer.querySelector(`[data-item-key="${payload.itemKey}"]`);
+                            if (!exists) {
+                                const newItemButton = document.createElement('button');
+                                newItemButton.type = 'button';
+                                newItemButton.className = 'inventory-item-chip play-sfx-click collected draggable-item newly-added';
+                                newItemButton.setAttribute('draggable', 'true');
+                                newItemButton.dataset.itemKey = payload.itemKey;
+                                newItemButton.dataset.itemName = payload.itemName || payload.itemKey;
+                                newItemButton.dataset.itemCollected = 'true';
+
+                                let iconNode;
+                                if (payload.itemIcon && payload.itemIcon.startsWith('/')) {
+                                    iconNode = document.createElement('img');
+                                    iconNode.className = 'inventory-icon-image';
+                                    iconNode.src = payload.itemIcon;
+                                    iconNode.alt = payload.itemName || payload.itemKey;
+                                } else {
+                                    iconNode = document.createElement('span');
+                                    iconNode.className = 'inventory-icon';
+                                    iconNode.textContent = payload.itemIcon || '🧩';
+                                }
+
+                                const textNode = document.createElement('span');
+                                textNode.className = 'inventory-item-label';
+                                textNode.textContent = payload.itemName || payload.itemKey;
+
+                                newItemButton.appendChild(iconNode);
+                                newItemButton.appendChild(textNode);
+                                inventoryContainer.appendChild(newItemButton);
+                                attachInventoryButtonInteractions(newItemButton);
+
+                                setTimeout(() => {
+                                    newItemButton.classList.remove('newly-added');
+                                }, 1800);
+                            }
+                        }
+
+                        enqueueFeedback(payload.message || 'Đã nhặt vật phẩm.', false);
+                    } catch (error) {
+                        enqueueFeedback('Kết nối gián đoạn, thử lại nhé.', true);
+                    }
+                });
+            });
+        })();
+    </script>
+</section>
+</html>

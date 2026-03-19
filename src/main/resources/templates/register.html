@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Đăng ký', ~{::section})}">
+<section class="auth-page">
+    <section class="card app-hero">
+        <h1>Tạo tài khoản mới</h1>
+        <p>Tham gia game giải đố point & click.</p>
+    </section>
+
+    <div class="card auth-card">
+        <h2>Đăng ký tài khoản</h2>
+
+        <div class="notice error" th:if="${registerError}" th:text="${registerError}"></div>
+
+        <form th:action="@{/register}" th:object="${registerForm}" method="post" class="grid">
+            <div class="field">
+                <label>Tên đăng nhập</label>
+                <input type="text" th:field="*{username}">
+                <small th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></small>
+            </div>
+            <div class="field">
+                <label>Mật khẩu</label>
+                <input type="password" th:field="*{password}">
+                <small th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
+            </div>
+            <div class="field">
+                <label>Tên hiển thị</label>
+                <input type="text" th:field="*{displayName}">
+                <small th:if="${#fields.hasErrors('displayName')}" th:errors="*{displayName}"></small>
+            </div>
+            <div class="actions">
+                <button type="submit">Tạo tài khoản</button>
+                <a class="btn secondary" th:href="@{/login}">Đã có tài khoản</a>
+            </div>
+        </form>
+    </div>
+</section>
+</html>

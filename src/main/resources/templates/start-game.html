@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Chọn chủ đề', ~{::section})}">
+<section>
+    <div class="card app-hero">
+        <h1>Chọn chủ đề và chế độ chơi</h1>
+        <p>Bắt đầu hành trình giải đố point & click theo phòng.</p>
+    </div>
+
+    <div class="card">
+        <h2>Thiết lập ván chơi</h2>
+
+        <form th:action="@{/game/start}" th:object="${startGameForm}" method="post" class="grid">
+            <div class="field">
+                <label>Chủ đề quiz</label>
+                <select th:field="*{topicId}">
+                    <option value="">-- Chọn chủ đề --</option>
+                    <option th:each="topic : ${topics}"
+                            th:value="${topic.id}"
+                            th:text="${topic.name + ' - ' + topic.description}"></option>
+                </select>
+                <small th:if="${#fields.hasErrors('topicId')}" th:errors="*{topicId}"></small>
+            </div>
+
+            <div class="field">
+                <label>Chế độ chơi</label>
+                <select th:field="*{mode}">
+                    <option value="">-- Chọn chế độ --</option>
+                    <option th:each="mode : ${modes}" th:value="${mode}" th:text="${mode}"></option>
+                </select>
+                <small th:if="${#fields.hasErrors('mode')}" th:errors="*{mode}"></small>
+            </div>
+
+            <div class="actions">
+                <button type="submit">Vào bản đồ phòng</button>
+                <a class="btn secondary" th:href="@{/}">Quay lại trang chủ</a>
+            </div>
+        </form>
+    </div>
+</section>
+</html>

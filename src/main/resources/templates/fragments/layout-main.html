@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(pageTitle, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Quiz Escape Room</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/styles/game.css(v='20260319-1')}">
+</head>
+<body class="theme-main">
+<header class="app-topbar">
+    <div class="app-topbar-inner">
+        <a class="brand" th:href="@{/}">Quiz Escape Room</a>
+        <nav class="top-nav">
+            <a th:href="@{/}">Trang chủ</a>
+            <a th:href="@{/game/start}">Bắt đầu</a>
+            <a th:href="@{/leaderboard}">BXH</a>
+            <a th:href="@{/history}">Lịch sử</a>
+        </nav>
+    </div>
+</header>
+
+<main class="page app-shell">
+    <th:block th:replace="${content}"></th:block>
+</main>
+
+<footer class="app-footer">
+    <span>Quiz Escape Room · Point & Click</span>
+</footer>
+</body>
+</html>

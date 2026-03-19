@@ -1,0 +1,22 @@
+[
+  {
+    "roomKeyword": "Thí Nghiệm",
+    "inputs": ["microscope", "slide"],
+    "message": "Manh mối giải mã: Hydro x2 + Oxygen => nhập mã H2O"
+  },
+  {
+    "roomKeyword": "Mật Mã",
+    "inputs": ["map_fragment", "uv_lamp"],
+    "message": "Manh mối giải mã: Khi soi UV, hiện dãy số 1954"
+  },
+  {
+    "roomKeyword": "Cổ Vật",
+    "inputs": ["stone_tablet", "charcoal"],
+    "message": "Manh mối giải mã: Dòng chữ hiện ra là 1945"
+  },
+  {
+    "roomKeyword": "Cơ Khí",
+    "inputs": ["gear", "wire"],
+    "message": "Manh mối giải mã: Bảng điều khiển sáng lên chữ MERCURY"
+  }
+]

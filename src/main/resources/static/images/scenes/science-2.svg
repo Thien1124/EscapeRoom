@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="mech" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#111827"/>
+      <stop offset="65%" stop-color="#1f2937"/>
+      <stop offset="100%" stop-color="#374151"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#mech)"/>
+  <rect y="700" width="1600" height="200" fill="#1f2937"/>
+  <circle cx="320" cy="360" r="140" fill="#111827" stroke="#9ca3af" stroke-width="20"/>
+  <circle cx="320" cy="360" r="52" fill="#6b7280"/>
+  <circle cx="1280" cy="360" r="160" fill="#111827" stroke="#9ca3af" stroke-width="20"/>
+  <circle cx="1280" cy="360" r="62" fill="#6b7280"/>
+  <rect x="520" y="190" width="560" height="430" rx="26" fill="#0b1220" stroke="#94a3b8" stroke-width="10"/>
+  <rect x="600" y="260" width="400" height="130" rx="12" fill="#374151"/>
+  <rect x="600" y="430" width="120" height="120" rx="10" fill="#ef4444"/>
+  <rect x="740" y="430" width="120" height="120" rx="10" fill="#f59e0b"/>
+  <rect x="880" y="430" width="120" height="120" rx="10" fill="#22c55e"/>
+  <path d="M0 140 L220 140 L320 220 L420 140 L720 140" stroke="#e5e7eb" stroke-width="18" fill="none"/>
+  <path d="M880 140 L1180 140 L1280 220 L1380 140 L1600 140" stroke="#e5e7eb" stroke-width="18" fill="none"/>
+</svg>

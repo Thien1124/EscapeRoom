@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Bảng xếp hạng', ~{::section})}">
+<section>
+    <div class="card app-hero">
+        <h1>Bảng xếp hạng người chơi</h1>
+        <p>Top người chơi theo tổng điểm và số trận thắng.</p>
+    </div>
+
+    <div class="card table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Hạng</th>
+                <th>Người chơi</th>
+                <th>Tổng điểm</th>
+                <th>Số trận thắng</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p, stat : ${players}">
+                <td th:text="${stat.count}"></td>
+                <td th:text="${p.displayName}"></td>
+                <td><span class="badge ok" th:text="${p.totalScore}"></span></td>
+                <td><span class="badge warn" th:text="${p.totalWin}"></span></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="actions">
+            <a class="btn secondary" th:href="@{/}">Quay lại trang chủ</a>
+        </div>
+    </div>
+</section>
+</html>

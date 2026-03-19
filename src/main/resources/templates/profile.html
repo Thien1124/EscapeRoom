@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Thông tin người chơi', ~{::section})}">
+<section>
+    <div class="card app-hero">
+        <h1>Quản lý thông tin người chơi</h1>
+        <p>Cập nhật hồ sơ và bảo mật tài khoản.</p>
+
+        <div class="row">
+            <span class="badge" th:text="${'Tài khoản: ' + profile.account.username}"></span>
+            <span class="badge ok" th:text="${'Tổng điểm: ' + profile.totalScore}"></span>
+            <span class="badge warn" th:text="${'Số trận thắng: ' + profile.totalWin}"></span>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Hồ sơ hiển thị</h2>
+
+        <div class="notice success" th:if="${profileSuccess}" th:text="${profileSuccess}"></div>
+        <div class="notice success" th:if="${passwordSuccess}" th:text="${passwordSuccess}"></div>
+        <div class="notice error" th:if="${passwordError}" th:text="${passwordError}"></div>
+
+        <form th:action="@{/profile}" th:object="${updateProfileForm}" method="post" class="grid" style="margin-top: 12px;">
+            <div class="field">
+                <label>Tên hiển thị</label>
+                <input type="text" th:field="*{displayName}">
+                <small th:if="${#fields.hasErrors('displayName')}" th:errors="*{displayName}"></small>
+            </div>
+
+            <div class="actions">
+                <button type="submit">Lưu thay đổi</button>
+                <a class="btn secondary" th:href="@{/}">Quay lại trang chủ</a>
+            </div>
+        </form>
+
+    </div>
+
+    <div class="card">
+        <h2>Đổi mật khẩu</h2>
+        <form th:action="@{/profile/password}" th:object="${changePasswordForm}" method="post" class="grid" style="margin-top: 12px;">
+            <div class="field">
+                <label>Mật khẩu hiện tại</label>
+                <input type="password" th:field="*{currentPassword}">
+                <small th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}"></small>
+            </div>
+            <div class="field">
+                <label>Mật khẩu mới</label>
+                <input type="password" th:field="*{newPassword}">
+                <small th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></small>
+            </div>
+            <div class="field">
+                <label>Xác nhận mật khẩu mới</label>
+                <input type="password" th:field="*{confirmPassword}">
+                <small th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></small>
+            </div>
+            <div class="actions">
+                <button type="submit">Đổi mật khẩu</button>
+                <a class="btn secondary" th:href="@{/}">Quay lại trang chủ</a>
+            </div>
+        </form>
+    </div>
+</section>
+</html>

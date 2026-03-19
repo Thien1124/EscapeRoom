@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Admin quản lý dữ liệu', ~{::section})}">
+<section>
+    <div class="card app-hero">
+        <h1>Admin - Quản lý dữ liệu game</h1>
+        <p>Quản lý chủ đề, phòng, câu hỏi và hotspot giao diện.</p>
+        <p>Tài khoản mặc định: <strong>admin</strong> / <strong>admin123</strong></p>
+
+        <div class="notice success" th:if="${adminSuccess}" th:text="${adminSuccess}"></div>
+        <div class="notice error" th:if="${adminError}" th:text="${adminError}"></div>
+
+        <div class="actions">
+            <a class="btn secondary" th:href="@{/}">Về trang chủ</a>
+        </div>
+    </div>
+
+    <div class="card admin-section-card">
+        <h2>Tạo chủ đề</h2>
+        <form th:action="@{/admin/topics}" th:object="${adminTopicForm}" method="post" class="grid">
+            <div class="field">
+                <label>Tên chủ đề</label>
+                <input type="text" th:field="*{name}">
+                <small th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></small>
+            </div>
+            <div class="field">
+                <label>Mô tả</label>
+                <input type="text" th:field="*{description}">
+                <small th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
+            </div>
+            <div class="actions">
+                <button type="submit">Tạo chủ đề</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card admin-section-card">
+        <h2>Tạo phòng</h2>
+        <form th:action="@{/admin/rooms}" th:object="${adminRoomForm}" method="post" class="grid grid-2">
+            <div class="field">
+                <label>Chủ đề</label>
+                <select th:field="*{topicId}">
+                    <option value="">-- Chọn chủ đề --</option>
+                    <option th:each="topic : ${topics}" th:value="${topic.id}" th:text="${topic.name}"></option>
+                </select>
+                <small th:if="${#fields.hasErrors('topicId')}" th:errors="*{topicId}"></small>
+            </div>
+            <div class="field">
+                <label>Tên phòng</label>
+                <input type="text" th:field="*{name}">
+                <small th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></small>
+            </div>
+            <div class="field">
+                <label>Mô tả</label>
+                <input type="text" th:field="*{description}">
+                <small th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
+            </div>
+            <div class="field">
+                <label>Chế độ</label>
+                <select th:field="*{mode}">
+                    <option value="">-- Chọn chế độ --</option>
+                    <option th:each="mode : ${modes}" th:value="${mode}" th:text="${mode}"></option>
+                </select>
+                <small th:if="${#fields.hasErrors('mode')}" th:errors="*{mode}"></small>
+            </div>
+            <div class="field">
+                <label>Thứ tự phòng</label>
+                <input type="number" th:field="*{roomOrder}">
+                <small th:if="${#fields.hasErrors('roomOrder')}" th:errors="*{roomOrder}"></small>
+            </div>
+            <div class="actions">
+                <button type="submit">Tạo phòng</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card admin-section-card">
+        <h2>Tạo / Cập nhật câu hỏi phòng</h2>
+        <form th:action="@{/admin/questions}" th:object="${adminQuestionForm}" method="post" class="grid grid-2">
+            <div class="field">
+                <label>Phòng</label>
+                <select th:field="*{roomId}">
+                    <option value="">-- Chọn phòng --</option>
+                    <option th:each="room : ${rooms}" th:value="${room.id}" th:text="${room.topic.name + ' - ' + room.name}"></option>
+                </select>
+                <small th:if="${#fields.hasErrors('roomId')}" th:errors="*{roomId}"></small>
+            </div>
+            <div class="field">
+                <label>Câu hỏi</label>
+                <input type="text" th:field="*{questionText}">
+                <small th:if="${#fields.hasErrors('questionText')}" th:errors="*{questionText}"></small>
+            </div>
+            <div class="field">
+                <label>Manh mối trong môi trường</label>
+                <input type="text" th:field="*{clueText}" placeholder="Ví dụ: Hydro x2 + Oxygen">
+                <small th:if="${#fields.hasErrors('clueText')}" th:errors="*{clueText}"></small>
+            </div>
+            <div class="field">
+                <label>Mã mở khóa cần nhập</label>
+                <input type="text" th:field="*{answerCode}" placeholder="Ví dụ: H2O">
+                <small th:if="${#fields.hasErrors('answerCode')}" th:errors="*{answerCode}"></small>
+            </div>
+            <div class="field">
+                <label>Đáp án A (tùy chọn)</label>
+                <input type="text" th:field="*{optionA}">
+                <small th:if="${#fields.hasErrors('optionA')}" th:errors="*{optionA}"></small>
+            </div>
+            <div class="field">
+                <label>Đáp án B (tùy chọn)</label>
+                <input type="text" th:field="*{optionB}">
+                <small th:if="${#fields.hasErrors('optionB')}" th:errors="*{optionB}"></small>
+            </div>
+            <div class="field">
+                <label>Đáp án C (tùy chọn)</label>
+                <input type="text" th:field="*{optionC}">
+                <small th:if="${#fields.hasErrors('optionC')}" th:errors="*{optionC}"></small>
+            </div>
+            <div class="field">
+                <label>Đáp án D (tùy chọn)</label>
+                <input type="text" th:field="*{optionD}">
+                <small th:if="${#fields.hasErrors('optionD')}" th:errors="*{optionD}"></small>
+            </div>
+            <div class="field">
+                <label>Đáp án đúng MCQ (tùy chọn A/B/C/D)</label>
+                <input type="text" th:field="*{correctOption}">
+                <small th:if="${#fields.hasErrors('correctOption')}" th:errors="*{correctOption}"></small>
+            </div>
+            <div class="actions">
+                <button type="submit">Lưu câu hỏi</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card admin-section-card">
+        <h2>Chỉnh hotspot từng vật thể + preview trực tiếp</h2>
+        <form th:action="@{/admin/hotspots}" th:object="${adminObjectHotspotForm}" method="post" class="grid grid-2" id="object-hotspot-form">
+            <div class="field">
+                <label>Chọn phòng để preview</label>
+                <select id="preview-room-select">
+                    <option value="">-- Chọn phòng --</option>
+                    <option th:each="room : ${rooms}" th:value="${room.id}" th:text="${room.topic.name + ' - ' + room.name}"></option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Vật thể</label>
+                <select th:field="*{objectId}" id="object-select">
+                    <option value="">-- Chọn vật thể --</option>
+                    <option th:each="obj : ${roomObjects}"
+                            th:value="${obj.id}"
+                            th:attr="data-room-id=${obj.room.id},data-x=${obj.hotspotX},data-y=${obj.hotspotY},data-name=${obj.objectName},data-step=${obj.requiredStep}"
+                            th:text="${'Phòng ' + obj.room.id + ' - Bước ' + obj.requiredStep + ' - ' + obj.objectName}"></option>
+                </select>
+                <small th:if="${#fields.hasErrors('objectId')}" th:errors="*{objectId}"></small>
+            </div>
+
+            <div class="field">
+                <label>Hotspot X (0-100)</label>
+                <input type="number" min="0" max="100" th:field="*{hotspotX}" id="hotspot-x-input">
+                <small th:if="${#fields.hasErrors('hotspotX')}" th:errors="*{hotspotX}"></small>
+            </div>
+            <div class="field">
+                <label>Hotspot Y (0-100)</label>
+                <input type="number" min="0" max="100" th:field="*{hotspotY}" id="hotspot-y-input">
+                <small th:if="${#fields.hasErrors('hotspotY')}" th:errors="*{hotspotY}"></small>
+            </div>
+
+            <div class="field">
+                <label>Preview scene</label>
+                <div class="admin-preview-scene" id="admin-preview-scene">
+                    <div class="admin-preview-title">Preview hotspot theo phòng</div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Gợi ý</label>
+                <p class="admin-hint">Chọn vật thể rồi kéo marker vàng trong preview để đổi vị trí, hoặc nhập X/Y thủ công.</p>
+            </div>
+
+            <div class="actions">
+                <button type="submit">Lưu tọa độ hotspot</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card admin-section-card">
+        <h2>Chìa khóa ẩn theo phòng (hỗ trợ ảnh ngoài)</h2>
+        <form th:action="@{/admin/room-keys}" th:object="${adminRoomKeyForm}" method="post" class="grid grid-2">
+            <div class="field">
+                <label>Phòng</label>
+                <select th:field="*{roomId}">
+                    <option value="">-- Chọn phòng --</option>
+                    <option th:each="room : ${rooms}" th:value="${room.id}" th:text="${room.topic.name + ' - ' + room.name}"></option>
+                </select>
+                <small th:if="${#fields.hasErrors('roomId')}" th:errors="*{roomId}"></small>
+            </div>
+            <div class="field">
+                <label>Mã chìa khóa</label>
+                <input type="text" th:field="*{keyCode}" placeholder="vd: uv_lamp">
+                <small th:if="${#fields.hasErrors('keyCode')}" th:errors="*{keyCode}"></small>
+            </div>
+            <div class="field">
+                <label>Tên chìa khóa</label>
+                <input type="text" th:field="*{keyName}" placeholder="vd: Đèn UV">
+                <small th:if="${#fields.hasErrors('keyName')}" th:errors="*{keyName}"></small>
+            </div>
+            <div class="field">
+                <label>URL ảnh ngoài (ẩn chìa khóa)</label>
+                <input type="text" th:field="*{imageUrl}" placeholder="https://.../key.png">
+                <small th:if="${#fields.hasErrors('imageUrl')}" th:errors="*{imageUrl}"></small>
+            </div>
+            <div class="field">
+                <label>Tọa độ X (0-100)</label>
+                <input type="number" min="0" max="100" th:field="*{spotX}">
+                <small th:if="${#fields.hasErrors('spotX')}" th:errors="*{spotX}"></small>
+            </div>
+            <div class="field">
+                <label>Tọa độ Y (0-100)</label>
+                <input type="number" min="0" max="100" th:field="*{spotY}">
+                <small th:if="${#fields.hasErrors('spotY')}" th:errors="*{spotY}"></small>
+            </div>
+            <div class="actions">
+                <button type="submit">Lưu chìa khóa ẩn</button>
+            </div>
+        </form>
+
+        <div class="table-card" th:if="${!#lists.isEmpty(roomKeys)}">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Phòng</th>
+                    <th>Mã</th>
+                    <th>Tên</th>
+                    <th>Ảnh ngoài</th>
+                    <th>X</th>
+                    <th>Y</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="key : ${roomKeys}">
+                    <td th:text="${key.room.name}"></td>
+                    <td th:text="${key.keyCode}"></td>
+                    <td th:text="${key.keyName}"></td>
+                    <td th:text="${key.imageUrl != null ? key.imageUrl : '(mặc định)'}"></td>
+                    <td th:text="${key.spotX}"></td>
+                    <td th:text="${key.spotY}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+<script th:inline="javascript">
+    (function () {
+        const objectSelect = document.getElementById('object-select');
+        const roomSelect = document.getElementById('preview-room-select');
+        const xInput = document.getElementById('hotspot-x-input');
+        const yInput = document.getElementById('hotspot-y-input');
+        const previewScene = document.getElementById('admin-preview-scene');
+        let dragging = false;
+        let pointerId = null;
+        if (!objectSelect || !roomSelect || !xInput || !yInput || !previewScene) {
+            return;
+        }
+
+        function toNumber(value, fallback) {
+            const parsed = Number.parseInt(value, 10);
+            return Number.isNaN(parsed) ? fallback : parsed;
+        }
+
+        function clamp(value) {
+            return Math.max(0, Math.min(100, value));
+        }
+
+        function getSelectedOption() {
+            return objectSelect.selectedOptions[0];
+        }
+
+        function setSelectedCoordinates(x, y) {
+            const selectedOption = getSelectedOption();
+            if (!selectedOption || !selectedOption.value) {
+                return;
+            }
+            const clampedX = clamp(x);
+            const clampedY = clamp(y);
+            selectedOption.dataset.x = String(clampedX);
+            selectedOption.dataset.y = String(clampedY);
+            xInput.value = clampedX;
+            yInput.value = clampedY;
+        }
+
+        function updateCoordinatesFromPointer(event) {
+            const selectedOption = getSelectedOption();
+            if (!selectedOption || !selectedOption.value) {
+                return;
+            }
+
+            const rect = previewScene.getBoundingClientRect();
+            if (!rect.width || !rect.height) {
+                return;
+            }
+
+            const x = Math.round(((event.clientX - rect.left) / rect.width) * 100);
+            const y = Math.round(((event.clientY - rect.top) / rect.height) * 100);
+            setSelectedCoordinates(x, y);
+
+            const activeMarker = previewScene.querySelector('.admin-preview-marker.active');
+            if (activeMarker) {
+                activeMarker.style.left = clamp(x) + '%';
+                activeMarker.style.top = clamp(y) + '%';
+            }
+        }
+
+        function renderPreview() {
+            previewScene.querySelectorAll('.admin-preview-marker').forEach(node => node.remove());
+            const selectedRoomId = roomSelect.value;
+
+            Array.from(objectSelect.options).forEach((option) => {
+                if (!option.value) {
+                    return;
+                }
+
+                const roomId = option.dataset.roomId;
+                if (selectedRoomId && roomId !== selectedRoomId) {
+                    return;
+                }
+
+                const marker = document.createElement('div');
+                marker.className = 'admin-preview-marker';
+                if (option.selected) {
+                    marker.classList.add('active');
+                }
+
+                let markerX = clamp(toNumber(option.dataset.x, 50));
+                let markerY = clamp(toNumber(option.dataset.y, 50));
+                if (option.selected) {
+                    markerX = clamp(toNumber(xInput.value, markerX));
+                    markerY = clamp(toNumber(yInput.value, markerY));
+                }
+
+                marker.style.left = markerX + '%';
+                marker.style.top = markerY + '%';
+                marker.title = 'Bước ' + (option.dataset.step || '?') + ' - ' + (option.dataset.name || 'Vật thể');
+                marker.textContent = option.dataset.step || '•';
+                marker.dataset.objectId = option.value;
+                previewScene.appendChild(marker);
+            });
+        }
+
+        function syncFromSelectedObject() {
+            const selectedOption = objectSelect.selectedOptions[0];
+            if (!selectedOption || !selectedOption.value) {
+                renderPreview();
+                return;
+            }
+
+            roomSelect.value = selectedOption.dataset.roomId || '';
+            xInput.value = selectedOption.dataset.x || 50;
+            yInput.value = selectedOption.dataset.y || 50;
+            renderPreview();
+        }
+
+        function onPointerDown(event) {
+            const selectedOption = getSelectedOption();
+            if (!selectedOption || !selectedOption.value) {
+                return;
+            }
+
+            const clickedMarker = event.target.closest('.admin-preview-marker');
+            if (!clickedMarker) {
+                return;
+            }
+
+            if (!clickedMarker.classList.contains('active')) {
+                return;
+            }
+
+            dragging = true;
+            pointerId = event.pointerId;
+            previewScene.classList.add('dragging');
+            previewScene.setPointerCapture(pointerId);
+            updateCoordinatesFromPointer(event);
+            event.preventDefault();
+        }
+
+        function onPointerMove(event) {
+            if (!dragging || pointerId !== event.pointerId) {
+                return;
+            }
+            updateCoordinatesFromPointer(event);
+        }
+
+        function onPointerUp(event) {
+            if (!dragging || pointerId !== event.pointerId) {
+                return;
+            }
+            dragging = false;
+            previewScene.classList.remove('dragging');
+            previewScene.releasePointerCapture(pointerId);
+            pointerId = null;
+            renderPreview();
+        }
+
+        objectSelect.addEventListener('change', syncFromSelectedObject);
+        roomSelect.addEventListener('change', renderPreview);
+        xInput.addEventListener('input', renderPreview);
+        yInput.addEventListener('input', renderPreview);
+        previewScene.addEventListener('pointerdown', onPointerDown);
+        previewScene.addEventListener('pointermove', onPointerMove);
+        previewScene.addEventListener('pointerup', onPointerUp);
+        previewScene.addEventListener('pointercancel', onPointerUp);
+
+        if (objectSelect.value) {
+            syncFromSelectedObject();
+        } else {
+            renderPreview();
+        }
+    })();
+</script>
+</section>
+</html>
