@@ -372,13 +372,16 @@ public class GamePlayService {
         if (!hasText(firstItemKey) || !hasText(secondItemKey)) {
             throw new IllegalArgumentException("Bạn cần chọn đủ hai vật phẩm để kết hợp.");
         }
-        if (firstItemKey.equals(secondItemKey)) {
+        String normalizedFirst = firstItemKey.trim().toLowerCase();
+        String normalizedSecond = secondItemKey.trim().toLowerCase();
+
+        if (normalizedFirst.equals(normalizedSecond)) {
             throw new IllegalArgumentException("Hai vật phẩm phải khác nhau để kết hợp.");
         }
 
         PlayerRoomProgress progress = getOrCreateProgress(username, roomId);
         Set<String> collected = parseCsv(progress.getCollectedItems());
-        if (!collected.contains(firstItemKey) || !collected.contains(secondItemKey)) {
+        if (!collected.contains(normalizedFirst) || !collected.contains(normalizedSecond)) {
             throw new IllegalArgumentException("Bạn chưa nhặt đủ hai vật phẩm này.");
         }
 
@@ -386,7 +389,7 @@ public class GamePlayService {
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phòng"));
 
         if (isLabScenario(room)) {
-            return combineItemsForLab(progress, firstItemKey, secondItemKey);
+            return combineItemsForLab(progress, normalizedFirst, normalizedSecond);
         }
 
         throw new IllegalArgumentException("Hai vật phẩm này chưa tạo ra manh mối mới.");

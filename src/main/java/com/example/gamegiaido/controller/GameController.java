@@ -185,8 +185,9 @@ public class GameController {
         java.util.Map<String, Object> payload = new java.util.HashMap<>();
         try {
             String message = gamePlayService.collectItem(authentication.getName(), roomId, itemKey);
-            int inventoryCount = gamePlayService.getCollectedItems(authentication.getName(), roomId).size();
-            var collectedItem = gamePlayService.getCollectedItems(authentication.getName(), roomId).stream()
+            var inventoryItems = gamePlayService.getCollectedItems(authentication.getName(), roomId);
+            int inventoryCount = inventoryItems.size();
+            var collectedItem = inventoryItems.stream()
                     .filter(item -> item.getKey().equals(itemKey))
                     .findFirst()
                     .orElse(null);
@@ -198,6 +199,34 @@ public class GameController {
                 payload.put("itemName", collectedItem.getName());
                 payload.put("itemIcon", collectedItem.getIcon());
             }
+        } catch (IllegalArgumentException ex) {
+            payload.put("success", false);
+            payload.put("message", ex.getMessage());
+        }
+        return payload;
+    }
+
+    @PostMapping("/game/rooms/{roomId}/combine-ajax")
+    @ResponseBody
+    public java.util.Map<String, Object> combineItemsAjax(@PathVariable Long roomId,
+                                                           @RequestParam String firstItem,
+                                                           @RequestParam String secondItem,
+                                                           Authentication authentication) {
+        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+        try {
+            String clue = gamePlayService.combineItems(authentication.getName(), roomId, firstItem, secondItem);
+            var inventoryItems = gamePlayService.getCollectedItems(authentication.getName(), roomId);
+
+            payload.put("success", true);
+            payload.put("message", "Kết hợp thành công! " + clue);
+            payload.put("inventoryCount", inventoryItems.size());
+            payload.put("inventoryItems", inventoryItems.stream().map(item -> {
+                java.util.Map<String, Object> itemMap = new java.util.HashMap<>();
+                itemMap.put("key", item.getKey());
+                itemMap.put("name", item.getName());
+                itemMap.put("icon", item.getIcon());
+                return itemMap;
+            }).toList());
         } catch (IllegalArgumentException ex) {
             payload.put("success", false);
             payload.put("message", ex.getMessage());

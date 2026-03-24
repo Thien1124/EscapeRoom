@@ -1,43 +1,666 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Admin quản lý dữ liệu', ~{::section})}">
 <section>
-    <div class="card app-hero">
-        <h1>Admin - Quản lý dữ liệu game</h1>
-        <p>Quản lý chủ đề, phòng, câu hỏi và hotspot giao diện.</p>
-        <p>Tài khoản mặc định: <strong>admin</strong> / <strong>admin123</strong></p>
+    <!-- Custom Admin Styles -->
+    <style>
+        /* ==================== ADMIN VARIABLES ==================== */
+        :root {
+            --admin-primary: #8b5cf6;
+            --admin-primary-glow: rgba(139, 92, 246, 0.4);
+            --admin-secondary: #06b6d4;
+            --admin-secondary-glow: rgba(6, 182, 212, 0.4);
+            --admin-accent: #f59e0b;
+            --admin-accent-glow: rgba(245, 158, 11, 0.4);
+            --admin-success: #10b981;
+            --admin-success-glow: rgba(16, 185, 129, 0.4);
+            --admin-danger: #ef4444;
+            --admin-danger-glow: rgba(239, 68, 68, 0.4);
+            --admin-dark: #0f0f1a;
+            --admin-card: rgba(20, 20, 35, 0.9);
+            --admin-border: rgba(139, 92, 246, 0.2);
+            --admin-text: #e2e8f0;
+            --admin-text-muted: rgba(255, 255, 255, 0.6);
+        }
 
-        <div class="notice success" th:if="${adminSuccess}" th:text="${adminSuccess}"></div>
-        <div class="notice error" th:if="${adminError}" th:text="${adminError}"></div>
+        /* ==================== HERO SECTION ==================== */
+        .admin-hero {
+            background: linear-gradient(135deg, 
+                rgba(139, 92, 246, 0.2) 0%, 
+                rgba(6, 182, 212, 0.2) 50%,
+                rgba(245, 158, 11, 0.1) 100%);
+            border: 1px solid var(--admin-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
 
-        <div class="actions">
-            <a class="btn secondary" th:href="@{/}">Về trang chủ</a>
+        .admin-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                from 0deg,
+                transparent,
+                rgba(139, 92, 246, 0.1),
+                transparent,
+                rgba(6, 182, 212, 0.1),
+                transparent
+            );
+            animation: rotateGlow 10s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotateGlow {
+            100% { transform: rotate(360deg); }
+        }
+
+        .admin-hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .admin-hero h1 {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff, var(--admin-primary), var(--admin-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .admin-hero h1 i {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px var(--admin-primary-glow));
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(5deg); }
+        }
+
+        .admin-hero p {
+            color: var(--admin-text-muted);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-hero .credentials {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            margin-top: 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+        }
+
+        .admin-hero .credentials i {
+            color: var(--admin-success);
+        }
+
+        .admin-hero .credentials strong {
+            color: var(--admin-success);
+        }
+
+        /* ==================== NOTICE ALERTS ==================== */
+        .notice {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            font-weight: 500;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .notice::before {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 1.2rem;
+        }
+
+        .notice.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+        }
+
+        .notice.success::before {
+            content: '\f058';
+            color: var(--admin-success);
+        }
+
+        .notice.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #f87171;
+        }
+
+        .notice.error::before {
+            content: '\f06a';
+            color: var(--admin-danger);
+        }
+
+        /* ==================== ADMIN CARDS ==================== */
+        .admin-section-card {
+            background: var(--admin-card);
+            border: 1px solid var(--admin-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.4s ease;
+            transform-style: preserve-3d;
+        }
+
+        .admin-section-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--admin-primary), var(--admin-secondary), var(--admin-accent));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .admin-section-card:hover::before {
+            opacity: 1;
+        }
+
+        .admin-section-card:hover {
+            transform: translateY(-5px) rotateX(2deg);
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                0 0 40px var(--admin-primary-glow);
+            border-color: var(--admin-primary);
+        }
+
+        .admin-section-card h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--admin-border);
+            color: #fff;
+        }
+
+        .admin-section-card h2 i {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
+            border-radius: 12px;
+            font-size: 1rem;
+            box-shadow: 0 4px 15px var(--admin-primary-glow);
+        }
+
+        /* Card Type Colors */
+        .admin-section-card.card-topic h2 i { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+        .admin-section-card.card-room h2 i { background: linear-gradient(135deg, #06b6d4, #22d3ee); }
+        .admin-section-card.card-question h2 i { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .admin-section-card.card-hotspot h2 i { background: linear-gradient(135deg, #ec4899, #f472b6); }
+        .admin-section-card.card-key h2 i { background: linear-gradient(135deg, #10b981, #34d399); }
+
+        /* ==================== FORM STYLING ==================== */
+        .grid {
+            display: grid;
+            gap: 1.2rem;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .field label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--admin-text);
+        }
+
+        .field label i {
+            color: var(--admin-primary);
+            font-size: 0.85rem;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            padding: 0.9rem 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            color: var(--admin-text);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .field input::placeholder,
+        .field textarea::placeholder {
+            color: var(--admin-text-muted);
+        }
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            outline: none;
+            border-color: var(--admin-primary);
+            background: rgba(139, 92, 246, 0.1);
+            box-shadow: 
+                0 0 0 3px var(--admin-primary-glow),
+                0 0 20px var(--admin-primary-glow);
+        }
+
+        .field select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%238b5cf6' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.5rem;
+            padding-right: 3rem;
+        }
+
+        .field select option {
+            background: var(--admin-dark);
+            color: var(--admin-text);
+            padding: 0.5rem;
+        }
+
+        .field small {
+            color: var(--admin-danger);
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .field small::before {
+            content: '\f071';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 0.7rem;
+        }
+
+        /* ==================== BUTTONS ==================== */
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn,
+        button[type="submit"] {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            padding: 0.9rem 1.8rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        button[type="submit"] {
+            background: linear-gradient(135deg, var(--admin-primary), #a855f7);
+            color: #fff;
+            box-shadow: 0 4px 20px var(--admin-primary-glow);
+        }
+
+        button[type="submit"]::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        button[type="submit"]:hover::before {
+            left: 100%;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 
+                0 10px 40px var(--admin-primary-glow),
+                0 0 60px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--admin-text);
+            border: 1px solid var(--admin-border);
+        }
+
+        .btn.secondary:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: var(--admin-primary);
+            transform: translateY(-2px);
+        }
+
+        /* ==================== TABLE STYLING ==================== */
+        .table-card {
+            margin-top: 2rem;
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid var(--admin-border);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .table thead {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2));
+        }
+
+        .table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--admin-text);
+            border-bottom: 2px solid var(--admin-primary);
+            white-space: nowrap;
+        }
+
+        .table th i {
+            margin-right: 0.5rem;
+            color: var(--admin-primary);
+        }
+
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--admin-border);
+            color: var(--admin-text-muted);
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .table tbody tr:hover td {
+            color: var(--admin-text);
+        }
+
+        /* ==================== PREVIEW SECTION ==================== */
+        .admin-preview-scene {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid var(--admin-border);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .admin-preview-scene::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 92, 246, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+
+        .admin-preview-title {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--admin-text-muted);
+            z-index: 10;
+        }
+
+        .admin-preview-title::before {
+            content: '\f03e';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--admin-primary);
+        }
+
+        .admin-preview-marker {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            margin-left: -18px;
+            margin-top: -18px;
+            background: linear-gradient(135deg, var(--admin-accent), #fcd34d);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #000;
+            cursor: grab;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 4px 15px var(--admin-accent-glow),
+                0 0 30px var(--admin-accent-glow);
+            z-index: 5;
+        }
+
+        .admin-preview-marker:hover {
+            transform: scale(1.2);
+        }
+
+        .admin-preview-marker.active {
+            background: linear-gradient(135deg, var(--admin-danger), #f87171);
+            box-shadow: 
+                0 4px 15px var(--admin-danger-glow),
+                0 0 40px var(--admin-danger-glow);
+            animation: markerPulse 1.5s ease-in-out infinite;
+            cursor: grabbing;
+        }
+
+        @keyframes markerPulse {
+            0%, 100% { box-shadow: 0 0 20px var(--admin-danger-glow); }
+            50% { box-shadow: 0 0 40px var(--admin-danger-glow), 0 0 60px var(--admin-danger-glow); }
+        }
+
+        .admin-preview-scene.dragging {
+            cursor: grabbing;
+        }
+
+        .admin-hint {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            color: var(--admin-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .admin-hint::before {
+            content: '\f0eb';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .admin-hero {
+                padding: 1.5rem;
+            }
+
+            .admin-hero h1 {
+                font-size: 1.5rem;
+                flex-wrap: wrap;
+            }
+
+            .admin-section-card {
+                padding: 1.5rem;
+            }
+
+            .admin-section-card h2 {
+                font-size: 1.2rem;
+            }
+
+            .admin-preview-scene {
+                height: 200px;
+            }
+        }
+    </style>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ==================== HERO SECTION ==================== -->
+    <div class="admin-hero">
+        <div class="admin-hero-content">
+            <h1>
+                <i class="fas fa-shield-halved"></i>
+                Admin - Quản lý dữ liệu game
+            </h1>
+            <p><i class="fas fa-info-circle"></i> Quản lý chủ đề, phòng, câu hỏi và hotspot giao diện.</p>
+            <div class="credentials">
+                <i class="fas fa-user-shield"></i>
+                Tài khoản mặc định: <strong>admin</strong> / <strong>admin123</strong>
+            </div>
+
+            <!-- Notices -->
+            <div class="notice success" th:if="${adminSuccess}">
+                <span th:text="${adminSuccess}"></span>
+            </div>
+            <div class="notice error" th:if="${adminError}">
+                <span th:text="${adminError}"></span>
+            </div>
+
+            <div class="actions">
+                <a class="btn secondary" th:href="@{/}">
+                    <i class="fas fa-home"></i>
+                    Về trang chủ
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="card admin-section-card">
-        <h2>Tạo chủ đề</h2>
-        <form th:action="@{/admin/topics}" th:object="${adminTopicForm}" method="post" class="grid">
+    <!-- ==================== TẠO CHỦ ĐỀ ==================== -->
+    <div class="admin-section-card card-topic">
+        <h2>
+            <i class="fas fa-folder-plus"></i>
+            Tạo chủ đề
+        </h2>
+        <form th:action="@{/admin/topics}" th:object="${adminTopicForm}" method="post" class="grid grid-2">
             <div class="field">
-                <label>Tên chủ đề</label>
-                <input type="text" th:field="*{name}">
+                <label><i class="fas fa-tag"></i> Tên chủ đề</label>
+                <input type="text" th:field="*{name}" placeholder="Nhập tên chủ đề...">
                 <small th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></small>
             </div>
             <div class="field">
-                <label>Mô tả</label>
-                <input type="text" th:field="*{description}">
+                <label><i class="fas fa-align-left"></i> Mô tả</label>
+                <input type="text" th:field="*{description}" placeholder="Mô tả ngắn gọn...">
                 <small th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
             </div>
             <div class="actions">
-                <button type="submit">Tạo chủ đề</button>
+                <button type="submit">
+                    <i class="fas fa-plus-circle"></i>
+                    Tạo chủ đề
+                </button>
             </div>
         </form>
     </div>
 
-    <div class="card admin-section-card">
-        <h2>Tạo phòng</h2>
+    <!-- ==================== TẠO PHÒNG ==================== -->
+    <div class="admin-section-card card-room">
+        <h2>
+            <i class="fas fa-door-open"></i>
+            Tạo phòng
+        </h2>
         <form th:action="@{/admin/rooms}" th:object="${adminRoomForm}" method="post" class="grid grid-2">
             <div class="field">
-                <label>Chủ đề</label>
+                <label><i class="fas fa-folder"></i> Chủ đề</label>
                 <select th:field="*{topicId}">
                     <option value="">-- Chọn chủ đề --</option>
                     <option th:each="topic : ${topics}" th:value="${topic.id}" th:text="${topic.name}"></option>
@@ -45,17 +668,17 @@
                 <small th:if="${#fields.hasErrors('topicId')}" th:errors="*{topicId}"></small>
             </div>
             <div class="field">
-                <label>Tên phòng</label>
-                <input type="text" th:field="*{name}">
+                <label><i class="fas fa-signature"></i> Tên phòng</label>
+                <input type="text" th:field="*{name}" placeholder="Nhập tên phòng...">
                 <small th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></small>
             </div>
             <div class="field">
-                <label>Mô tả</label>
-                <input type="text" th:field="*{description}">
+                <label><i class="fas fa-align-left"></i> Mô tả</label>
+                <input type="text" th:field="*{description}" placeholder="Mô tả phòng...">
                 <small th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
             </div>
             <div class="field">
-                <label>Chế độ</label>
+                <label><i class="fas fa-gamepad"></i> Chế độ</label>
                 <select th:field="*{mode}">
                     <option value="">-- Chọn chế độ --</option>
                     <option th:each="mode : ${modes}" th:value="${mode}" th:text="${mode}"></option>
@@ -63,21 +686,28 @@
                 <small th:if="${#fields.hasErrors('mode')}" th:errors="*{mode}"></small>
             </div>
             <div class="field">
-                <label>Thứ tự phòng</label>
-                <input type="number" th:field="*{roomOrder}">
+                <label><i class="fas fa-sort-numeric-up"></i> Thứ tự phòng</label>
+                <input type="number" th:field="*{roomOrder}" placeholder="1, 2, 3...">
                 <small th:if="${#fields.hasErrors('roomOrder')}" th:errors="*{roomOrder}"></small>
             </div>
             <div class="actions">
-                <button type="submit">Tạo phòng</button>
+                <button type="submit">
+                    <i class="fas fa-plus-circle"></i>
+                    Tạo phòng
+                </button>
             </div>
         </form>
     </div>
 
-    <div class="card admin-section-card">
-        <h2>Tạo / Cập nhật câu hỏi phòng</h2>
+    <!-- ==================== TẠO CÂU HỎI ==================== -->
+    <div class="admin-section-card card-question">
+        <h2>
+            <i class="fas fa-question-circle"></i>
+            Tạo / Cập nhật câu hỏi phòng
+        </h2>
         <form th:action="@{/admin/questions}" th:object="${adminQuestionForm}" method="post" class="grid grid-2">
             <div class="field">
-                <label>Phòng</label>
+                <label><i class="fas fa-door-closed"></i> Phòng</label>
                 <select th:field="*{roomId}">
                     <option value="">-- Chọn phòng --</option>
                     <option th:each="room : ${rooms}" th:value="${room.id}" th:text="${room.topic.name + ' - ' + room.name}"></option>
@@ -85,56 +715,63 @@
                 <small th:if="${#fields.hasErrors('roomId')}" th:errors="*{roomId}"></small>
             </div>
             <div class="field">
-                <label>Câu hỏi</label>
-                <input type="text" th:field="*{questionText}">
+                <label><i class="fas fa-clipboard-question"></i> Câu hỏi</label>
+                <input type="text" th:field="*{questionText}" placeholder="Nhập nội dung câu hỏi...">
                 <small th:if="${#fields.hasErrors('questionText')}" th:errors="*{questionText}"></small>
             </div>
             <div class="field">
-                <label>Manh mối trong môi trường</label>
+                <label><i class="fas fa-lightbulb"></i> Manh mối trong môi trường</label>
                 <input type="text" th:field="*{clueText}" placeholder="Ví dụ: Hydro x2 + Oxygen">
                 <small th:if="${#fields.hasErrors('clueText')}" th:errors="*{clueText}"></small>
             </div>
             <div class="field">
-                <label>Mã mở khóa cần nhập</label>
+                <label><i class="fas fa-key"></i> Mã mở khóa cần nhập</label>
                 <input type="text" th:field="*{answerCode}" placeholder="Ví dụ: H2O">
                 <small th:if="${#fields.hasErrors('answerCode')}" th:errors="*{answerCode}"></small>
             </div>
             <div class="field">
-                <label>Đáp án A (tùy chọn)</label>
-                <input type="text" th:field="*{optionA}">
+                <label><i class="fas fa-a"></i> Đáp án A (tùy chọn)</label>
+                <input type="text" th:field="*{optionA}" placeholder="Đáp án A">
                 <small th:if="${#fields.hasErrors('optionA')}" th:errors="*{optionA}"></small>
             </div>
             <div class="field">
-                <label>Đáp án B (tùy chọn)</label>
-                <input type="text" th:field="*{optionB}">
+                <label><i class="fas fa-b"></i> Đáp án B (tùy chọn)</label>
+                <input type="text" th:field="*{optionB}" placeholder="Đáp án B">
                 <small th:if="${#fields.hasErrors('optionB')}" th:errors="*{optionB}"></small>
             </div>
             <div class="field">
-                <label>Đáp án C (tùy chọn)</label>
-                <input type="text" th:field="*{optionC}">
+                <label><i class="fas fa-c"></i> Đáp án C (tùy chọn)</label>
+                <input type="text" th:field="*{optionC}" placeholder="Đáp án C">
                 <small th:if="${#fields.hasErrors('optionC')}" th:errors="*{optionC}"></small>
             </div>
             <div class="field">
-                <label>Đáp án D (tùy chọn)</label>
-                <input type="text" th:field="*{optionD}">
+                <label><i class="fas fa-d"></i> Đáp án D (tùy chọn)</label>
+                <input type="text" th:field="*{optionD}" placeholder="Đáp án D">
                 <small th:if="${#fields.hasErrors('optionD')}" th:errors="*{optionD}"></small>
             </div>
             <div class="field">
-                <label>Đáp án đúng MCQ (tùy chọn A/B/C/D)</label>
-                <input type="text" th:field="*{correctOption}">
+                <label><i class="fas fa-check-circle"></i> Đáp án đúng MCQ (A/B/C/D)</label>
+                <input type="text" th:field="*{correctOption}" placeholder="A, B, C hoặc D">
                 <small th:if="${#fields.hasErrors('correctOption')}" th:errors="*{correctOption}"></small>
             </div>
             <div class="actions">
-                <button type="submit">Lưu câu hỏi</button>
+                <button type="submit">
+                    <i class="fas fa-save"></i>
+                    Lưu câu hỏi
+                </button>
             </div>
         </form>
     </div>
 
-    <div class="card admin-section-card">
-        <h2>Chỉnh hotspot từng vật thể + preview trực tiếp</h2>
+    <!-- ==================== CHỈNH HOTSPOT ==================== -->
+    <div class="admin-section-card card-hotspot">
+        <h2>
+            <i class="fas fa-crosshairs"></i>
+            Chỉnh hotspot từng vật thể + preview trực tiếp
+        </h2>
         <form th:action="@{/admin/hotspots}" th:object="${adminObjectHotspotForm}" method="post" class="grid grid-2" id="object-hotspot-form">
             <div class="field">
-                <label>Chọn phòng để preview</label>
+                <label><i class="fas fa-eye"></i> Chọn phòng để preview</label>
                 <select id="preview-room-select">
                     <option value="">-- Chọn phòng --</option>
                     <option th:each="room : ${rooms}" th:value="${room.id}" th:text="${room.topic.name + ' - ' + room.name}"></option>
@@ -142,7 +779,7 @@
             </div>
 
             <div class="field">
-                <label>Vật thể</label>
+                <label><i class="fas fa-cube"></i> Vật thể</label>
                 <select th:field="*{objectId}" id="object-select">
                     <option value="">-- Chọn vật thể --</option>
                     <option th:each="obj : ${roomObjects}"
@@ -154,39 +791,47 @@
             </div>
 
             <div class="field">
-                <label>Hotspot X (0-100)</label>
-                <input type="number" min="0" max="100" th:field="*{hotspotX}" id="hotspot-x-input">
+                <label><i class="fas fa-arrows-left-right"></i> Hotspot X (0-100)</label>
+                <input type="number" min="0" max="100" th:field="*{hotspotX}" id="hotspot-x-input" placeholder="0-100">
                 <small th:if="${#fields.hasErrors('hotspotX')}" th:errors="*{hotspotX}"></small>
             </div>
             <div class="field">
-                <label>Hotspot Y (0-100)</label>
-                <input type="number" min="0" max="100" th:field="*{hotspotY}" id="hotspot-y-input">
+                <label><i class="fas fa-arrows-up-down"></i> Hotspot Y (0-100)</label>
+                <input type="number" min="0" max="100" th:field="*{hotspotY}" id="hotspot-y-input" placeholder="0-100">
                 <small th:if="${#fields.hasErrors('hotspotY')}" th:errors="*{hotspotY}"></small>
             </div>
 
-            <div class="field">
-                <label>Preview scene</label>
+            <div class="field" style="grid-column: span 2;">
+                <label><i class="fas fa-image"></i> Preview scene</label>
                 <div class="admin-preview-scene" id="admin-preview-scene">
                     <div class="admin-preview-title">Preview hotspot theo phòng</div>
                 </div>
             </div>
 
-            <div class="field">
-                <label>Gợi ý</label>
-                <p class="admin-hint">Chọn vật thể rồi kéo marker vàng trong preview để đổi vị trí, hoặc nhập X/Y thủ công.</p>
+            <div class="field" style="grid-column: span 2;">
+                <p class="admin-hint">
+                    Chọn vật thể rồi kéo marker đỏ trong preview để đổi vị trí, hoặc nhập X/Y thủ công. Marker vàng là các vật thể khác trong phòng.
+                </p>
             </div>
 
             <div class="actions">
-                <button type="submit">Lưu tọa độ hotspot</button>
+                <button type="submit">
+                    <i class="fas fa-save"></i>
+                    Lưu tọa độ hotspot
+                </button>
             </div>
         </form>
     </div>
 
-    <div class="card admin-section-card">
-        <h2>Chìa khóa ẩn theo phòng (hỗ trợ ảnh ngoài)</h2>
+    <!-- ==================== CHÌA KHÓA ẨN ==================== -->
+    <div class="admin-section-card card-key">
+        <h2>
+            <i class="fas fa-key"></i>
+            Chìa khóa ẩn theo phòng (hỗ trợ ảnh ngoài)
+        </h2>
         <form th:action="@{/admin/room-keys}" th:object="${adminRoomKeyForm}" method="post" class="grid grid-2">
             <div class="field">
-                <label>Phòng</label>
+                <label><i class="fas fa-door-closed"></i> Phòng</label>
                 <select th:field="*{roomId}">
                     <option value="">-- Chọn phòng --</option>
                     <option th:each="room : ${rooms}" th:value="${room.id}" th:text="${room.topic.name + ' - ' + room.name}"></option>
@@ -194,53 +839,65 @@
                 <small th:if="${#fields.hasErrors('roomId')}" th:errors="*{roomId}"></small>
             </div>
             <div class="field">
-                <label>Mã chìa khóa</label>
+                <label><i class="fas fa-barcode"></i> Mã chìa khóa</label>
                 <input type="text" th:field="*{keyCode}" placeholder="vd: uv_lamp">
                 <small th:if="${#fields.hasErrors('keyCode')}" th:errors="*{keyCode}"></small>
             </div>
             <div class="field">
-                <label>Tên chìa khóa</label>
+                <label><i class="fas fa-tag"></i> Tên chìa khóa</label>
                 <input type="text" th:field="*{keyName}" placeholder="vd: Đèn UV">
                 <small th:if="${#fields.hasErrors('keyName')}" th:errors="*{keyName}"></small>
             </div>
             <div class="field">
-                <label>URL ảnh ngoài (ẩn chìa khóa)</label>
+                <label><i class="fas fa-link"></i> URL ảnh ngoài (ẩn chìa khóa)</label>
                 <input type="text" th:field="*{imageUrl}" placeholder="https://.../key.png">
                 <small th:if="${#fields.hasErrors('imageUrl')}" th:errors="*{imageUrl}"></small>
             </div>
             <div class="field">
-                <label>Tọa độ X (0-100)</label>
-                <input type="number" min="0" max="100" th:field="*{spotX}">
+                <label><i class="fas fa-arrows-left-right"></i> Tọa độ X (0-100)</label>
+                <input type="number" min="0" max="100" th:field="*{spotX}" placeholder="0-100">
                 <small th:if="${#fields.hasErrors('spotX')}" th:errors="*{spotX}"></small>
             </div>
             <div class="field">
-                <label>Tọa độ Y (0-100)</label>
-                <input type="number" min="0" max="100" th:field="*{spotY}">
+                <label><i class="fas fa-arrows-up-down"></i> Tọa độ Y (0-100)</label>
+                <input type="number" min="0" max="100" th:field="*{spotY}" placeholder="0-100">
                 <small th:if="${#fields.hasErrors('spotY')}" th:errors="*{spotY}"></small>
             </div>
             <div class="actions">
-                <button type="submit">Lưu chìa khóa ẩn</button>
+                <button type="submit">
+                    <i class="fas fa-save"></i>
+                    Lưu chìa khóa ẩn
+                </button>
             </div>
         </form>
 
+        <!-- Table hiển thị danh sách chìa khóa -->
         <div class="table-card" th:if="${!#lists.isEmpty(roomKeys)}">
             <table class="table">
                 <thead>
                 <tr>
-                    <th>Phòng</th>
-                    <th>Mã</th>
-                    <th>Tên</th>
-                    <th>Ảnh ngoài</th>
-                    <th>X</th>
-                    <th>Y</th>
+                    <th><i class="fas fa-door-open"></i> Phòng</th>
+                    <th><i class="fas fa-barcode"></i> Mã</th>
+                    <th><i class="fas fa-tag"></i> Tên</th>
+                    <th><i class="fas fa-image"></i> Ảnh ngoài</th>
+                    <th><i class="fas fa-arrows-left-right"></i> X</th>
+                    <th><i class="fas fa-arrows-up-down"></i> Y</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="key : ${roomKeys}">
                     <td th:text="${key.room.name}"></td>
-                    <td th:text="${key.keyCode}"></td>
+                    <td><code th:text="${key.keyCode}"></code></td>
                     <td th:text="${key.keyName}"></td>
-                    <td th:text="${key.imageUrl != null ? key.imageUrl : '(mặc định)'}"></td>
+                    <td>
+                        <span th:if="${key.imageUrl != null}" class="url-badge">
+                            <i class="fas fa-check-circle" style="color: var(--admin-success);"></i>
+                            Có
+                        </span>
+                        <span th:unless="${key.imageUrl != null}" style="color: var(--admin-text-muted);">
+                            (mặc định)
+                        </span>
+                    </td>
                     <td th:text="${key.spotX}"></td>
                     <td th:text="${key.spotY}"></td>
                 </tr>
@@ -248,7 +905,9 @@
             </table>
         </div>
     </div>
-<script th:inline="javascript">
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script th:inline="javascript">
     (function () {
         const objectSelect = document.getElementById('object-select');
         const roomSelect = document.getElementById('preview-room-select');
@@ -257,6 +916,7 @@
         const previewScene = document.getElementById('admin-preview-scene');
         let dragging = false;
         let pointerId = null;
+
         if (!objectSelect || !roomSelect || !xInput || !yInput || !previewScene) {
             return;
         }
@@ -413,7 +1073,26 @@
         } else {
             renderPreview();
         }
+
+        // Add 3D tilt effect to cards
+        document.querySelectorAll('.admin-section-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                if (window.innerWidth < 768) return;
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = (y - centerY) / 50;
+                const rotateY = (centerX - x) / 50;
+                card.style.transform = `translateY(-5px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+            });
+        });
     })();
-</script>
+    </script>
 </section>
 </html>

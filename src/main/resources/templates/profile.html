@@ -1,62 +1,949 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Thông tin người chơi', ~{::section})}">
 <section>
-    <div class="card app-hero">
-        <h1>Quản lý thông tin người chơi</h1>
-        <p>Cập nhật hồ sơ và bảo mật tài khoản.</p>
+    <!-- Custom Profile Styles -->
+    <style>
+        /* ==================== PROFILE VARIABLES ==================== */
+        :root {
+            --pf-primary: #8b5cf6;
+            --pf-primary-glow: rgba(139, 92, 246, 0.5);
+            --pf-secondary: #06b6d4;
+            --pf-secondary-glow: rgba(6, 182, 212, 0.5);
+            --pf-accent: #f59e0b;
+            --pf-accent-glow: rgba(245, 158, 11, 0.5);
+            --pf-success: #10b981;
+            --pf-success-glow: rgba(16, 185, 129, 0.5);
+            --pf-danger: #ef4444;
+            --pf-danger-glow: rgba(239, 68, 68, 0.4);
+            --pf-dark: #0a0a0f;
+            --pf-card: rgba(15, 15, 25, 0.95);
+            --pf-border: rgba(139, 92, 246, 0.2);
+            --pf-text: #e2e8f0;
+            --pf-text-muted: rgba(255, 255, 255, 0.6);
+        }
 
-        <div class="row">
-            <span class="badge" th:text="${'Tài khoản: ' + profile.account.username}"></span>
-            <span class="badge ok" th:text="${'Tổng điểm: ' + profile.totalScore}"></span>
-            <span class="badge warn" th:text="${'Số trận thắng: ' + profile.totalWin}"></span>
+        /* ==================== HERO SECTION ==================== */
+        .pf-hero {
+            background: linear-gradient(135deg, 
+                rgba(139, 92, 246, 0.15) 0%, 
+                rgba(6, 182, 212, 0.15) 50%,
+                rgba(236, 72, 153, 0.1) 100%);
+            border: 1px solid var(--pf-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            text-align: center;
+        }
+
+        .pf-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                from 0deg,
+                transparent,
+                rgba(139, 92, 246, 0.1),
+                transparent,
+                rgba(6, 182, 212, 0.1),
+                transparent
+            );
+            animation: rotateGlow 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotateGlow {
+            100% { transform: rotate(360deg); }
+        }
+
+        .pf-hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .pf-hero h1 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            background: linear-gradient(135deg, #fff, var(--pf-primary), var(--pf-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .pf-hero h1 i {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, var(--pf-primary), var(--pf-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px var(--pf-primary-glow));
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(5deg); }
+        }
+
+        .pf-hero p {
+            color: var(--pf-text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pf-hero p i {
+            color: var(--pf-primary);
+            margin-right: 0.3rem;
+        }
+
+        /* ==================== AVATAR SECTION ==================== */
+        .pf-avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .pf-avatar {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--pf-primary), var(--pf-secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 10px 40px var(--pf-primary-glow),
+                inset 0 -5px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .pf-avatar:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 
+                0 15px 50px var(--pf-primary-glow),
+                0 0 60px var(--pf-secondary-glow);
+        }
+
+        .pf-avatar::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 15px;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            filter: blur(5px);
+        }
+
+        .pf-level {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.3));
+            border: 1px solid var(--pf-border);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .pf-level i {
+            color: var(--pf-accent);
+        }
+
+        /* ==================== STATS BADGES ==================== */
+        .pf-stats {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .pf-stat-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.8rem 1.4rem;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pf-stat-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .pf-stat-badge:hover::before {
+            left: 100%;
+        }
+
+        .pf-stat-badge:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        .pf-stat-badge i {
+            font-size: 1rem;
+        }
+
+        .pf-stat-badge.account {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: #a78bfa;
+        }
+
+        .pf-stat-badge.account:hover {
+            box-shadow: 0 10px 30px var(--pf-primary-glow);
+        }
+
+        .pf-stat-badge.score {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+        }
+
+        .pf-stat-badge.score:hover {
+            box-shadow: 0 10px 30px var(--pf-success-glow);
+        }
+
+        .pf-stat-badge.wins {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #fbbf24;
+        }
+
+        .pf-stat-badge.wins:hover {
+            box-shadow: 0 10px 30px var(--pf-accent-glow);
+        }
+
+        /* ==================== FORM CARDS ==================== */
+        .pf-card {
+            background: var(--pf-card);
+            border: 1px solid var(--pf-border);
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        .pf-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--pf-primary), var(--pf-secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .pf-card:hover::before {
+            opacity: 1;
+        }
+
+        .pf-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                0 0 40px var(--pf-primary-glow);
+            border-color: var(--pf-primary);
+        }
+
+        .pf-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--pf-border);
+        }
+
+        .pf-card-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--pf-primary), var(--pf-secondary));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #fff;
+            box-shadow: 0 4px 15px var(--pf-primary-glow);
+            transition: all 0.3s ease;
+        }
+
+        .pf-card:hover .pf-card-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .pf-card.password .pf-card-icon {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            box-shadow: 0 4px 15px var(--pf-danger-glow);
+        }
+
+        .pf-card h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #fff;
+            margin: 0;
+        }
+
+        /* ==================== NOTICES ==================== */
+        .notice {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .notice::before {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .notice.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+        }
+
+        .notice.success::before {
+            content: '\f058';
+            color: var(--pf-success);
+        }
+
+        .notice.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #f87171;
+        }
+
+        .notice.error::before {
+            content: '\f06a';
+            color: var(--pf-danger);
+        }
+
+        /* ==================== FORM STYLING ==================== */
+        .pf-form {
+            display: grid;
+            gap: 1.2rem;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .field label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--pf-text);
+        }
+
+        .field label i {
+            color: var(--pf-primary);
+            font-size: 0.9rem;
+            width: 18px;
+            text-align: center;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i.input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--pf-text-muted);
+            font-size: 1rem;
+            transition: color 0.3s;
+            pointer-events: none;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 0.9rem 1rem 0.9rem 3rem;
+        }
+
+        .input-wrapper:focus-within i.input-icon {
+            color: var(--pf-primary);
+        }
+
+        .field input {
+            padding: 0.9rem 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--pf-border);
+            border-radius: 12px;
+            color: var(--pf-text);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .field input::placeholder {
+            color: var(--pf-text-muted);
+        }
+
+        .field input:focus {
+            outline: none;
+            border-color: var(--pf-primary);
+            background: rgba(139, 92, 246, 0.1);
+            box-shadow: 
+                0 0 0 3px var(--pf-primary-glow),
+                0 0 20px var(--pf-primary-glow);
+        }
+
+        .field small {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--pf-danger);
+            font-size: 0.8rem;
+        }
+
+        .field small::before {
+            content: '\f071';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 0.7rem;
+        }
+
+        /* Password Toggle */
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--pf-text-muted);
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .password-toggle:hover {
+            color: var(--pf-primary);
+        }
+
+        /* ==================== BUTTONS ==================== */
+        .pf-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            padding: 0.9rem 1.8rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        button[type="submit"],
+        .btn.primary {
+            background: linear-gradient(135deg, var(--pf-primary), #a855f7);
+            color: #fff;
+            box-shadow: 0 4px 20px var(--pf-primary-glow);
+        }
+
+        button[type="submit"]::before,
+        .btn.primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        button[type="submit"]:hover::before,
+        .btn.primary:hover::before {
+            left: 100%;
+        }
+
+        button[type="submit"]:hover,
+        .btn.primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 
+                0 10px 40px var(--pf-primary-glow),
+                0 0 60px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--pf-text);
+            border: 1px solid var(--pf-border);
+        }
+
+        .btn.secondary:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: var(--pf-primary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px var(--pf-primary-glow);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            color: #fff;
+            box-shadow: 0 4px 20px var(--pf-danger-glow);
+        }
+
+        .btn.danger:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 40px var(--pf-danger-glow);
+        }
+
+        /* ==================== PASSWORD STRENGTH ==================== */
+        .password-strength {
+            display: flex;
+            gap: 0.3rem;
+            margin-top: 0.5rem;
+        }
+
+        .strength-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .strength-bar.active.weak { background: var(--pf-danger); }
+        .strength-bar.active.medium { background: var(--pf-accent); }
+        .strength-bar.active.strong { background: var(--pf-success); }
+
+        .strength-text {
+            font-size: 0.75rem;
+            margin-top: 0.3rem;
+            color: var(--pf-text-muted);
+        }
+
+        /* ==================== SECURITY INFO ==================== */
+        .security-info {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            padding: 1rem;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--pf-secondary);
+            line-height: 1.5;
+        }
+
+        .security-info i {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .pf-hero {
+                padding: 1.5rem;
+            }
+
+            .pf-hero h1 {
+                font-size: 1.5rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .pf-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+            }
+
+            .pf-stats {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .pf-stat-badge {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+
+            .pf-card {
+                padding: 1.5rem;
+            }
+
+            .pf-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* ==================== ANIMATIONS ==================== */
+        .pf-card {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .pf-card:nth-child(1) { animation-delay: 0.1s; }
+        .pf-card:nth-child(2) { animation-delay: 0.2s; }
+        .pf-card:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ==================== HERO SECTION ==================== -->
+    <div class="pf-hero">
+        <div class="pf-hero-content">
+            <h1>
+                <i class="fas fa-user-gear"></i>
+                Quản lý thông tin người chơi
+            </h1>
+            <p>
+                <i class="fas fa-shield-halved"></i>
+                Cập nhật hồ sơ và bảo mật tài khoản
+            </p>
+
+            <!-- Avatar Section -->
+            <div class="pf-avatar-section">
+                <div class="pf-avatar">
+                    <i class="fas fa-user-astronaut"></i>
+                </div>
+                <div class="pf-level">
+                    <i class="fas fa-star"></i>
+                    <span>Level Pro</span>
+                </div>
+            </div>
+
+            <!-- Stats Badges -->
+            <div class="pf-stats">
+                <div class="pf-stat-badge account">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Tài khoản: <strong th:text="${profile.account.username}">username</strong></span>
+                </div>
+                <div class="pf-stat-badge score">
+                    <i class="fas fa-coins"></i>
+                    <span>Tổng điểm: <strong th:text="${profile.totalScore}">0</strong></span>
+                </div>
+                <div class="pf-stat-badge wins">
+                    <i class="fas fa-trophy"></i>
+                    <span>Số trận thắng: <strong th:text="${profile.totalWin}">0</strong></span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="card">
-        <h2>Hồ sơ hiển thị</h2>
+    <!-- ==================== PROFILE CARD ==================== -->
+    <div class="pf-card">
+        <div class="pf-card-header">
+            <div class="pf-card-icon">
+                <i class="fas fa-id-card"></i>
+            </div>
+            <h2>Hồ sơ hiển thị</h2>
+        </div>
 
-        <div class="notice success" th:if="${profileSuccess}" th:text="${profileSuccess}"></div>
-        <div class="notice success" th:if="${passwordSuccess}" th:text="${passwordSuccess}"></div>
-        <div class="notice error" th:if="${passwordError}" th:text="${passwordError}"></div>
+        <!-- Notices -->
+        <div class="notice success" th:if="${profileSuccess}">
+            <span th:text="${profileSuccess}"></span>
+        </div>
+        <div class="notice success" th:if="${passwordSuccess}">
+            <span th:text="${passwordSuccess}"></span>
+        </div>
+        <div class="notice error" th:if="${passwordError}">
+            <span th:text="${passwordError}"></span>
+        </div>
 
-        <form th:action="@{/profile}" th:object="${updateProfileForm}" method="post" class="grid" style="margin-top: 12px;">
+        <form th:action="@{/profile}" th:object="${updateProfileForm}" method="post" class="pf-form">
             <div class="field">
-                <label>Tên hiển thị</label>
-                <input type="text" th:field="*{displayName}">
+                <label>
+                    <i class="fas fa-signature"></i>
+                    Tên hiển thị
+                </label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user input-icon"></i>
+                    <input type="text" th:field="*{displayName}" placeholder="Nhập tên hiển thị của bạn...">
+                </div>
                 <small th:if="${#fields.hasErrors('displayName')}" th:errors="*{displayName}"></small>
             </div>
 
-            <div class="actions">
-                <button type="submit">Lưu thay đổi</button>
-                <a class="btn secondary" th:href="@{/}">Quay lại trang chủ</a>
+            <div class="pf-actions">
+                <button type="submit">
+                    <i class="fas fa-save"></i>
+                    Lưu thay đổi
+                </button>
+                <a class="btn secondary" th:href="@{/}">
+                    <i class="fas fa-home"></i>
+                    Quay lại trang chủ
+                </a>
             </div>
         </form>
-
     </div>
 
-    <div class="card">
-        <h2>Đổi mật khẩu</h2>
-        <form th:action="@{/profile/password}" th:object="${changePasswordForm}" method="post" class="grid" style="margin-top: 12px;">
+    <!-- ==================== PASSWORD CARD ==================== -->
+    <div class="pf-card password">
+        <div class="pf-card-header">
+            <div class="pf-card-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2>Đổi mật khẩu</h2>
+        </div>
+
+        <form th:action="@{/profile/password}" th:object="${changePasswordForm}" method="post" class="pf-form">
             <div class="field">
-                <label>Mật khẩu hiện tại</label>
-                <input type="password" th:field="*{currentPassword}">
+                <label>
+                    <i class="fas fa-key"></i>
+                    Mật khẩu hiện tại
+                </label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" th:field="*{currentPassword}" placeholder="Nhập mật khẩu hiện tại..." id="currentPassword">
+                    <button type="button" class="password-toggle" onclick="togglePassword('currentPassword')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
                 <small th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}"></small>
             </div>
+
             <div class="field">
-                <label>Mật khẩu mới</label>
-                <input type="password" th:field="*{newPassword}">
+                <label>
+                    <i class="fas fa-key"></i>
+                    Mật khẩu mới
+                </label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" th:field="*{newPassword}" placeholder="Nhập mật khẩu mới..." id="newPassword" oninput="checkPasswordStrength(this.value)">
+                    <button type="button" class="password-toggle" onclick="togglePassword('newPassword')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="password-strength">
+                    <div class="strength-bar" id="strength-1"></div>
+                    <div class="strength-bar" id="strength-2"></div>
+                    <div class="strength-bar" id="strength-3"></div>
+                    <div class="strength-bar" id="strength-4"></div>
+                </div>
+                <div class="strength-text" id="strength-text"></div>
                 <small th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></small>
             </div>
+
             <div class="field">
-                <label>Xác nhận mật khẩu mới</label>
-                <input type="password" th:field="*{confirmPassword}">
+                <label>
+                    <i class="fas fa-check-double"></i>
+                    Xác nhận mật khẩu mới
+                </label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" th:field="*{confirmPassword}" placeholder="Nhập lại mật khẩu mới..." id="confirmPassword">
+                    <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
                 <small th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></small>
             </div>
-            <div class="actions">
-                <button type="submit">Đổi mật khẩu</button>
-                <a class="btn secondary" th:href="@{/}">Quay lại trang chủ</a>
+
+            <!-- Security Info -->
+            <div class="security-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Mẹo bảo mật:</strong> Sử dụng mật khẩu có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt để tăng cường bảo mật.
+                </div>
+            </div>
+
+            <div class="pf-actions">
+                <button type="submit" class="btn danger">
+                    <i class="fas fa-shield-halved"></i>
+                    Đổi mật khẩu
+                </button>
+                <a class="btn secondary" th:href="@{/}">
+                    <i class="fas fa-home"></i>
+                    Quay lại trang chủ
+                </a>
             </div>
         </form>
     </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // Toggle password visibility
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = input.parentElement.querySelector('.password-toggle i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Check password strength
+        function checkPasswordStrength(password) {
+            const bars = [
+                document.getElementById('strength-1'),
+                document.getElementById('strength-2'),
+                document.getElementById('strength-3'),
+                document.getElementById('strength-4')
+            ];
+            const strengthText = document.getElementById('strength-text');
+            
+            let strength = 0;
+            
+            if (password.length >= 6) strength++;
+            if (password.length >= 8) strength++;
+            if (/[A-Z]/.test(password) && /[a-z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            
+            // Reset all bars
+            bars.forEach(bar => {
+                bar.classList.remove('active', 'weak', 'medium', 'strong');
+            });
+            
+            // Set strength level
+            let level = '';
+            let color = '';
+            
+            if (strength <= 2) {
+                level = 'Yếu';
+                color = 'weak';
+            } else if (strength <= 3) {
+                level = 'Trung bình';
+                color = 'medium';
+            } else {
+                level = 'Mạnh';
+                color = 'strong';
+            }
+            
+            // Activate bars
+            const activeBars = Math.min(strength, 4);
+            for (let i = 0; i < activeBars; i++) {
+                bars[i].classList.add('active', color);
+            }
+            
+            strengthText.textContent = password.length > 0 ? `Độ mạnh: ${level}` : '';
+            strengthText.style.color = color === 'weak' ? '#ef4444' : (color === 'medium' ? '#f59e0b' : '#10b981');
+        }
+
+        // Add 3D tilt effect to cards
+        document.querySelectorAll('.pf-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                if (window.innerWidth < 768) return;
+                
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = (y - centerY) / 30;
+                const rotateY = (centerX - x) / 30;
+                
+                card.style.transform = `translateY(-5px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+            });
+        });
+
+        // Form validation feedback
+        document.querySelectorAll('.field input').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value.trim() === '') {
+                    this.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                } else {
+                    this.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                }
+            });
+
+            input.addEventListener('focus', function() {
+                this.style.borderColor = '';
+            });
+        });
+    </script>
 </section>
 </html>

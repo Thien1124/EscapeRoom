@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="metal-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#64748b"/>
+      <stop offset="50%" style="stop-color:#cbd5e1"/>
+      <stop offset="100%" style="stop-color:#64748b"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="28" width="48" height="8" fill="url(#metal-grad)" rx="4"/>
+  <ellipse cx="8" cy="32" rx="3" ry="4" fill="#475569"/>
+  <ellipse cx="56" cy="32" rx="3" ry="4" fill="#475569"/>
+</svg>

@@ -1,18 +1,733 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Chọn chủ đề', ~{::section})}">
+<head>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            --warning-gradient: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --card-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Page Background */
+        section {
+            min-height: 100vh;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        section::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            z-index: -2;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Animated Stars */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: twinkle 3s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+
+        /* Floating Game Elements */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .float-element {
+            position: absolute;
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.15);
+            animation: float-around 20s ease-in-out infinite;
+        }
+
+        .float-element:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+        .float-element:nth-child(2) { top: 20%; right: 10%; animation-delay: -3s; font-size: 2.5rem; }
+        .float-element:nth-child(3) { top: 60%; left: 8%; animation-delay: -6s; font-size: 2rem; }
+        .float-element:nth-child(4) { top: 70%; right: 5%; animation-delay: -9s; font-size: 3.5rem; }
+        .float-element:nth-child(5) { top: 40%; left: 15%; animation-delay: -12s; font-size: 1.5rem; }
+        .float-element:nth-child(6) { bottom: 20%; right: 15%; animation-delay: -15s; font-size: 2.8rem; }
+
+        @keyframes float-around {
+            0%, 100% { 
+                transform: translateY(0) rotate(0deg); 
+                opacity: 0.15;
+            }
+            50% { 
+                transform: translateY(-30px) rotate(180deg); 
+                opacity: 0.3;
+            }
+        }
+
+        /* Hero Section 3D */
+        .app-hero {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 3rem;
+            border-radius: 30px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            margin-bottom: 2rem;
+            transform: perspective(1000px) rotateX(5deg);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+            animation: shimmer 8s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .app-hero:hover {
+            transform: perspective(1000px) rotateX(0deg) translateY(-10px);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.3);
+        }
+
+        .app-hero h1 {
+            margin: 0 0 1rem 0;
+            font-size: 2.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .app-hero h1 i {
+            font-size: 3rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .app-hero p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 1.2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-hero p i {
+            margin-right: 0.5rem;
+        }
+
+        /* Form Card 3D */
+        .card:last-child {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 3rem;
+            border-radius: 30px;
+            box-shadow: var(--card-shadow);
+            max-width: 700px;
+            margin: 0 auto;
+            transform: perspective(1000px) rotateX(-5deg);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:last-child::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.4),
+                transparent
+            );
+            transition: left 0.7s ease;
+        }
+
+        .card:last-child:hover::before {
+            left: 100%;
+        }
+
+        .card:last-child:hover {
+            transform: perspective(1000px) rotateX(0deg) translateY(-10px);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            margin: 0 0 2rem 0;
+            font-size: 2rem;
+            text-align: center;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .card h2::before {
+            content: '\f013';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            -webkit-text-fill-color: #667eea;
+            font-size: 2rem;
+            animation: spin-slow 4s linear infinite;
+        }
+
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Form Grid */
+        .grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Field Container */
+        .field {
+            position: relative;
+        }
+
+        .field label {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .field label::before {
+            content: '';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            width: 40px;
+            height: 40px;
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .field:nth-child(1) label::before { content: '\f02b'; }
+        .field:nth-child(2) label::before { content: '\f11b'; }
+
+        /* Custom Select 3D */
+        .field select {
+            width: 100%;
+            padding: 1.2rem 1.5rem;
+            border: 3px solid #e8e8e8;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 24px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .field select:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .field select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2),
+                        0 10px 30px rgba(102, 126, 234, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .field select option {
+            padding: 1rem;
+            font-size: 1rem;
+        }
+
+        /* Topic Cards Preview (Optional) */
+        .topics-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 15px;
+        }
+
+        .topic-preview {
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .topic-preview:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .topic-preview i {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .topic-preview:nth-child(1) i { color: #667eea; }
+        .topic-preview:nth-child(2) i { color: #f5576c; }
+        .topic-preview:nth-child(3) i { color: #38ef7d; }
+        .topic-preview:nth-child(4) i { color: #f5af19; }
+
+        .topic-preview h4 {
+            margin: 0.5rem 0 0 0;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        /* Mode Cards */
+        .mode-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .mode-card {
+            padding: 1.5rem;
+            background: white;
+            border: 3px solid #e8e8e8;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .mode-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .mode-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .mode-card i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .mode-card:nth-child(1) i { color: #11998e; }
+        .mode-card:nth-child(2) i { color: #f5576c; }
+        .mode-card:nth-child(3) i { color: #667eea; }
+
+        .mode-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .mode-card p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Validation Error */
+        .field small {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
+            color: #e74c3c;
+            font-size: 0.95rem;
+            padding: 0.8rem 1rem;
+            background: linear-gradient(135deg, rgba(235, 51, 73, 0.1) 0%, rgba(244, 92, 67, 0.1) 100%);
+            border-radius: 10px;
+            border-left: 4px solid #f45c43;
+            animation: shake 0.5s ease;
+        }
+
+        .field small::before {
+            content: '\f071';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons 3D */
+        button[type="submit"], .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            padding: 1.3rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button[type="submit"]::before, .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        button[type="submit"]:hover::before, .btn:hover::before {
+            width: 400px;
+            height: 400px;
+        }
+
+        button[type="submit"] {
+            background: var(--success-gradient);
+            color: white;
+            box-shadow: 0 10px 30px rgba(17, 153, 142, 0.4);
+        }
+
+        button[type="submit"]::after {
+            content: '\f04b';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(17, 153, 142, 0.5);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(-2px);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            color: #667eea;
+            border: 2px solid #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .btn.secondary::after {
+            content: '\f015';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+        }
+
+        .btn.secondary:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Info Banner */
+        .info-banner {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%);
+            border-radius: 15px;
+            border-left: 5px solid #4facfe;
+            margin-top: 2rem;
+        }
+
+        .info-banner i {
+            font-size: 2rem;
+            color: #4facfe;
+        }
+
+        .info-banner div {
+            flex: 1;
+        }
+
+        .info-banner h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .info-banner p {
+            margin: 0;
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Stats Preview */
+        .stats-preview {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px dashed #e0e0e0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 12px;
+        }
+
+        .stat-item i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .stat-item:nth-child(1) i { color: #667eea; }
+        .stat-item:nth-child(2) i { color: #f5576c; }
+        .stat-item:nth-child(3) i { color: #38ef7d; }
+
+        .stat-item h5 {
+            margin: 0.5rem 0 0 0;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .stat-item p {
+            margin: 0.3rem 0 0 0;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            section {
+                padding: 1rem;
+            }
+
+            .app-hero {
+                padding: 2rem;
+            }
+
+            .app-hero h1 {
+                font-size: 2rem;
+                flex-direction: column;
+            }
+
+            .card:last-child {
+                padding: 2rem 1.5rem;
+            }
+
+            .card h2 {
+                font-size: 1.5rem;
+            }
+
+            .topics-preview,
+            .mode-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-preview {
+                grid-template-columns: 1fr;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            button[type="submit"], .btn {
+                width: 100%;
+            }
+        }
+
+        /* Loading State */
+        .btn-loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .btn-loading::after {
+            content: '\f110' !important;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Glow Effect */
+        .glow {
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(102, 126, 234, 0.8),
+                            0 0 60px rgba(118, 75, 162, 0.6);
+            }
+        }
+    </style>
+</head>
+
 <section>
-    <div class="card app-hero">
-        <h1>Chọn chủ đề và chế độ chơi</h1>
-        <p>Bắt đầu hành trình giải đố point & click theo phòng.</p>
+    <!-- Stars Background -->
+    <div class="stars" id="starsContainer"></div>
+
+    <!-- Floating Elements -->
+    <div class="floating-elements">
+        <i class="fas fa-gamepad float-element"></i>
+        <i class="fas fa-trophy float-element"></i>
+        <i class="fas fa-puzzle-piece float-element"></i>
+        <i class="fas fa-star float-element"></i>
+        <i class="fas fa-crown float-element"></i>
+        <i class="fas fa-gem float-element"></i>
     </div>
 
+    <!-- Hero Section -->
+    <div class="card app-hero">
+        <h1>
+            <i class="fas fa-rocket"></i>
+            Chọn chủ đề và chế độ chơi
+        </h1>
+        <p>
+            <i class="fas fa-map-marked-alt"></i>
+            Bắt đầu hành trình giải đố point & click theo phòng.
+        </p>
+    </div>
+
+    <!-- Form Card -->
     <div class="card">
         <h2>Thiết lập ván chơi</h2>
 
-        <form th:action="@{/game/start}" th:object="${startGameForm}" method="post" class="grid">
+        <!-- Topics Preview (Optional) -->
+        <div class="topics-preview" th:if="${topics != null and !#lists.isEmpty(topics)}">
+            <div class="topic-preview" th:each="topic, iterStat : ${topics}" th:if="${iterStat.index < 4}">
+                <i class="fas fa-book-open"></i>
+                <h4 th:text="${topic.name}"></h4>
+            </div>
+        </div>
+
+        <form th:action="@{/game/start}" th:object="${startGameForm}" method="post" class="grid" id="startGameForm">
+            
+            <!-- Topic Selection -->
             <div class="field">
-                <label>Chủ đề quiz</label>
-                <select th:field="*{topicId}">
+                <label>
+                    Chủ đề quiz
+                </label>
+                <select th:field="*{topicId}" required>
                     <option value="">-- Chọn chủ đề --</option>
                     <option th:each="topic : ${topics}"
                             th:value="${topic.id}"
@@ -21,20 +736,213 @@
                 <small th:if="${#fields.hasErrors('topicId')}" th:errors="*{topicId}"></small>
             </div>
 
+            <!-- Game Mode Selection -->
             <div class="field">
-                <label>Chế độ chơi</label>
-                <select th:field="*{mode}">
+                <label>
+                    Chế độ chơi
+                </label>
+                <select th:field="*{mode}" required>
                     <option value="">-- Chọn chế độ --</option>
                     <option th:each="mode : ${modes}" th:value="${mode}" th:text="${mode}"></option>
                 </select>
                 <small th:if="${#fields.hasErrors('mode')}" th:errors="*{mode}"></small>
             </div>
 
+            <!-- Mode Cards Preview (Optional) -->
+            <div class="mode-cards" th:if="${modes != null}">
+                <div class="mode-card">
+                    <i class="fas fa-user"></i>
+                    <h4>Solo</h4>
+                    <p>Chơi một mình</p>
+                </div>
+                <div class="mode-card">
+                    <i class="fas fa-users"></i>
+                    <h4>Co-op</h4>
+                    <p>Chơi cùng bạn bè</p>
+                </div>
+                <div class="mode-card">
+                    <i class="fas fa-bolt"></i>
+                    <h4>Challenge</h4>
+                    <p>Thử thách thời gian</p>
+                </div>
+            </div>
+
+            <!-- Info Banner -->
+            <div class="info-banner">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <h4>Hướng dẫn chơi</h4>
+                    <p>
+                        Chọn chủ đề và chế độ chơi phù hợp. 
+                        Sau khi bắt đầu, bạn sẽ được dẫn đến bản đồ phòng để khám phá và giải đố!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Actions -->
             <div class="actions">
-                <button type="submit">Vào bản đồ phòng</button>
-                <a class="btn secondary" th:href="@{/}">Quay lại trang chủ</a>
+                <button type="submit" id="submitBtn" class="glow">
+                    <i class="fas fa-play-circle"></i>
+                    Vào bản đồ phòng
+                </button>
+                <a class="btn secondary" th:href="@{/}">
+                    <i class="fas fa-home"></i>
+                    Quay lại trang chủ
+                </a>
             </div>
         </form>
+
+        <!-- Stats Preview -->
+        <div class="stats-preview">
+            <div class="stat-item">
+                <i class="fas fa-door-open"></i>
+                <h5>10+ Phòng</h5>
+                <p>Để khám phá</p>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-question-circle"></i>
+                <h5>100+ Câu hỏi</h5>
+                <p>Đa dạng chủ đề</p>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-trophy"></i>
+                <h5>Xếp hạng</h5>
+                <p>Toàn cầu</p>
+            </div>
+        </div>
     </div>
 </section>
+
+<script>
+    // Create animated stars
+    function createStars() {
+        const starsContainer = document.getElementById('starsContainer');
+        const starCount = 100;
+        
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.cssText = `
+                left: ${Math.random() * 100}%;
+                top: ${Math.random() * 100}%;
+                animation-delay: ${Math.random() * 3}s;
+                animation-duration: ${2 + Math.random() * 2}s;
+            `;
+            starsContainer.appendChild(star);
+        }
+    }
+    
+    createStars();
+
+    // Form Submit Loading
+    document.getElementById('startGameForm').addEventListener('submit', function(e) {
+        const btn = document.getElementById('submitBtn');
+        btn.classList.add('btn-loading');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải bản đồ...';
+    });
+
+    // Select enhancement - add icons
+    const selects = document.querySelectorAll('select');
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            this.style.borderColor = '#667eea';
+            this.style.transform = 'translateY(-3px)';
+            
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 300);
+        });
+    });
+
+    // Mode cards selection
+    const modeCards = document.querySelectorAll('.mode-card');
+    const modeSelect = document.querySelector('select[name="mode"]');
+    
+    if (modeSelect) {
+        modeCards.forEach((card, index) => {
+            card.addEventListener('click', function() {
+                // Remove selected class from all
+                modeCards.forEach(c => c.classList.remove('selected'));
+                
+                // Add selected class
+                this.classList.add('selected');
+                
+                // Update select value
+                if (modeSelect.options[index + 1]) {
+                    modeSelect.selectedIndex = index + 1;
+                    modeSelect.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+
+        // Sync select with cards
+        modeSelect.addEventListener('change', function() {
+            modeCards.forEach(c => c.classList.remove('selected'));
+            
+            const selectedIndex = this.selectedIndex - 1;
+            if (selectedIndex >= 0 && modeCards[selectedIndex]) {
+                modeCards[selectedIndex].classList.add('selected');
+            }
+        });
+    }
+
+    // Topic preview click
+    const topicPreviews = document.querySelectorAll('.topic-preview');
+    const topicSelect = document.querySelector('select[name="topicId"]');
+    
+    if (topicSelect) {
+        topicPreviews.forEach((preview, index) => {
+            preview.addEventListener('click', function() {
+                if (topicSelect.options[index + 1]) {
+                    topicSelect.selectedIndex = index + 1;
+                    topicSelect.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Alt+1, Alt+2, Alt+3 to select mode
+        if (e.altKey && ['1', '2', '3'].includes(e.key)) {
+            e.preventDefault();
+            const index = parseInt(e.key);
+            if (modeCards[index - 1]) {
+                modeCards[index - 1].click();
+            }
+        }
+        
+        // Enter to submit if all fields filled
+        if (e.key === 'Enter' && !e.shiftKey) {
+            const topicFilled = topicSelect && topicSelect.value;
+            const modeFilled = modeSelect && modeSelect.value;
+            
+            if (topicFilled && modeFilled) {
+                document.getElementById('startGameForm').submit();
+            }
+        }
+    });
+
+    // Add floating animation to form elements
+    const fields = document.querySelectorAll('.field');
+    fields.forEach((field, index) => {
+        field.style.animation = `slideIn 0.5s ease ${index * 0.1}s both`;
+    });
+
+    // Add slide in animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
 </html>

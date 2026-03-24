@@ -1,48 +1,548 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Quiz Escape Room', ~{::section})}">
+<head>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --card-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            --card-hover-shadow: 0 30px 80px rgba(0,0,0,0.25);
+        }
+
+        /* Hero Section 3D */
+        .app-hero {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 25px;
+            box-shadow: var(--card-shadow);
+            transform: translateZ(0);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 3rem;
+        }
+
+        .app-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        .app-hero::after {
+            content: '🎮';
+            position: absolute;
+            font-size: 15rem;
+            top: -3rem;
+            right: -3rem;
+            opacity: 0.1;
+            transform: rotate(-15deg);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: rotate(-15deg) translateY(0); }
+            50% { transform: rotate(-15deg) translateY(-20px); }
+        }
+
+        .app-hero:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        .app-hero h1 {
+            margin: 0 0 1rem 0;
+            font-size: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .app-hero h1 i {
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .app-hero p {
+            margin: 0 0 1.5rem 0;
+            opacity: 0.95;
+            font-size: 1.2rem;
+            position: relative;
+            z-index: 1;
+            line-height: 1.6;
+        }
+
+        /* Profile Stats Row */
+        .row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+            margin-top: 1.5rem;
+        }
+
+        /* Enhanced Badges 3D */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+        }
+
+        .badge:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.3);
+        }
+
+        .badge.ok {
+            background: var(--success-gradient);
+            border-color: transparent;
+        }
+
+        .badge.warn {
+            background: var(--warning-gradient);
+            border-color: transparent;
+        }
+
+        .badge i {
+            font-size: 1.2rem;
+        }
+
+        /* Grid Layout */
+        .home-menu-grid {
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        /* Navigation Cards 3D */
+        .nav-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: var(--card-shadow);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: 3px solid transparent;
+            transform-style: preserve-3d;
+        }
+
+        .nav-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-card:hover::before {
+            opacity: 1;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-15px) rotateX(5deg);
+            box-shadow: var(--card-hover-shadow);
+            border-color: #667eea;
+        }
+
+        .nav-card h3 {
+            margin: 0 0 1rem 0;
+            font-size: 1.5rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-card h3::before {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 2.5rem;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        /* Icon cho từng card */
+        .nav-card:nth-child(1) h3::before {
+            content: '\f11b'; /* fa-gamepad */
+            color: #667eea;
+        }
+
+        .nav-card:nth-child(2) h3::before {
+            content: '\f007'; /* fa-user */
+            color: #11998e;
+        }
+
+        .nav-card:nth-child(3) h3::before {
+            content: '\f091'; /* fa-trophy */
+            color: #f5576c;
+        }
+
+        .nav-card:nth-child(4) h3::before {
+            content: '\f1da'; /* fa-history */
+            color: #00f2fe;
+        }
+
+        .nav-card:nth-child(5) h3::before {
+            content: '\f013'; /* fa-cog */
+            color: #eb3349;
+        }
+
+        .nav-card:hover h3::before {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .nav-card p {
+            margin: 0;
+            color: #666;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Primary Card Highlight */
+        .nav-card-primary {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+        }
+
+        .nav-card-primary h3,
+        .nav-card-primary p {
+            color: white;
+        }
+
+        .nav-card-primary h3::before {
+            color: rgba(255,255,255,0.9) !important;
+        }
+
+        .nav-card-primary::after {
+            content: '⭐';
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Bottom Actions Card */
+        .card:last-child {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .actions:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Enhanced Buttons 3D */
+        .btn, button[type="submit"] {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before, button[type="submit"]::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before, button[type="submit"]:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn.secondary {
+            background: var(--info-gradient);
+            color: white;
+        }
+
+        button[type="submit"] {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        .btn:hover, button[type="submit"]:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+
+        .btn:active, button[type="submit"]:active {
+            transform: translateY(-2px);
+        }
+
+        /* Add icons to buttons */
+        .btn::after {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+        }
+
+        a[href*="/game/start"].btn::after {
+            content: '\f04b'; /* fa-play */
+        }
+
+        a[href*="/profile"].btn::after {
+            content: '\f007'; /* fa-user */
+        }
+
+        /* Decorative Elements */
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shape 20s ease-in-out infinite;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            font-size: 3rem;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 60%;
+            left: 80%;
+            font-size: 4rem;
+            animation-delay: -5s;
+        }
+
+        .shape:nth-child(3) {
+            top: 30%;
+            left: 60%;
+            font-size: 2.5rem;
+            animation-delay: -10s;
+        }
+
+        @keyframes float-shape {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-50px) rotate(180deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-hero h1 {
+                font-size: 2rem;
+                flex-direction: column;
+            }
+
+            .app-hero::after {
+                font-size: 8rem;
+            }
+
+            .nav-card {
+                padding: 1.5rem;
+            }
+
+            .nav-card h3 {
+                font-size: 1.2rem;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .row {
+                flex-direction: column;
+            }
+
+            .badge {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Loading Animation */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        .loading {
+            animation: shimmer 2s infinite;
+            background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%);
+            background-size: 1000px 100%;
+        }
+    </style>
+</head>
+
 <section>
+    <!-- Floating Background Shapes -->
+    <div class="floating-shapes">
+        <i class="fas fa-question shape"></i>
+        <i class="fas fa-trophy shape"></i>
+        <i class="fas fa-star shape"></i>
+    </div>
+
+    <!-- Hero Section -->
     <div class="card app-hero">
-        <h1>Quiz Escape Room</h1>
-        <p>Trải nghiệm giải đố theo phong cách point & click, mở khóa từng phòng và leo bảng xếp hạng.</p>
+        <h1>
+            <i class="fas fa-door-open"></i>
+            Quiz Escape Room
+        </h1>
+        <p>
+            <i class="fas fa-puzzle-piece"></i>
+            Trải nghiệm giải đố theo phong cách point & click, mở khóa từng phòng và leo bảng xếp hạng.
+        </p>
 
         <div class="row" th:if="${profile != null}">
-            <span class="badge" th:text="${'Người chơi: ' + profile.displayName}"></span>
-            <span class="badge ok" th:text="${'Tổng điểm: ' + profile.totalScore}"></span>
-            <span class="badge warn" th:text="${'Số trận thắng: ' + profile.totalWin}"></span>
+            <span class="badge">
+                <i class="fas fa-user-circle"></i>
+                <span th:text="${'Người chơi: ' + profile.displayName}"></span>
+            </span>
+            <span class="badge ok">
+                <i class="fas fa-star"></i>
+                <span th:text="${'Tổng điểm: ' + profile.totalScore}"></span>
+            </span>
+            <span class="badge warn">
+                <i class="fas fa-trophy"></i>
+                <span th:text="${'Số trận thắng: ' + profile.totalWin}"></span>
+            </span>
         </div>
     </div>
 
+    <!-- Navigation Grid -->
     <div class="grid grid-2 home-menu-grid">
         <a class="card nav-card nav-card-primary" th:href="@{/game/start}">
             <h3>Bắt đầu chơi</h3>
-            <p>Chọn chủ đề và vào bản đồ phòng.</p>
+            <p>Chọn chủ đề và vào bản đồ phòng. Sẵn sàng cho thử thách!</p>
         </a>
+        
         <a class="card nav-card" th:href="@{/profile}">
             <h3>Thông tin người chơi</h3>
-            <p>Cập nhật hồ sơ và mật khẩu.</p>
+            <p>Cập nhật hồ sơ, avatar và mật khẩu của bạn.</p>
         </a>
+        
         <a class="card nav-card" th:href="@{/leaderboard}">
             <h3>Bảng xếp hạng</h3>
-            <p>Xem top người chơi theo điểm.</p>
+            <p>Xem top người chơi theo điểm và so tài với đối thủ.</p>
         </a>
+        
         <a class="card nav-card" th:href="@{/history}">
             <h3>Lịch sử chơi</h3>
-            <p>Xem lại các ván đã hoàn thành.</p>
+            <p>Xem lại các ván đã hoàn thành và thành tích của bạn.</p>
         </a>
+        
         <a class="card nav-card" th:if="${isAdmin}" th:href="@{/admin}">
             <h3>Quản trị dữ liệu game</h3>
-            <p>Quản lý chủ đề, phòng, câu hỏi và hotspot.</p>
+            <p>Quản lý chủ đề, phòng, câu hỏi và hotspot cho admin.</p>
         </a>
     </div>
 
+    <!-- Action Buttons -->
     <div class="card">
         <div class="actions">
-            <a class="btn" th:href="@{/game/start}">Vào game</a>
-            <a class="btn secondary" th:href="@{/profile}">Hồ sơ</a>
+            <a class="btn" th:href="@{/game/start}">
+                <i class="fas fa-play-circle"></i>
+                Vào game
+            </a>
+            <a class="btn secondary" th:href="@{/profile}">
+                <i class="fas fa-user-edit"></i>
+                Hồ sơ
+            </a>
         </div>
 
         <form th:action="@{/logout}" method="post" class="actions">
-            <button type="submit">Đăng xuất</button>
+            <button type="submit">
+                <i class="fas fa-sign-out-alt"></i>
+                Đăng xuất
+            </button>
         </form>
     </div>
 </section>

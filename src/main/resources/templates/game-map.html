@@ -1,35 +1,862 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Bản đồ phòng', ~{::section})}">
 <section>
-    <div class="card app-hero">
-        <h1>Bản đồ phòng chơi</h1>
-        <p>
-            Chủ đề: <strong th:text="${topic.name}"></strong>
-            · Chế độ: <strong th:text="${mode}"></strong>
-        </p>
-    </div>
+    <!-- Custom Room Map Styles -->
+    <style>
+        /* ==================== ROOM MAP VARIABLES ==================== */
+        :root {
+            --map-primary: #8b5cf6;
+            --map-primary-glow: rgba(139, 92, 246, 0.5);
+            --map-secondary: #06b6d4;
+            --map-secondary-glow: rgba(6, 182, 212, 0.5);
+            --map-success: #10b981;
+            --map-success-glow: rgba(16, 185, 129, 0.5);
+            --map-warning: #f59e0b;
+            --map-warning-glow: rgba(245, 158, 11, 0.5);
+            --map-danger: #ef4444;
+            --map-danger-glow: rgba(239, 68, 68, 0.4);
+            --map-locked: #64748b;
+            --map-locked-glow: rgba(100, 116, 139, 0.3);
+            --map-dark: #0a0a0f;
+            --map-card: rgba(15, 15, 25, 0.95);
+            --map-border: rgba(139, 92, 246, 0.2);
+            --map-text: #e2e8f0;
+            --map-text-muted: rgba(255, 255, 255, 0.6);
+        }
 
-    <div class="notice error" th:if="${roomError}" th:text="${roomError}"></div>
+        /* ==================== HERO SECTION ==================== */
+        .map-hero {
+            background: linear-gradient(135deg, 
+                rgba(139, 92, 246, 0.15) 0%, 
+                rgba(6, 182, 212, 0.15) 50%,
+                rgba(16, 185, 129, 0.1) 100%);
+            border: 1px solid var(--map-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            text-align: center;
+        }
 
-    <div class="grid grid-2">
-        <div class="card map-room-card" th:each="item : ${roomMap}">
-            <h3 th:text="${item.room.roomOrder + '. ' + item.room.name}"></h3>
-            <p th:text="${item.room.description}"></p>
-            <p>
-                <span class="badge ok" th:if="${item.completed}">Đã hoàn thành</span>
-                <span class="badge warn" th:if="${!item.completed and item.unlocked}">Đã mở</span>
-                <span class="badge lock" th:if="${!item.unlocked}">Đang khóa</span>
-            </p>
+        .map-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.05), 
+                transparent);
+            animation: heroShine 4s linear infinite;
+        }
 
-            <div class="actions">
-                <a class="btn" th:if="${item.unlocked}" th:href="@{'/game/rooms/' + ${item.room.id}}">Vào phòng</a>
+        @keyframes heroShine {
+            100% { transform: translateX(100%); }
+        }
+
+        .map-hero h1 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff, var(--map-primary), var(--map-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            z-index: 1;
+        }
+
+        .map-hero h1 i {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--map-primary), var(--map-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px var(--map-primary-glow));
+            animation: mapIconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes mapIconPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        .map-hero-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .map-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.7rem 1.4rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50px;
+            font-size: 0.95rem;
+            color: var(--map-text);
+            transition: all 0.3s ease;
+        }
+
+        .map-hero-badge i {
+            font-size: 1rem;
+        }
+
+        .map-hero-badge.topic i {
+            color: var(--map-primary);
+        }
+
+        .map-hero-badge.mode i {
+            color: var(--map-secondary);
+        }
+
+        .map-hero-badge strong {
+            color: #fff;
+        }
+
+        .map-hero-badge:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ==================== PROGRESS BAR ==================== */
+        .map-progress {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            border: 1px solid var(--map-border);
+        }
+
+        .map-progress-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .map-progress-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--map-text-muted);
+        }
+
+        .map-progress-label i {
+            color: var(--map-success);
+        }
+
+        .map-progress-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--map-success);
+        }
+
+        .map-progress-bar {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .map-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--map-success), var(--map-secondary));
+            border-radius: 10px;
+            position: relative;
+            transition: width 1s ease;
+            animation: progressGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes progressGlow {
+            0%, 100% { box-shadow: 0 0 10px var(--map-success-glow); }
+            50% { box-shadow: 0 0 20px var(--map-success-glow), 0 0 30px var(--map-success-glow); }
+        }
+
+        .map-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.3), 
+                transparent);
+            animation: progressShine 2s linear infinite;
+        }
+
+        @keyframes progressShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* ==================== NOTICE ==================== */
+        .notice {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .notice::before {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 1.2rem;
+        }
+
+        .notice.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #f87171;
+        }
+
+        .notice.error::before {
+            content: '\f06a';
+            color: var(--map-danger);
+        }
+
+        /* ==================== ROOM GRID ==================== */
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* ==================== ROOM CARDS ==================== */
+        .room-card {
+            background: var(--map-card);
+            border: 1px solid var(--map-border);
+            border-radius: 20px;
+            padding: 1.8rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        /* Room Number Badge */
+        .room-card::before {
+            content: attr(data-room-number);
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--map-primary), var(--map-secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            box-shadow: 0 4px 15px var(--map-primary-glow);
+            z-index: 5;
+        }
+
+        /* Glow effect */
+        .room-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--map-primary), var(--map-secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .room-card:hover::after {
+            opacity: 1;
+        }
+
+        .room-card:hover {
+            transform: translateY(-10px) rotateX(5deg) scale(1.02);
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.4),
+                0 0 50px var(--map-primary-glow);
+            border-color: var(--map-primary);
+        }
+
+        /* Room Card States */
+        .room-card.completed {
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .room-card.completed::before {
+            background: linear-gradient(135deg, var(--map-success), #34d399);
+            box-shadow: 0 4px 15px var(--map-success-glow);
+        }
+
+        .room-card.completed:hover {
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.4),
+                0 0 50px var(--map-success-glow);
+            border-color: var(--map-success);
+        }
+
+        .room-card.unlocked {
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+
+        .room-card.unlocked::before {
+            background: linear-gradient(135deg, var(--map-warning), #fbbf24);
+            box-shadow: 0 4px 15px var(--map-warning-glow);
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 4px 15px var(--map-warning-glow); }
+            50% { box-shadow: 0 4px 25px var(--map-warning-glow), 0 0 40px var(--map-warning-glow); }
+        }
+
+        .room-card.unlocked:hover {
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.4),
+                0 0 50px var(--map-warning-glow);
+            border-color: var(--map-warning);
+        }
+
+        .room-card.locked {
+            border-color: rgba(100, 116, 139, 0.3);
+            opacity: 0.7;
+        }
+
+        .room-card.locked::before {
+            background: linear-gradient(135deg, #475569, #64748b);
+            box-shadow: none;
+        }
+
+        .room-card.locked:hover {
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Room Header */
+        .room-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .room-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2));
+            border: 1px solid var(--map-border);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .room-card.completed .room-icon {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .room-card.completed .room-icon i {
+            color: var(--map-success);
+        }
+
+        .room-card.unlocked .room-icon {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .room-card.unlocked .room-icon i {
+            color: var(--map-warning);
+        }
+
+        .room-card.locked .room-icon {
+            background: rgba(100, 116, 139, 0.1);
+            border-color: rgba(100, 116, 139, 0.2);
+        }
+
+        .room-card.locked .room-icon i {
+            color: var(--map-locked);
+        }
+
+        .room-card:hover .room-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .room-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .room-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .room-description {
+            color: var(--map-text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Room Status Badges */
+        .room-status {
+            margin: 1.2rem 0;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge i {
+            font-size: 0.9rem;
+        }
+
+        .badge.ok {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+        }
+
+        .badge.warn {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #fbbf24;
+            animation: badgePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { box-shadow: 0 0 0 rgba(245, 158, 11, 0); }
+            50% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+        }
+
+        .badge.lock {
+            background: rgba(100, 116, 139, 0.15);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            color: #94a3b8;
+        }
+
+        /* Room Actions */
+        .room-actions {
+            margin-top: 1.2rem;
+        }
+
+        .btn-enter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            width: 100%;
+            padding: 0.9rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-enter.primary {
+            background: linear-gradient(135deg, var(--map-warning), #fbbf24);
+            color: #000;
+            box-shadow: 0 4px 20px var(--map-warning-glow);
+        }
+
+        .btn-enter.primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-enter.primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-enter.primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 
+                0 10px 40px var(--map-warning-glow),
+                0 0 60px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-enter.primary i {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-enter.primary:hover i {
+            transform: translateX(5px);
+        }
+
+        .btn-enter.completed {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            color: var(--map-success);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-enter.completed:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.2));
+            box-shadow: 0 10px 30px var(--map-success-glow);
+        }
+
+        .btn-locked {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            width: 100%;
+            padding: 0.9rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            background: rgba(100, 116, 139, 0.1);
+            color: var(--map-locked);
+            border: 1px dashed rgba(100, 116, 139, 0.3);
+            border-radius: 12px;
+            cursor: not-allowed;
+        }
+
+        /* ==================== BOTTOM ACTIONS ==================== */
+        .map-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.9rem 1.8rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--map-text);
+            border: 1px solid var(--map-border);
+        }
+
+        .btn.secondary:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: var(--map-primary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px var(--map-primary-glow);
+        }
+
+        .btn.secondary i {
+            transition: transform 0.3s ease;
+        }
+
+        .btn.secondary:hover i {
+            transform: scale(1.1);
+        }
+
+        /* ==================== DECORATIVE ELEMENTS ==================== */
+        .room-card .decoration-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--map-primary), 
+                var(--map-secondary), 
+                transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .room-card:hover .decoration-line {
+            opacity: 1;
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .map-hero {
+                padding: 1.5rem;
+            }
+
+            .map-hero h1 {
+                font-size: 1.6rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .map-hero-info {
+                gap: 1rem;
+            }
+
+            .map-hero-badge {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .room-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .room-card {
+                padding: 1.5rem;
+            }
+
+            .room-card::before {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .room-title {
+                font-size: 1.1rem;
+            }
+
+            .map-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ==================== ANIMATIONS ==================== */
+        .room-card {
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .room-card:nth-child(1) { animation-delay: 0.1s; }
+        .room-card:nth-child(2) { animation-delay: 0.2s; }
+        .room-card:nth-child(3) { animation-delay: 0.3s; }
+        .room-card:nth-child(4) { animation-delay: 0.4s; }
+        .room-card:nth-child(5) { animation-delay: 0.5s; }
+        .room-card:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) rotateX(10deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) rotateX(0);
+            }
+        }
+    </style>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ==================== HERO SECTION ==================== -->
+    <div class="map-hero">
+        <h1>
+            <i class="fas fa-map-location-dot"></i>
+            Bản đồ phòng chơi
+        </h1>
+        <div class="map-hero-info">
+            <div class="map-hero-badge topic">
+                <i class="fas fa-bookmark"></i>
+                Chủ đề: <strong th:text="${topic.name}">Khoa học</strong>
+            </div>
+            <div class="map-hero-badge mode">
+                <i class="fas fa-gamepad"></i>
+                Chế độ: <strong th:text="${mode}">Thường</strong>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="map-progress" th:with="
+            completedCount=${#lists.size(roomMap.?[completed])},
+            totalCount=${#lists.size(roomMap)},
+            progressPercent=${totalCount > 0 ? (completedCount * 100 / totalCount) : 0}">
+            <div class="map-progress-header">
+                <span class="map-progress-label">
+                    <i class="fas fa-trophy"></i>
+                    Tiến độ hoàn thành
+                </span>
+                <span class="map-progress-value" th:text="${completedCount + '/' + totalCount + ' phòng'}">0/5 phòng</span>
+            </div>
+            <div class="map-progress-bar">
+                <div class="map-progress-fill" th:style="'width: ' + ${progressPercent} + '%'"></div>
             </div>
         </div>
     </div>
 
-    <div class="actions">
-        <a class="btn secondary" th:href="@{/game/start}">Đổi chủ đề/chế độ</a>
-        <a class="btn secondary" th:href="@{/}">Trang chủ</a>
+    <!-- Error Notice -->
+    <div class="notice error" th:if="${roomError}">
+        <span th:text="${roomError}"></span>
     </div>
+
+    <!-- ==================== ROOM GRID ==================== -->
+    <div class="room-grid">
+        <div th:each="item, iterStat : ${roomMap}" 
+             class="room-card"
+             th:classappend="${item.completed} ? 'completed' : (${item.unlocked} ? 'unlocked' : 'locked')"
+             th:attr="data-room-number=${item.room.roomOrder}">
+            
+            <!-- Room Header -->
+            <div class="room-header">
+                <div class="room-icon">
+                    <i th:if="${item.completed}" class="fas fa-check-circle"></i>
+                    <i th:if="${!item.completed and item.unlocked}" class="fas fa-door-open"></i>
+                    <i th:if="${!item.unlocked}" class="fas fa-lock"></i>
+                </div>
+                <div class="room-info">
+                    <h3 class="room-title" th:text="${item.room.name}">Tên phòng</h3>
+                    <p class="room-description" th:text="${item.room.description}">Mô tả phòng</p>
+                </div>
+            </div>
+
+            <!-- Room Status -->
+            <div class="room-status">
+                <span class="badge ok" th:if="${item.completed}">
+                    <i class="fas fa-check-circle"></i>
+                    Đã hoàn thành
+                </span>
+                <span class="badge warn" th:if="${!item.completed and item.unlocked}">
+                    <i class="fas fa-unlock"></i>
+                    Sẵn sàng khám phá
+                </span>
+                <span class="badge lock" th:if="${!item.unlocked}">
+                    <i class="fas fa-lock"></i>
+                    Hoàn thành phòng trước để mở khóa
+                </span>
+            </div>
+
+            <!-- Room Actions -->
+            <div class="room-actions">
+                <a th:if="${item.completed}" 
+                   class="btn-enter completed" 
+                   th:href="@{'/game/rooms/' + ${item.room.id}}">
+                    <i class="fas fa-rotate"></i>
+                    Chơi lại
+                </a>
+                <a th:if="${!item.completed and item.unlocked}" 
+                   class="btn-enter primary" 
+                   th:href="@{'/game/rooms/' + ${item.room.id}}">
+                    <i class="fas fa-play"></i>
+                    Vào phòng
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <div th:if="${!item.unlocked}" class="btn-locked">
+                    <i class="fas fa-lock"></i>
+                    Đang khóa
+                </div>
+            </div>
+
+            <!-- Decoration -->
+            <div class="decoration-line"></div>
+        </div>
+    </div>
+
+    <!-- ==================== BOTTOM ACTIONS ==================== -->
+    <div class="map-actions">
+        <a class="btn secondary" th:href="@{/game/start}">
+            <i class="fas fa-arrows-rotate"></i>
+            Đổi chủ đề/chế độ
+        </a>
+        <a class="btn secondary" th:href="@{/}">
+            <i class="fas fa-home"></i>
+            Trang chủ
+        </a>
+    </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // Add 3D tilt effect to room cards
+        document.querySelectorAll('.room-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                if (window.innerWidth < 768) return;
+                
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+                
+                card.style.transform = `translateY(-10px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0) rotateX(0) rotateY(0) scale(1)';
+            });
+        });
+
+        // Animate progress bar on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const progressFill = document.querySelector('.map-progress-fill');
+            if (progressFill) {
+                const targetWidth = progressFill.style.width;
+                progressFill.style.width = '0%';
+                setTimeout(() => {
+                    progressFill.style.width = targetWidth;
+                }, 500);
+            }
+        });
+    </script>
 </section>
 </html>
