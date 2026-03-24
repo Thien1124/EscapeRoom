@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" role="img" aria-label="Pixel locked cabinet">
+  <rect width="128" height="128" fill="#1e2b33"/>
+  <rect x="24" y="14" width="80" height="100" fill="#607d8b"/>
+  <rect x="28" y="18" width="36" height="92" fill="#78909c"/>
+  <rect x="64" y="18" width="36" height="92" fill="#78909c"/>
+  <rect x="44" y="56" width="40" height="24" fill="#fbc02d"/>
+  <rect x="52" y="48" width="24" height="8" fill="#ef6c00"/>
+  <rect x="58" y="60" width="12" height="12" fill="#5d4037"/>
+  <rect x="42" y="62" width="4" height="12" fill="#263238"/>
+  <rect x="82" y="62" width="4" height="12" fill="#263238"/>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Locked Cabinet</title>
+  <desc id="desc">A steel lab locker cabinet with padlock.</desc>
+  <defs>
+    <linearGradient id="cabBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#90a4ae"/>
+      <stop offset="1" stop-color="#546e7a"/>
+    </linearGradient>
+    <linearGradient id="doorGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b0bec5"/>
+      <stop offset="1" stop-color="#607d8b"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="#1f2a30"/>
+  <rect x="96" y="52" width="320" height="408" rx="16" fill="url(#cabBody)" stroke="#2f3c44" stroke-width="8"/>
+  <rect x="112" y="72" width="140" height="368" rx="10" fill="url(#doorGrad)" stroke="#455a64" stroke-width="4"/>
+  <rect x="260" y="72" width="140" height="368" rx="10" fill="url(#doorGrad)" stroke="#455a64" stroke-width="4"/>
+
+  <rect x="172" y="190" width="22" height="72" rx="10" fill="#263238"/>
+  <rect x="318" y="190" width="22" height="72" rx="10" fill="#263238"/>
+
+  <rect x="216" y="224" width="80" height="56" rx="8" fill="#f9a825" stroke="#ef6c00" stroke-width="4"/>
+  <path d="M236 224v-20a20 20 0 0 1 40 0v20" fill="none" stroke="#ef6c00" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="256" cy="252" r="9" fill="#5d4037"/>
+
+  <rect x="140" y="104" width="80" height="10" rx="4" fill="#cfd8dc" opacity="0.7"/>
+  <rect x="292" y="104" width="80" height="10" rx="4" fill="#cfd8dc" opacity="0.7"/>
+</svg>

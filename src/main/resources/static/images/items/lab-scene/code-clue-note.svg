@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Code Clue Note</title>
+  <desc id="desc">A clue paper showing hidden numeric code 741.</desc>
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffef8"/>
+      <stop offset="1" stop-color="#eceff1"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="#24323d"/>
+  <rect x="114" y="72" width="284" height="368" rx="10" fill="url(#paper)" transform="rotate(-6 256 256)" stroke="#cfd8dc" stroke-width="5"/>
+
+  <line x1="160" y1="164" x2="352" y2="144" stroke="#b0bec5" stroke-width="4"/>
+  <line x1="156" y1="204" x2="348" y2="184" stroke="#b0bec5" stroke-width="4"/>
+  <line x1="152" y1="244" x2="344" y2="224" stroke="#b0bec5" stroke-width="4"/>
+  <line x1="148" y1="284" x2="340" y2="264" stroke="#b0bec5" stroke-width="4"/>
+
+  <text x="256" y="328" text-anchor="middle" font-family="monospace" font-size="92" fill="#263238" opacity="0.35">741</text>
+  <circle cx="332" cy="116" r="8" fill="#ef5350"/>
+</svg>

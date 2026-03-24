@@ -191,6 +191,54 @@
                 inset 0 0 100px rgba(139, 92, 246, 0.05);
         }
 
+        .scene-backdrop {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .scene-backdrop-image {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.52;
+            transform: scale(1.05);
+            filter: saturate(1.12) contrast(1.05);
+        }
+
+        .scene-backdrop-glow {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 12% 16%, rgba(251, 191, 36, 0.28) 0%, rgba(251, 191, 36, 0) 36%),
+                radial-gradient(circle at 86% 82%, rgba(34, 211, 238, 0.26) 0%, rgba(34, 211, 238, 0) 42%),
+                linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(2, 6, 23, 0.62) 100%);
+            animation: sceneGlowShift 10s ease-in-out infinite;
+        }
+
+        .scene-backdrop-grain {
+            position: absolute;
+            inset: -60%;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.12) 0.8px, transparent 0.8px);
+            background-size: 3px 3px;
+            opacity: 0.08;
+            animation: sceneGrainMove 14s linear infinite;
+        }
+
+        @keyframes sceneGlowShift {
+            0%, 100% { opacity: 0.95; }
+            50% { opacity: 0.68; }
+        }
+
+        @keyframes sceneGrainMove {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(22%, 16%, 0); }
+        }
+
         .fps-canvas-wrap {
             position: absolute;
             inset: 0;
@@ -330,12 +378,12 @@
             display: none !important;
         }
 
-        /* Hide legacy 2D layer permanently: room now runs in 3D-only mode. */
+        /* Keep 2D gameplay layers visible. */
         .simple-hotspot,
         .scene-collect-spot,
         .simple-scene-player,
         .simple-scene-player-name {
-            display: none;
+            display: block;
         }
 
         body.fps-fullscreen .room-hud {
@@ -433,16 +481,32 @@
             background: linear-gradient(180deg, #2d1b0e 0%, #1a1006 100%);
         }
 
+        .simple-scene.scene-bg-history1 .scene-backdrop-image {
+            background-image: url('/images/scenes/history-1.svg');
+        }
+
         .simple-scene.scene-bg-history2 {
             background: linear-gradient(180deg, #1a0a2e 0%, #0f0520 100%);
+        }
+
+        .simple-scene.scene-bg-history2 .scene-backdrop-image {
+            background-image: url('/images/scenes/history-2.svg');
         }
 
         .simple-scene.scene-bg-science1 {
             background: linear-gradient(180deg, #0a1a2e 0%, #051520 100%);
         }
 
+        .simple-scene.scene-bg-science1 .scene-backdrop-image {
+            background-image: url('/images/scenes/science-1.svg');
+        }
+
         .simple-scene.scene-bg-science2 {
             background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+        }
+
+        .simple-scene.scene-bg-science2 .scene-backdrop-image {
+            background-image: url('/images/scenes/science-2.svg');
         }
 
         .simple-scene.scene-mystic::before {
@@ -502,6 +566,53 @@
             font-size: 1rem;
         }
 
+        .scene-room-nav {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+            z-index: 102;
+            pointer-events: none;
+        }
+
+        .scene-room-nav-btn {
+            position: absolute;
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            border: 3px solid #111827;
+            background: radial-gradient(circle at 35% 30%, #fff36c 0%, #facc15 58%, #f59e0b 100%);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+            color: #111827;
+            font-size: 1.65rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            pointer-events: auto;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .scene-room-nav-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5);
+        }
+
+        .scene-room-nav-btn.prev {
+            left: 0.9rem;
+        }
+
+        .scene-room-nav-btn.next {
+            right: 0.9rem;
+        }
+
+        .scene-room-nav-btn.disabled {
+            opacity: 0.4;
+            filter: grayscale(1);
+            pointer-events: none;
+        }
+
         /* ==================== SCENE FEEDBACK ==================== */
         .scene-feedback {
             display: none !important;
@@ -557,6 +668,60 @@
             font-weight: 900;
             font-size: 0.84rem;
             flex-shrink: 0;
+        }
+
+        .hint-panel {
+            position: absolute;
+            left: 1rem;
+            right: 1rem;
+            bottom: 1rem;
+            z-index: 210;
+            border: 1px solid rgba(245, 158, 11, 0.6);
+            background: rgba(20, 24, 38, 0.96);
+            border-radius: 14px;
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.4);
+            display: none;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .hint-panel.show {
+            display: block;
+        }
+
+        .hint-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.8rem;
+            padding: 0.55rem 0.7rem;
+            border-bottom: 1px solid rgba(245, 158, 11, 0.35);
+            color: #fbbf24;
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+
+        .hint-panel-close {
+            width: 28px;
+            height: 28px;
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            background: rgba(239, 68, 68, 0.18);
+            color: #fecaca;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .hint-panel-close:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .hint-panel-body {
+            padding: 0.7rem 0.8rem 0.8rem;
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            line-height: 1.45;
         }
 
         .scene-feedback::before {
@@ -1529,6 +1694,20 @@
                 border-radius: 20px 20px 0 0;
             }
 
+            .scene-room-nav-btn {
+                width: 52px;
+                height: 52px;
+                font-size: 1.35rem;
+            }
+
+            .scene-room-nav-btn.prev {
+                left: 0.5rem;
+            }
+
+            .scene-room-nav-btn.next {
+                right: 0.5rem;
+            }
+
             .simple-target {
                 padding: 0.8rem;
                 min-width: 100px;
@@ -1578,7 +1757,7 @@
             </div>
             <div class="hud-stat score">
                 <i class="fas fa-coins"></i>
-                <span>Điểm: <strong th:text="${progress.score}">0</strong></span>
+                <span>Điểm: <strong id="scene-score-value" th:text="${progress.score}">0</strong></span>
             </div>
             <div class="hud-stat wrong">
                 <i class="fas fa-heart-crack"></i>
@@ -1591,7 +1770,35 @@
     <section class="simple-scene-wrap">
         <div class="simple-scene"
              th:classappend="${#strings.contains(room.name, 'Cổ Vật') ? ' scene-bg-history1' : (#strings.contains(room.name, 'Mật Mã') ? ' scene-bg-history2 scene-mystic' : (#strings.contains(room.name, 'Thí Nghiệm') ? ' scene-bg-science1' : (#strings.contains(room.name, 'Cơ Khí') ? ' scene-bg-science2' : '')))}"
-             th:attr="data-success=${roomSuccess},data-error=${roomError}">
+                             th:attr="data-success=${roomSuccess},data-error=${roomError},data-hint-action=@{'/game/rooms/' + ${room.id} + '/hint-ajax'},data-leaderboard-url=@{/leaderboard}">
+
+            <div class="scene-backdrop" aria-hidden="true">
+                <div class="scene-backdrop-image"></div>
+                <div class="scene-backdrop-glow"></div>
+                <div class="scene-backdrop-grain"></div>
+            </div>
+
+            <nav class="scene-room-nav" aria-label="Chuyển phòng">
+                <a th:if="${previousRoom != null}"
+                   class="scene-room-nav-btn prev"
+                   th:href="@{'/game/rooms/' + ${previousRoom.id}}"
+                   th:title="${'Phòng trước: ' + previousRoom.name}">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <span th:if="${previousRoom == null}" class="scene-room-nav-btn prev disabled" aria-hidden="true">
+                    <i class="fas fa-arrow-left"></i>
+                </span>
+
+                <a th:if="${nextNavigableRoom != null}"
+                   class="scene-room-nav-btn next"
+                   th:href="@{'/game/rooms/' + ${nextNavigableRoom.id}}"
+                   th:title="${'Phòng kế: ' + nextNavigableRoom.name}">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <span th:if="${nextNavigableRoom == null}" class="scene-room-nav-btn next disabled" aria-hidden="true">
+                    <i class="fas fa-arrow-right"></i>
+                </span>
+            </nav>
 
             <!-- Scene Topbar -->
             <div class="scene-topbar">
@@ -1608,6 +1815,14 @@
 
             <!-- Feedback -->
             <div class="scene-feedback" id="scene-feedback" aria-live="polite"></div>
+
+            <section class="hint-panel" id="scene-hint-panel" aria-live="polite" aria-label="Gợi ý">
+                <div class="hint-panel-head">
+                    <span><i class="fas fa-lightbulb"></i> Gợi ý</span>
+                    <button type="button" class="hint-panel-close" id="scene-hint-close" aria-label="Đóng gợi ý">X</button>
+                </div>
+                <div class="hint-panel-body" id="scene-hint-content"></div>
+            </section>
 
             <!-- Mystic Nodes -->
             <div class="mystic-nodes" th:if="${#strings.contains(room.name, 'Mật Mã')}">
@@ -1860,55 +2075,6 @@
         </div>
     </section>
 
-    <script th:src="@{/vendor/three.min.js(v='20260321-1')}" src="/vendor/three.min.js"></script>
-    <script>
-        // Load GLTFLoader exactly once and reuse the same promise across calls.
-        function loadGLTFLoader() {
-            if (window.__gltfLoaderPromise) {
-                return window.__gltfLoaderPromise;
-            }
-
-            window.__gltfLoaderPromise = new Promise((resolve, reject) => {
-                if (typeof THREE === 'undefined') {
-                    reject(new Error('Three.js not available'));
-                    return;
-                }
-
-                if (typeof THREE.GLTFLoader === 'function') {
-                    resolve();
-                    return;
-                }
-
-                const existingScript = document.querySelector('script[src="/vendor/GLTFLoader.js"]');
-
-                const onLoaded = () => {
-                    if (typeof THREE.GLTFLoader === 'function') {
-                        resolve();
-                    } else {
-                        reject(new Error('GLTFLoader not available after loading script'));
-                    }
-                };
-
-                const onFailed = () => reject(new Error('Failed to load GLTFLoader'));
-
-                if (existingScript) {
-                    existingScript.addEventListener('load', onLoaded, { once: true });
-                    existingScript.addEventListener('error', onFailed, { once: true });
-                    return;
-                }
-
-                const script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.src = '/vendor/GLTFLoader.js';
-                script.onload = onLoaded;
-                script.onerror = onFailed;
-                document.head.appendChild(script);
-            });
-
-            return window.__gltfLoaderPromise;
-        }
-    </script>
-
     <!-- ==================== JAVASCRIPT ==================== -->
     <script>
         (function () {
@@ -1916,8 +2082,14 @@
             const audioContext = AudioCtx ? new AudioCtx() : null;
 
             const scene = document.querySelector('.simple-scene');
+            const hintAjaxAction = scene ? scene.dataset.hintAction : '';
+            const leaderboardUrl = scene ? (scene.dataset.leaderboardUrl || '/leaderboard') : '/leaderboard';
             const bagToggleButton = document.getElementById('scene-bag-toggle');
             const bagPanel = document.getElementById('scene-bag-panel');
+            const scoreValueNode = document.getElementById('scene-score-value');
+            const hintPanel = document.getElementById('scene-hint-panel');
+            const hintContent = document.getElementById('scene-hint-content');
+            const hintCloseButton = document.getElementById('scene-hint-close');
             const quizOverlay = document.getElementById('scene-quiz-overlay');
             const bagCloseButton = document.getElementById('scene-bag-close');
             const soundToggleButton = document.getElementById('scene-sound-toggle');
@@ -2072,6 +2244,21 @@
                 showSceneFeedback(next.message, next.isError);
             }
 
+            function hideHintPanel() {
+                if (!hintPanel) {
+                    return;
+                }
+                hintPanel.classList.remove('show');
+            }
+
+            function showHintPanel(text) {
+                if (!hintPanel || !hintContent || !text) {
+                    return;
+                }
+                hintContent.textContent = text;
+                hintPanel.classList.add('show');
+            }
+
             function hideModal(modal) {
                 if (!modal) {
                     return;
@@ -2157,6 +2344,14 @@
                 }
             }
 
+            const finaleOverlay = document.querySelector('.finale-overlay');
+            if (finaleOverlay) {
+                enqueueFeedback('Thoát thành công! Chuyển tới bảng xếp hạng sau 5 giây...', false);
+                setTimeout(() => {
+                    window.location.href = leaderboardUrl;
+                }, 5000);
+            }
+
             function closeBagPanel() {
                 closeAllGameModals();
             }
@@ -2189,6 +2384,10 @@
                 bagCloseButton.addEventListener('click', closeBagPanel);
             }
 
+            if (hintCloseButton) {
+                hintCloseButton.addEventListener('click', hideHintPanel);
+            }
+
             document.querySelectorAll('.play-sfx-click').forEach((element) => {
                 element.addEventListener('click', async () => {
                     await ensureAudioReady();
@@ -2217,11 +2416,12 @@
             const latheSlotB = document.getElementById('lathe-slot-b');
             const latheCombineButton = document.getElementById('lathe-combine-btn');
             const latheClearButton = document.getElementById('lathe-clear-btn');
+            const csrfTokenInput = document.querySelector('input[name="_csrf"]');
+            const csrfToken = csrfTokenInput ? csrfTokenInput.value : null;
 
             let selectedCollectedItem = null;
             let latheFirstItem = null;
             let latheSecondItem = null;
-            let persistFpsState = null;
 
             function refreshScannerAttention() {
                 if (!scannerTarget) {
@@ -2287,10 +2487,6 @@
             }
 
             async function submitCombine(firstItem, secondItem) {
-                if (typeof persistFpsState === 'function') {
-                    persistFpsState();
-                }
-
                 function fallbackSubmit() {
                     combineFirstItemInput.value = firstItem;
                     combineSecondItemInput.value = secondItem;
@@ -2310,7 +2506,8 @@
                     const response = await fetch(combineAjaxAction, {
                         method: 'POST',
                         body: formData,
-                        credentials: 'same-origin'
+                        credentials: 'same-origin',
+                        headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
                     });
                     if (response.status === 404 || response.status === 405) {
                         fallbackSubmit();
@@ -2346,6 +2543,37 @@
                     enqueueFeedback(payload.message || 'Kết hợp thành công!', false);
                 } catch (error) {
                     fallbackSubmit();
+                }
+            }
+
+            async function useHintWithPenalty() {
+                if (!hintAjaxAction) {
+                    enqueueFeedback('Không tìm thấy luồng gợi ý cho phòng này.', true);
+                    return;
+                }
+
+                try {
+                    const response = await fetch(hintAjaxAction, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
+                    });
+                    const payload = await response.json();
+                    if (!response.ok || !payload.success) {
+                        enqueueFeedback(payload.message || 'Không thể lấy gợi ý lúc này.', true);
+                        return;
+                    }
+
+                    if (scoreValueNode && payload.score !== undefined) {
+                        scoreValueNode.textContent = String(payload.score);
+                    }
+
+                    if (payload.hint) {
+                        showHintPanel(payload.hint);
+                    }
+                    enqueueFeedback(payload.message || 'Đã dùng gợi ý.', false);
+                } catch (error) {
+                    enqueueFeedback('Không thể lấy gợi ý lúc này.', true);
                 }
             }
 
@@ -2630,9 +2858,6 @@
                     event.preventDefault();
                     const ajaxAction = collectForm.dataset.ajaxAction;
                     if (!ajaxAction) {
-                        if (typeof persistFpsState === 'function') {
-                            persistFpsState();
-                        }
                         collectForm.submit();
                         return;
                     }
@@ -2642,7 +2867,8 @@
                         const response = await fetch(ajaxAction, {
                             method: 'POST',
                             body: formData,
-                            credentials: 'same-origin'
+                            credentials: 'same-origin',
+                            headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
                         });
                         const payload = await response.json();
 
@@ -2732,2715 +2958,50 @@
 
             renderLatheItemPool();
             refreshLathePanelState();
-
-            function initThreeFpsMode() {
-                if (!scene || !window.THREE) {
+            function initTwoDMode() {
+                if (!scene) {
                     return;
                 }
 
-                document.body.classList.add('fps-hud-hidden');
-
-                const wrap = document.createElement('div');
-                wrap.className = 'fps-canvas-wrap';
-
-                const crosshair = document.createElement('div');
-                crosshair.className = 'fps-crosshair';
-
-                const helpBar = document.createElement('div');
-                helpBar.className = 'fps-help-bar';
-                helpBar.innerHTML = '' +
-                    '<span class="fps-hint-key">WASD</span><span>Di chuyển</span>' +
-                    '<span class="fps-hint-key">Chuột</span><span>Nhìn</span>' +
-                    '<span class="fps-hint-key">E</span><span>Túi đồ</span>' +
-                    '<span class="fps-hint-key">F</span><span>Tương tác</span>';
-
-                const dynamicHint = document.createElement('div');
-                dynamicHint.className = 'fps-hint-dynamic';
-
-                // Minimap removed - using 3D view only
-                // const miniMap = document.createElement('div');
-                // miniMap.className = 'fps-minimap';
-                // const miniMapCanvas = document.createElement('canvas');
-                // miniMapCanvas.width = 166;
-                // miniMapCanvas.height = 166;
-                // miniMap.appendChild(miniMapCanvas);
-                // const miniMapCtx = miniMapCanvas.getContext('2d');
-
-                scene.appendChild(wrap);
-                wrap.appendChild(crosshair);
-                wrap.appendChild(helpBar);
-                wrap.appendChild(dynamicHint);
-                // scene.appendChild(miniMap); // Minimap disabled
-
-                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-                renderer.shadowMap.enabled = true;
-                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-                renderer.outputColorSpace = THREE.SRGBColorSpace;
-                wrap.appendChild(renderer.domElement);
-
-                const threeScene = new THREE.Scene();
-
-                // Detect room type for theming
-                const roomTitleNode = document.querySelector('.room-hud h1 span');
-                const roomTitle = roomTitleNode ? roomTitleNode.textContent.toLowerCase() : '';
-                const isVictorianRoom = roomTitle.includes('victorian') || roomTitle.includes('nghiên cứu');
-                const isScienceLab = roomTitle.includes('thí nghiệm') || roomTitle.includes('ngắt quãng');
-                const isNightCipher = roomTitle.includes('mật mã') || roomTitle.includes('bóng đêm');
-                const isAncientVault = roomTitle.includes('cổ vật') || roomTitle.includes('thức tỉnh');
-
-                // Set background color based on room type
-                let bgColor = 0x0a0a0f; // Default
-                if (isVictorianRoom) bgColor = 0x1a120d; // Warm brown
-                else if (isScienceLab) bgColor = 0x0a1628; // Cool blue-grey
-                else if (isNightCipher) bgColor = 0x0d0a1a; // Dark purple
-                else if (isAncientVault) bgColor = 0x1a1408; // Ancient gold-brown
-
-                threeScene.background = new THREE.Color(bgColor);
-
-                const camera = new THREE.PerspectiveCamera(73, 1, 0.1, 120);
-                camera.position.set(0, 1.6, 8);
-
-                const roomPathMatch = window.location.pathname.match(/\/game\/rooms\/(\d+)/);
-                const fpsStateKey = roomPathMatch
-                    ? ('game.fps.state.room.' + roomPathMatch[1])
-                    : null;
-
-                const textureLoader = new THREE.TextureLoader();
-                // GLTFLoader is now initialized after it's confirmed to be loaded
-                const gltfLoader = typeof THREE.GLTFLoader === 'function' ? new THREE.GLTFLoader() : null;
-
-                if (gltfLoader) {
-                    console.log('✅ GLTFLoader initialized successfully in game');
-                    // Give GLTFLoader more time to be fully ready before loading models
-                    setTimeout(() => {
-                        console.log('🎮 Starting room decoration loading...');
-                        console.log('🔄 Re-checking GLTFLoader availability:', typeof THREE.GLTFLoader);
-                        addRoomDecorations();
-                    }, 500); // Increased delay to ensure GLTFLoader is ready
-                } else {
-                    console.warn('⚠️ GLTFLoader not available, fallback models will be used');
-                    addRoomDecorations(); // Still add decorations, but they'll be fallback boxes
-                }
-
-                // Create a simple environment map for better reflections
-                const envGeometry = new THREE.BoxGeometry(100, 100, 100);
-                const envMaterial = new THREE.MeshBasicMaterial({
-                    color: bgColor,
-                    side: THREE.BackSide,
-                    transparent: true,
-                    opacity: 0.3
-                });
-                const envBox = new THREE.Mesh(envGeometry, envMaterial);
-                threeScene.add(envBox);
-
-                // Create environment map from scene
-                const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256);
-                const cubeCamera = new THREE.CubeCamera(1, 1000, cubeRenderTarget);
-                threeScene.add(cubeCamera);
-
-                let glbWarned = false;
-                let boxTexture = null;
-                let doorTexture = null;
-                const crateMaterials = [];
-                const doorMaterials = [];
-
-                // GLB Model Cache System
-                const modelCache = {};
-                const loadingPromises = {};
-
-                function loadGLBModel(path) {
-                    console.log('🔄 Loading GLB Model:', path);
-                    console.log('🔧 GLTFLoader instance:', gltfLoader);
-                    console.log('🔧 THREE.GLTFLoader type:', typeof THREE.GLTFLoader);
-
-                    if (modelCache[path]) {
-                        console.log('✅ Using cached model:', path);
-                        return Promise.resolve(modelCache[path].clone());
-                    }
-
-                    if (loadingPromises[path]) {
-                        console.log('⏳ Model already loading:', path);
-                        return loadingPromises[path].then(model => model.clone());
-                    }
-
-                    if (!gltfLoader) {
-                        console.warn('❌ GLTFLoader not available for model:', path);
-                        return Promise.reject(new Error('GLTFLoader not available'));
-                    }
-
-                    loadingPromises[path] = new Promise((resolve, reject) => {
-                        console.log('📥 Starting GLTFLoader for:', path);
-                        gltfLoader.load(
-                            path,
-                            (gltf) => {
-                                console.log('✅ GLTFLoader success for:', path, gltf);
-
-                                if (!gltf.scene) {
-                                    console.error('❌ No scene in GLTF file:', path);
-                                    reject(new Error('No scene in GLTF file'));
-                                    return;
-                                }
-
-                                const model = gltf.scene;
-                                console.log('📊 Model stats:', {
-                                    children: model.children.length,
-                                    type: model.type,
-                                    name: model.name
-                                });
-
-                                modelCache[path] = model;
-                                delete loadingPromises[path];
-
-                                // Enable shadows for all meshes in model
-                                let meshCount = 0;
-                                model.traverse((child) => {
-                                    if (child.isMesh) {
-                                        meshCount++;
-                                        child.castShadow = true;
-                                        child.receiveShadow = true;
-                                        // Enhance materials if needed
-                                        if (child.material) {
-                                            child.material.envMap = cubeRenderTarget.texture;
-                                            child.material.envMapIntensity = 0.2;
-                                            if (child.material.metalness > 0.5) {
-                                                child.material.envMapIntensity = 0.7;
-                                            }
-                                        }
-                                    }
-                                });
-
-                                console.log('✅ Loaded GLB model:', path, `(${meshCount} meshes)`);
-                                resolve(model.clone());
-                            },
-                            (progress) => {
-                                if (progress && progress.total > 0) {
-                                    const percent = (progress.loaded / progress.total) * 100;
-                                    console.log(`📥 Loading ${path}: ${percent.toFixed(0)}%`);
-                                }
-                            },
-                            (error) => {
-                                console.error('❌ Failed to load GLB model:', path);
-                                console.error('   Error type:', error.type || 'unknown');
-                                console.error('   Error message:', error.message || error);
-                                console.error('   Full error:', error);
-                                delete loadingPromises[path];
-                                reject(error);
-                            }
-                        );
-                    });
-
-                    return loadingPromises[path];
-                }
-                textureLoader.load('/images/3D/door/textures/door1Color.png', (texture) => {
-                    texture.colorSpace = THREE.SRGBColorSpace;
-                    texture.wrapS = THREE.ClampToEdgeWrapping;
-                    texture.wrapT = THREE.ClampToEdgeWrapping;
-                    doorTexture = texture;
-                    doorMaterials.forEach((material) => {
-                        material.map = doorTexture;
-                        material.color.setHex(0xffffff);
-                        material.needsUpdate = true;
-                    });
-                });
-                textureLoader.load(
-                    '/images/3D/thick-cardboard-box/textures/Box_00_Albedo.jpg',
-                    (texture) => {
-                        texture.colorSpace = THREE.SRGBColorSpace;
-                        texture.wrapS = THREE.RepeatWrapping;
-                        texture.wrapT = THREE.RepeatWrapping;
-                        texture.repeat.set(1, 1);
-                        boxTexture = texture;
-                        crateMaterials.forEach((material) => {
-                            material.map = boxTexture;
-                            material.color.setHex(0xffffff);
-                            material.needsUpdate = true;
-                        });
-                    }
-                );
-
-                // Room-specific atmospheric lighting
-                if (isVictorianRoom) {
-                    // 📚 VICTORIAN STUDY ROOM: Warm candlelight atmosphere
-                    const hemiLight = new THREE.HemisphereLight(0xffd4a3, 0x2a1810, 0.3);
-                    threeScene.add(hemiLight);
-
-                    const windowLight = new THREE.SpotLight(0xffeedd, 1.2, 25, Math.PI / 6, 0.5);
-                    windowLight.position.set(-5, 4, -11);
-                    windowLight.target.position.set(-1, 1, -8);
-                    threeScene.add(windowLight);
-                    threeScene.add(windowLight.target);
-
-                    const chandelierLight = new THREE.PointLight(0xffcc88, 0.8, 15);
-                    chandelierLight.position.set(0, 4.5, -4);
-                    threeScene.add(chandelierLight);
-
-                    const deskLamp = new THREE.SpotLight(0xffd699, 0.9, 10, Math.PI / 5, 0.3);
-                    deskLamp.position.set(0, 2.5, -1);
-                    deskLamp.target.position.set(0, 1, -1);
-                    threeScene.add(deskLamp);
-                    threeScene.add(deskLamp.target);
-
-                    const bookLight1 = new THREE.PointLight(0xff9966, 0.4, 8);
-                    bookLight1.position.set(-10.5, 2, -4);
-                    threeScene.add(bookLight1);
-
-                    const fireGlow = new THREE.PointLight(0xff6633, 0.6, 12);
-                    fireGlow.position.set(8, 1, -10);
-                    threeScene.add(fireGlow);
-
-                    threeScene.fog = new THREE.Fog(0x1a120d, 1, 28);
-
-                } else if (isScienceLab) {
-                    // 🧪 SCIENCE LAB: Cold fluorescent lighting
-                    const hemiLight = new THREE.HemisphereLight(0xa3d4ff, 0x0f1a28, 0.4);
-                    threeScene.add(hemiLight);
-
-                    // Overhead fluorescent strips
-                    const stripLight1 = new THREE.RectAreaLight(0xddeeff, 2.5, 4, 0.5);
-                    stripLight1.position.set(0, 5.2, -4);
-                    stripLight1.lookAt(0, 0, -4);
-                    threeScene.add(stripLight1);
-
-                    const stripLight2 = new THREE.RectAreaLight(0xddeeff, 2.5, 4, 0.5);
-                    stripLight2.position.set(0, 5.2, -8);
-                    stripLight2.lookAt(0, 0, -8);
-                    threeScene.add(stripLight2);
-
-                    // Scanner glow (cyan)
-                    const scannerGlow = new THREE.PointLight(0x00ffff, 1.2, 10);
-                    scannerGlow.position.set(7, 2, -5);
-                    threeScene.add(scannerGlow);
-
-                    // Microscope area light
-                    const microscopeLight = new THREE.SpotLight(0xffffff, 1.5, 8, Math.PI / 4, 0.4);
-                    microscopeLight.position.set(-3, 3, -3);
-                    microscopeLight.target.position.set(-3, 1, -3);
-                    threeScene.add(microscopeLight);
-                    threeScene.add(microscopeLight.target);
-
-                    // Emergency blue strips
-                    const blueStrip1 = new THREE.PointLight(0x3388ff, 0.6, 12);
-                    blueStrip1.position.set(-10, 4, -6);
-                    threeScene.add(blueStrip1);
-
-                    const blueStrip2 = new THREE.PointLight(0x3388ff, 0.6, 12);
-                    blueStrip2.position.set(10, 4, -6);
-                    threeScene.add(blueStrip2);
-
-                    threeScene.fog = new THREE.Fog(0x0a1628, 1, 30);
-
-                } else if (isNightCipher) {
-                    // 🌙 NIGHT CIPHER: Dark mysterious with UV purple
-                    const hemiLight = new THREE.HemisphereLight(0x8866ff, 0x0a0518, 0.15);
-                    threeScene.add(hemiLight);
-
-                    // Main UV blacklight
-                    const uvLight = new THREE.SpotLight(0xaa66ff, 1.8, 18, Math.PI / 5, 0.6);
-                    uvLight.position.set(0, 5, -6);
-                    uvLight.target.position.set(0, 0, -6);
-                    threeScene.add(uvLight);
-                    threeScene.add(uvLight.target);
-
-                    // Purple mystical orbs
-                    const orb1 = new THREE.PointLight(0xcc66ff, 0.8, 10);
-                    orb1.position.set(-7, 3, -8);
-                    threeScene.add(orb1);
-
-                    const orb2 = new THREE.PointLight(0x6633cc, 0.8, 10);
-                    orb2.position.set(7, 3, -4);
-                    threeScene.add(orb2);
-
-                    const orb3 = new THREE.PointLight(0x9944ff, 0.6, 8);
-                    orb3.position.set(0, 2, -10);
-                    threeScene.add(orb3);
-
-                    // Cipher panel glow
-                    const cipherGlow = new THREE.PointLight(0xdd88ff, 1.2, 8);
-                    cipherGlow.position.set(3, 2, -5);
-                    threeScene.add(cipherGlow);
-
-                    // Moonlight through window (dim blue)
-                    const moonlight = new THREE.SpotLight(0x88aacc, 0.5, 20, Math.PI / 6, 0.7);
-                    moonlight.position.set(-6, 5, -11);
-                    moonlight.target.position.set(0, 0, -6);
-                    threeScene.add(moonlight);
-                    threeScene.add(moonlight.target);
-
-                    threeScene.fog = new THREE.Fog(0x0d0a1a, 1, 25);
-
-                } else if (isAncientVault) {
-                    // 🏺 ANCIENT VAULT: Warm torch and golden light
-                    const hemiLight = new THREE.HemisphereLight(0xffcc88, 0x1a1008, 0.25);
-                    threeScene.add(hemiLight);
-
-                    // Main altar/pedestal light (mystical golden)
-                    const altarLight = new THREE.SpotLight(0xffd700, 1.5, 15, Math.PI / 4, 0.5);
-                    altarLight.position.set(0, 6, -6);
-                    altarLight.target.position.set(0, 1, -6);
-                    threeScene.add(altarLight);
-                    threeScene.add(altarLight.target);
-
-                    // Torches on walls (flickering warm)
-                    const torch1 = new THREE.PointLight(0xff8833, 1.0, 12);
-                    torch1.position.set(-9, 3, -8);
-                    threeScene.add(torch1);
-
-                    const torch2 = new THREE.PointLight(0xff8833, 1.0, 12);
-                    torch2.position.set(9, 3, -8);
-                    threeScene.add(torch2);
-
-                    const torch3 = new THREE.PointLight(0xff9944, 0.8, 10);
-                    torch3.position.set(-5, 3, -11);
-                    threeScene.add(torch3);
-
-                    const torch4 = new THREE.PointLight(0xff9944, 0.8, 10);
-                    torch4.position.set(5, 3, -11);
-                    threeScene.add(torch4);
-
-                    // Guardian statue eyes (eerie red)
-                    const eyeGlow1 = new THREE.PointLight(0xff3333, 0.6, 6);
-                    eyeGlow1.position.set(4, 2.5, -9);
-                    threeScene.add(eyeGlow1);
-
-                    const eyeGlow2 = new THREE.PointLight(0xff3333, 0.6, 6);
-                    eyeGlow2.position.set(4.5, 2.5, -9);
-                    threeScene.add(eyeGlow2);
-
-                    // Ancient runes glow (cyan mystical)
-                    const runeGlow = new THREE.PointLight(0x44ccff, 0.4, 8);
-                    runeGlow.position.set(-3, 1.5, -10);
-                    threeScene.add(runeGlow);
-
-                    threeScene.fog = new THREE.Fog(0x1a1408, 1, 26);
-
-                } else {
-                    // Default generic lighting
-                    const hemiLight = new THREE.HemisphereLight(0x9fd4ff, 0x101728, 1.0);
-                    threeScene.add(hemiLight);
-
-                    const dirLight = new THREE.DirectionalLight(0xffffff, 1.05);
-                    dirLight.position.set(6, 10, 4);
-                    dirLight.castShadow = true;
-                    dirLight.shadow.mapSize.width = 2048;
-                    dirLight.shadow.mapSize.height = 2048;
-                    dirLight.shadow.camera.near = 0.5;
-                    dirLight.shadow.camera.far = 50;
-                    dirLight.shadow.camera.left = -20;
-                    dirLight.shadow.camera.right = 20;
-                    dirLight.shadow.camera.top = 20;
-                    dirLight.shadow.camera.bottom = -20;
-                    threeScene.add(dirLight);
-
-                    const fillLightA = new THREE.PointLight(0x66ccff, 0.55, 34);
-                    fillLightA.position.set(-8.4, 3.2, -8.6);
-                    threeScene.add(fillLightA);
-
-                    const fillLightB = new THREE.PointLight(0xffd99b, 0.42, 30);
-                    fillLightB.position.set(7.6, 3.6, -4.8);
-                    threeScene.add(fillLightB);
-                }
-
-                // Floor material - different for each room type
-                let floorColor = 0xffffff;
-                let floorRoughness = 0.85;
-                if (isVictorianRoom) { floorColor = 0x3d2817; floorRoughness = 0.7; }
-                else if (isScienceLab) { floorColor = 0x5a6d7e; floorRoughness = 0.3; } // Shiny lab floor
-                else if (isNightCipher) { floorColor = 0x2a1f3d; floorRoughness = 0.8; } // Dark purple stone
-                else if (isAncientVault) { floorColor = 0x6b5d3f; floorRoughness = 0.9; } // Ancient stone
-
-                const floorMaterial = new THREE.MeshStandardMaterial({
-                    color: floorColor,
-                    roughness: floorRoughness,
-                    metalness: 0.03
-                });
-                textureLoader.load('/images/3D/wood_table_4k/textures/wood_table_diff_4k.jpg', (texture) => {
-                    texture.colorSpace = THREE.SRGBColorSpace;
-                    texture.wrapS = THREE.RepeatWrapping;
-                    texture.wrapT = THREE.RepeatWrapping;
-                    let repeatCount = 8;
-                    if (isVictorianRoom) repeatCount = 12;
-                    else if (isScienceLab) repeatCount = 6;
-                    else if (isAncientVault) repeatCount = 10;
-                    texture.repeat.set(repeatCount, repeatCount);
-                    floorMaterial.map = texture;
-                    floorMaterial.needsUpdate = true;
-                });
-
-                // Wall material - different for each room type
-                let wallColor = 0xffffff;
-                let wallRoughness = 0.9;
-                let wallMetalness = 0.02;
-                if (isVictorianRoom) {
-                    wallColor = 0x4a3426; wallRoughness = 0.8; wallMetalness = 0.05;
-                } else if (isScienceLab) {
-                    wallColor = 0xd4e4f7; wallRoughness = 0.6; wallMetalness = 0.15; // Clean white-blue
-                } else if (isNightCipher) {
-                    wallColor = 0x3d2f5a; wallRoughness = 0.85; wallMetalness = 0.05; // Dark purple stone
-                } else if (isAncientVault) {
-                    wallColor = 0x6b5233; wallRoughness = 0.9; wallMetalness = 0.03; // Ancient brown stone
-                }
-
-                const wallMaterial = new THREE.MeshStandardMaterial({
-                    color: wallColor,
-                    roughness: wallRoughness,
-                    metalness: wallMetalness
-                });
-                if (!isVictorianRoom && !isScienceLab && !isNightCipher && !isAncientVault) {
-                    textureLoader.load('/images/scenes/science-1.svg', (texture) => {
-                        texture.colorSpace = THREE.SRGBColorSpace;
-                        texture.wrapS = THREE.RepeatWrapping;
-                        texture.wrapT = THREE.RepeatWrapping;
-                        texture.repeat.set(2, 1);
-                        wallMaterial.map = texture;
-                        wallMaterial.needsUpdate = true;
-                    });
-                }
-
-                const roomSize = 24;
-                const wallHeight = 5.6;
-                const boundaryHalf = (roomSize / 2) - 0.5;
-
-                const floor = new THREE.Mesh(
-                    new THREE.PlaneGeometry(roomSize, roomSize),
-                    floorMaterial
-                );
-                floor.rotation.x = -Math.PI / 2;
-                floor.position.y = 0;
-                floor.receiveShadow = true; // Enable shadow receiving
-                threeScene.add(floor);
-
-                const roomWalls = [
-                    { x: 0, y: wallHeight / 2, z: -(roomSize / 2), w: roomSize, h: wallHeight, d: 0.6 },
-                    { x: 0, y: wallHeight / 2, z: roomSize / 2, w: roomSize, h: wallHeight, d: 0.6 },
-                    { x: -(roomSize / 2), y: wallHeight / 2, z: 0, w: 0.6, h: wallHeight, d: roomSize },
-                    { x: roomSize / 2, y: wallHeight / 2, z: 0, w: 0.6, h: wallHeight, d: roomSize }
-                ];
-                roomWalls.forEach((wall) => {
-                    const wallMesh = new THREE.Mesh(new THREE.BoxGeometry(wall.w, wall.h, wall.d), wallMaterial);
-                    wallMesh.position.set(wall.x, wall.y, wall.z);
-                    threeScene.add(wallMesh);
-                });
-
-                function prepareModelForScene(modelRoot, targetHeight, targetMaxDimension) {
-                    const initialBox = new THREE.Box3().setFromObject(modelRoot);
-                    const initialSize = new THREE.Vector3();
-                    initialBox.getSize(initialSize);
-
-                    const initialHorizontalMax = Math.max(initialSize.x, initialSize.z);
-                    if (initialHorizontalMax > 0.001 && initialSize.y < initialHorizontalMax * 0.22) {
-                        modelRoot.rotation.x = -Math.PI / 2;
-                        modelRoot.updateMatrixWorld(true);
-                    }
-
-                    const box = new THREE.Box3().setFromObject(modelRoot);
-                    if (!Number.isFinite(box.min.x) || !Number.isFinite(box.max.x)) {
+                document.body.classList.remove('fps-fullscreen', 'fps-hud-hidden', 'fps-docked');
+
+                // Keep useful keyboard shortcuts for 2D interaction.
+                window.addEventListener('keydown', (event) => {
+                    const target = event.target;
+                    const isTyping = target && (
+                        target.tagName === 'INPUT' ||
+                        target.tagName === 'TEXTAREA' ||
+                        target.tagName === 'SELECT' ||
+                        target.isContentEditable
+                    );
+
+                    if (isTyping) {
                         return;
                     }
 
-                    const size = new THREE.Vector3();
-                    box.getSize(size);
-                    if (size.y > 0.001 && Number.isFinite(targetHeight) && targetHeight > 0) {
-                        const scale = targetHeight / size.y;
-                        modelRoot.scale.setScalar(scale);
-                    } else if (Number.isFinite(targetMaxDimension) && targetMaxDimension > 0) {
-                        const currentMax = Math.max(size.x, size.y, size.z);
-                        if (currentMax > 0.001) {
-                            const scale = targetMaxDimension / currentMax;
-                            modelRoot.scale.setScalar(scale);
-                        }
-                    }
-
-                    const normalized = new THREE.Box3().setFromObject(modelRoot);
-                    const center = new THREE.Vector3();
-                    normalized.getCenter(center);
-                    modelRoot.position.x -= center.x;
-                    modelRoot.position.z -= center.z;
-
-                    const adjusted = new THREE.Box3().setFromObject(modelRoot);
-                    modelRoot.position.y -= adjusted.min.y;
-
-                    modelRoot.traverse((node) => {
-                        if (!node.isMesh) {
-                            return;
-                        }
-                        node.castShadow = true;
-                        node.receiveShadow = true;
-                        if (node.material && node.material.map) {
-                            node.material.map.colorSpace = THREE.SRGBColorSpace;
-                            node.material.needsUpdate = true;
-                        }
-                    });
-                }
-
-                function loadGlb(url, onLoaded) {
-                    if (!gltfLoader) {
-                        if (!glbWarned) {
-                            glbWarned = true;
-                            enqueueFeedback('GLTFLoader chưa sẵn sàng, dùng mô hình dự phòng.', true);
-                        }
-                        return;
-                    }
-                    gltfLoader.load(
-                        url,
-                        (gltf) => {
-                            const model = gltf.scene || (Array.isArray(gltf.scenes) ? gltf.scenes[0] : null);
-                            if (!model) {
-                                return;
-                            }
-                            onLoaded(model);
-                        },
-                        undefined,
-                        () => {
-                            if (!glbWarned) {
-                                glbWarned = true;
-                                enqueueFeedback('Có model 3D không tải được, dùng bản dự phòng.', true);
-                            }
-                        }
-                    );
-                }
-
-                function addDecorSet() {
-                    // Get room name to customize scene
-                    const roomTitleNode = document.querySelector('.room-hud h1 span');
-                    const roomTitle = roomTitleNode ? roomTitleNode.textContent.toLowerCase() : '';
-                    const isVictorianRoom = roomTitle.includes('victorian') || roomTitle.includes('nghiên cứu');
-                    const isScienceLabRoom = roomTitle.includes('thí nghiệm') || roomTitle.includes('laboratory') || roomTitle.includes('lab');
-
-                    console.log('🏠 Room Detection Debug:');
-                    console.log('   Room Title:', roomTitle);
-                    console.log('   Is Victorian:', isVictorianRoom);
-                    console.log('   Is Science Lab:', isScienceLabRoom);
-
-                    if (isVictorianRoom) {
-                        // Victorian Study Room Layout
-                        // Floor: Persian carpet
-                        loadGlb('/images/3D/persian_malayer_runner_carpet.glb', (model) => {
-                            prepareModelForScene(model, 0.08, null);
-                            model.position.set(0, 0.01, -2);
-                            model.rotation.y = Math.PI * 0.5;
-                            threeScene.add(model);
-                        });
-
-                        // Center: Table and chairs (workspace)
-                        loadGlb('/images/3D/table_and_chairs.glb', (model) => {
-                            prepareModelForScene(model, 1.32, 3.2);
-                            model.position.set(0, 0, -1);
-                            model.rotation.y = 0;
-                            threeScene.add(model);
-                            collisionEntries.push(createCollisionEntryForMesh(model, 0.18));
-                        });
-
-                        // Back wall: Victorian window (for natural light)
-                        loadGlb('/images/3D/victorian_window.glb', (model) => {
-                            prepareModelForScene(model, 2.2, null);
-                            model.position.set(-4, 1.32, -11.8);
-                            model.rotation.y = 0;
-                            model.traverse((node) => {
-                                if (!node.isMesh || !node.material) {
-                                    return;
-                                }
-                                node.material.side = THREE.DoubleSide;
-                                if (node.material.transparent === true || node.material.alphaMap) {
-                                    node.material.alphaTest = 0.05;
-                                }
-                                node.material.needsUpdate = true;
-                            });
-                            threeScene.add(model);
-                        });
-
-                        // Left wall: Bookshelf/Cabinet
-                        loadGlb('/images/3D/basic_kitchen_cabinets_and_counter.glb', (model) => {
-                            prepareModelForScene(model, 2.0, 3.8);
-                            model.position.set(-11, 0, -4);
-                            model.rotation.y = Math.PI * 0.5;
-                            threeScene.add(model);
-                            collisionEntries.push(createCollisionEntryForMesh(model, 0.22));
-                        });
-
-                        // Right corner: Lathe Machine
-                        loadGlb('/images/3D/lathe-machine/source/Lathe Machine.glb', (model) => {
-                            prepareModelForScene(model, 1.2, 2.5);
-                            model.position.set(9, 0, -8);
-                            model.rotation.y = -Math.PI * 0.25;
-                            threeScene.add(model);
-                            collisionEntries.push(createCollisionEntryForMesh(model, 0.3));
-                        });
-                    } else if (isScienceLabRoom) {
-                        // Science Laboratory Room Layout
-                        console.log('🔬 Setting up Science Laboratory with industrial equipment');
-                        console.log('🧪 GLTFLoader status:', gltfLoader ? 'Available ✅' : 'Not Available ❌');
-
-                        // Central Control Panel
-                        loadGLBModel('/images/3D/old_control_panel.glb')
-                            .then(model => {
-                                model.scale.set(1.5, 1.5, 1.5);
-                                model.position.set(0, 0, -4);
-                                model.rotation.y = 0;
-                                threeScene.add(model);
-                                collisionEntries.push(createCollisionEntryForMesh(model, 0.3));
-                            })
-                            .catch(() => console.warn('Control panel model failed to load'));
-
-                        // Left wall: Laboratory Storage Cabinet
-                        loadGLBModel('/images/3D/laboratory_cabinet_storage__pbr_low_poly__free.glb')
-                            .then(model => {
-                                model.scale.set(1.8, 1.8, 1.8);
-                                model.position.set(-10, 0, -8);
-                                model.rotation.y = Math.PI * 0.5;
-                                threeScene.add(model);
-                                collisionEntries.push(createCollisionEntryForMesh(model, 0.2));
-                            })
-                            .catch(() => console.warn('Lab cabinet model failed to load'));
-
-                        // Right wall: Metal Storage Cabinet
-                        loadGLBModel('/images/3D/metal_storage_cabinet.glb')
-                            .then(model => {
-                                model.scale.set(1.2, 1.2, 1.2);
-                                model.position.set(9, 0, -6);
-                                model.rotation.y = -Math.PI * 0.5;
-                                threeScene.add(model);
-                                collisionEntries.push(createCollisionEntryForMesh(model, 0.3));
-                            })
-                            .catch(() => console.warn('Metal cabinet model failed to load'));
-
-                        // Corner: Industrial Machinery
-                        loadGLBModel('/images/3D/machinery_windtrap.glb')
-                            .then(model => {
-                                model.scale.set(0.8, 0.8, 0.8);
-                                model.position.set(7, 0, -10);
-                                model.rotation.y = Math.PI * 0.25;
-                                threeScene.add(model);
-                                collisionEntries.push(createCollisionEntryForMesh(model, 0.4));
-                            })
-                            .catch(() => console.warn('Machinery model failed to load'));
-
-                        // Left corner: Sci-Fi Shelving Unit
-                        loadGLBModel('/images/3D/sci-fi_furniture_pack_aaa_shelving_unit_c.glb')
-                            .then(model => {
-                                model.scale.set(1.0, 1.0, 1.0);
-                                model.position.set(-8, 0, -2);
-                                model.rotation.y = Math.PI * 0.8;
-                                threeScene.add(model);
-                                collisionEntries.push(createCollisionEntryForMesh(model, 0.2));
-                            })
-                            .catch(() => console.warn('Sci-fi shelving model failed to load'));
-
-                        // Ceiling: Ventilation System
-                        loadGLBModel('/images/3D/rooftop_ventilations_air_conditioning_units.glb')
-                            .then(model => {
-                                model.scale.set(0.6, 0.6, 0.6);
-                                model.position.set(3, 4.5, -7);
-                                model.rotation.y = Math.PI * 0.3;
-                                threeScene.add(model);
-                            })
-                            .catch(() => console.warn('Ventilation model failed to load'));
-
-                        // Industrial Standing Light
-                        loadGLBModel('/images/3D/industrial_standing_light.glb')
-                            .then(model => {
-                                model.scale.set(1.2, 1.2, 1.2);
-                                model.position.set(-4, 0, -9);
-                                model.rotation.y = 0;
-                                threeScene.add(model);
-                                collisionEntries.push(createCollisionEntryForMesh(model, 0.2));
-                            })
-                            .catch(() => console.warn('Industrial light model failed to load'));
-
-                        // Warning Signs
-                        loadGLBModel('/images/3D/warning_signs__virus_laboratory.glb')
-                            .then(model => {
-                                model.scale.set(1.0, 1.0, 1.0);
-                                model.position.set(0, 1.8, -11.5);
-                                model.rotation.y = 0;
-                                threeScene.add(model);
-                            })
-                            .catch(() => console.warn('Warning signs model failed to load'));
-
-                        // Additional crates scattered around
-                        loadGLBModel('/images/3D/wooden_storage_box.glb')
-                            .then(model => {
-                                model.scale.set(0.7, 0.7, 0.7);
-                                model.position.set(5, 0, -3);
-                                model.rotation.y = Math.PI * 0.6;
-                                threeScene.add(model);
-                                collisionEntries.push(createCollisionEntryForMesh(model, 0.2));
-                            })
-                            .catch(() => console.warn('Wooden storage box model failed to load'));
-
-                    } else {
-                        // Original room setup for other rooms
-                        loadGlb('/images/3D/persian_malayer_runner_carpet.glb', (model) => {
-                            prepareModelForScene(model, 0.08, null);
-                            model.position.set(0.1, 0.01, -2.8);
-                            model.rotation.y = Math.PI * 0.5;
-                            threeScene.add(model);
-                        });
-
-                        loadGlb('/images/3D/table_and_chairs.glb', (model) => {
-                            prepareModelForScene(model, 1.32, 3.2);
-                            model.position.set(1.45, 0, -3.35);
-                            model.rotation.y = -Math.PI * 0.34;
-                            threeScene.add(model);
-                            collisionEntries.push(createCollisionEntryForMesh(model, 0.18));
-                        });
-
-                        loadGlb('/images/3D/victorian_window.glb', (model) => {
-                            prepareModelForScene(model, 2.2, null);
-                            model.position.set(-3.9, 1.32, -11.62);
-                            model.rotation.y = 0;
-                            model.traverse((node) => {
-                                if (!node.isMesh || !node.material) {
-                                    return;
-                                }
-                                node.material.side = THREE.DoubleSide;
-                                if (node.material.transparent === true || node.material.alphaMap) {
-                                    node.material.alphaTest = 0.05;
-                                }
-                                node.material.needsUpdate = true;
-                            });
-                            threeScene.add(model);
-                        });
-
-                        loadGlb('/images/3D/basic_kitchen_cabinets_and_counter.glb', (model) => {
-                            prepareModelForScene(model, 2.0, 3.8);
-                            model.position.set(10.72, 0, -6.25);
-                            model.rotation.y = -Math.PI * 0.5;
-                            threeScene.add(model);
-                            collisionEntries.push(createCollisionEntryForMesh(model, 0.22));
-                        });
-                    }
-                }
-
-                addDecorSet();
-
-                // Add Victorian decorative elements
-                function addVictorianDecorations() {
-                    const roomTitleNode = document.querySelector('.room-hud h1 span');
-                    const roomTitle = roomTitleNode ? roomTitleNode.textContent.toLowerCase() : '';
-                    if (!roomTitle.includes('victorian') && !roomTitle.includes('nghiên cứu')) {
-                        return;
-                    }
-
-                    // Ceiling with ornate trim
-                    const ceiling = new THREE.Mesh(
-                        new THREE.PlaneGeometry(24, 24),
-                        new THREE.MeshStandardMaterial({ color: 0x2d1f15, roughness: 0.9 })
-                    );
-                    ceiling.rotation.x = Math.PI / 2;
-                    ceiling.position.y = 5.6;
-                    threeScene.add(ceiling);
-
-                    // Chandelier center
-                    const chandelier = new THREE.Group();
-                    const chandBase = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.3, 0.4, 0.5, 8),
-                        new THREE.MeshStandardMaterial({ color: 0x8b7355, metalness: 0.6, roughness: 0.3 })
-                    );
-                    chandelier.add(chandBase);
-
-                    // Chandelier arms
-                    for (let i = 0; i < 6; i++) {
-                        const angle = (i / 6) * Math.PI * 2;
-                        const arm = new THREE.Mesh(
-                            new THREE.BoxGeometry(0.8, 0.08, 0.08),
-                            new THREE.MeshStandardMaterial({ color: 0xa0826d, metalness: 0.7, roughness: 0.2 })
-                        );
-                        arm.position.set(Math.cos(angle) * 0.5, -0.3, Math.sin(angle) * 0.5);
-                        arm.rotation.y = angle;
-                        chandelier.add(arm);
-
-                        // Candles
-                        const candle = new THREE.Mesh(
-                            new THREE.CylinderGeometry(0.04, 0.04, 0.2, 8),
-                            new THREE.MeshStandardMaterial({ color: 0xfff4e6, emissive: 0xffcc88, emissiveIntensity: 0.5 })
-                        );
-                        candle.position.set(Math.cos(angle) * 0.85, -0.2, Math.sin(angle) * 0.85);
-                        chandelier.add(candle);
-
-                        // Candle flame glow
-                        const flame = new THREE.PointLight(0xffaa44, 0.3, 5);
-                        flame.position.set(Math.cos(angle) * 0.85, -0.05, Math.sin(angle) * 0.85);
-                        chandelier.add(flame);
-                    }
-
-                    chandelier.position.set(0, 4.8, -4);
-                    threeScene.add(chandelier);
-
-                    // Wall paintings/frames
-                    const paintingPositions = [
-                        { x: -11.5, y: 2.5, z: -10, ry: Math.PI / 2 },
-                        { x: 11.5, y: 2.5, z: -5, ry: -Math.PI / 2 },
-                        { x: 5, y: 2.8, z: -11.9, ry: 0 }
-                    ];
-
-                    paintingPositions.forEach(pos => {
-                        // Frame
-                        const frame = new THREE.Mesh(
-                            new THREE.BoxGeometry(1.2, 1.6, 0.08),
-                            new THREE.MeshStandardMaterial({ color: 0x3d2817, roughness: 0.5, metalness: 0.1 })
-                        );
-                        frame.position.set(pos.x, pos.y, pos.z);
-                        frame.rotation.y = pos.ry;
-                        threeScene.add(frame);
-
-                        // "Painting" canvas
-                        const canvas = new THREE.Mesh(
-                            new THREE.PlaneGeometry(0.9, 1.3),
-                            new THREE.MeshStandardMaterial({
-                                color: 0x8b6f47,
-                                roughness: 0.8,
-                                emissive: 0x443322,
-                                emissiveIntensity: 0.1
-                            })
-                        );
-                        canvas.position.set(pos.x, pos.y, pos.z);
-                        canvas.rotation.y = pos.ry;
-                        if (pos.ry === 0) canvas.position.z -= 0.05;
-                        else if (pos.ry > 0) canvas.position.x -= 0.05;
-                        else canvas.position.x += 0.05;
-                        threeScene.add(canvas);
-                    });
-
-                    // Fireplace (corner decorative)
-                    const fireplace = new THREE.Group();
-                    const fireplaceBase = new THREE.Mesh(
-                        new THREE.BoxGeometry(2, 1.8, 0.6),
-                        new THREE.MeshStandardMaterial({ color: 0x3a2a1f, roughness: 0.7 })
-                    );
-                    fireplace.add(fireplaceBase);
-
-                    const fireplaceOpening = new THREE.Mesh(
-                        new THREE.BoxGeometry(1.4, 1.2, 0.5),
-                        new THREE.MeshStandardMaterial({
-                            color: 0x1a0a05,
-                            emissive: 0xff4422,
-                            emissiveIntensity: 0.3
-                        })
-                    );
-                    fireplaceOpening.position.set(0, 0.2, 0.05);
-                    fireplace.add(fireplaceOpening);
-
-                    // Fireplace mantel
-                    const mantel = new THREE.Mesh(
-                        new THREE.BoxGeometry(2.2, 0.15, 0.7),
-                        new THREE.MeshStandardMaterial({ color: 0x4a3426, roughness: 0.4, metalness: 0.2 })
-                    );
-                    mantel.position.set(0, 0.95, 0);
-                    fireplace.add(mantel);
-
-                    fireplace.position.set(9, 0.9, -11.5);
-                    fireplace.rotation.y = -Math.PI / 4;
-                    threeScene.add(fireplace);
-                    collisionEntries.push(createCollisionEntryForMesh(fireplaceBase, 0.3));
-
-                    // Floor lamp near reading area
-                    const floorLamp = new THREE.Group();
-                    const lampStand = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.04, 0.06, 2, 8),
-                        new THREE.MeshStandardMaterial({ color: 0x4a3426, metalness: 0.5, roughness: 0.4 })
-                    );
-                    floorLamp.add(lampStand);
-
-                    const lampShade = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.4, 0.5, 0.6, 8, 1, true),
-                        new THREE.MeshStandardMaterial({
-                            color: 0xfff4d6,
-                            side: THREE.DoubleSide,
-                            emissive: 0xffcc88,
-                            emissiveIntensity: 0.3,
-                            transparent: true,
-                            opacity: 0.8
-                        })
-                    );
-                    lampShade.position.y = 1.3;
-                    floorLamp.add(lampShade);
-
-                    floorLamp.position.set(2.5, 1, -2);
-                    threeScene.add(floorLamp);
-
-                    // Grandfather clock
-                    const clock = new THREE.Group();
-                    const clockBody = new THREE.Mesh(
-                        new THREE.BoxGeometry(0.6, 2.5, 0.4),
-                        new THREE.MeshStandardMaterial({ color: 0x2d1f15, roughness: 0.5, metalness: 0.1 })
-                    );
-                    clock.add(clockBody);
-
-                    const clockFace = new THREE.Mesh(
-                        new THREE.CircleGeometry(0.25, 32),
-                        new THREE.MeshStandardMaterial({
-                            color: 0xf5ead6,
-                            emissive: 0xffffff,
-                            emissiveIntensity: 0.1
-                        })
-                    );
-                    clockFace.position.set(0, 0.8, 0.21);
-                    clock.add(clockFace);
-
-                    clock.position.set(-9, 1.25, -10);
-                    clock.rotation.y = Math.PI / 3;
-                    threeScene.add(clock);
-                    collisionEntries.push(createCollisionEntryForMesh(clockBody, 0.2));
-
-                    // Window curtains
-                    const curtainLeft = new THREE.Mesh(
-                        new THREE.PlaneGeometry(0.8, 2.5),
-                        new THREE.MeshStandardMaterial({
-                            color: 0x8b1a1a,
-                            side: THREE.DoubleSide,
-                            roughness: 0.9
-                        })
-                    );
-                    curtainLeft.position.set(-4.8, 2.5, -11.85);
-                    threeScene.add(curtainLeft);
-
-                    const curtainRight = new THREE.Mesh(
-                        new THREE.PlaneGeometry(0.8, 2.5),
-                        new THREE.MeshStandardMaterial({
-                            color: 0x8b1a1a,
-                            side: THREE.DoubleSide,
-                            roughness: 0.9
-                        })
-                    );
-                    curtainRight.position.set(-3.0, 2.5, -11.85);
-                    threeScene.add(curtainRight);
-
-                    // Ambient dust particles
-                    const particleCount = 80;
-                    const particleGeometry = new THREE.BufferGeometry();
-                    const particlePositions = new Float32Array(particleCount * 3);
-
-                    for (let i = 0; i < particleCount * 3; i += 3) {
-                        particlePositions[i] = (Math.random() - 0.5) * 20;
-                        particlePositions[i + 1] = Math.random() * 5;
-                        particlePositions[i + 2] = (Math.random() - 0.5) * 20 - 5;
-                    }
-
-                    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-
-                    const particleMaterial = new THREE.PointsMaterial({
-                        color: 0xffeedd,
-                        size: 0.05,
-                        transparent: true,
-                        opacity: 0.4,
-                        blending: THREE.AdditiveBlending
-                    });
-
-                    const particles = new THREE.Points(particleGeometry, particleMaterial);
-                    threeScene.add(particles);
-
-                    // Animate particles slowly
-                    const particleVelocities = [];
-                    for (let i = 0; i < particleCount; i++) {
-                        particleVelocities.push({
-                            x: (Math.random() - 0.5) * 0.002,
-                            y: Math.random() * 0.004 + 0.001,
-                            z: (Math.random() - 0.5) * 0.002
-                        });
-                    }
-
-                    function animateParticles() {
-                        const positions = particles.geometry.attributes.position.array;
-                        for (let i = 0; i < particleCount; i++) {
-                            positions[i * 3] += particleVelocities[i].x;
-                            positions[i * 3 + 1] += particleVelocities[i].y;
-                            positions[i * 3 + 2] += particleVelocities[i].z;
-
-                            if (positions[i * 3 + 1] > 5.5) {
-                                positions[i * 3 + 1] = 0;
-                            }
-                        }
-                        particles.geometry.attributes.position.needsUpdate = true;
-                    }
-
-                    // Store for animation loop
-                    threeScene.userData.animateParticles = animateParticles;
-                }
-
-                // Add room-specific decorations for all 4 rooms
-                function addRoomDecorations() {
-                    const roomTitleNode = document.querySelector('.room-hud h1 span');
-                    const roomTitle = roomTitleNode ? roomTitleNode.textContent.toLowerCase() : '';
-
-                    if (roomTitle.includes('victorian') || roomTitle.includes('nghiên cứu')) {
-                        addVictorianDecorations();
-                    } else if (roomTitle.includes('thí nghiệm') || roomTitle.includes('ngắt quãng')) {
-                        addScienceLabDecorations();
-                    } else if (roomTitle.includes('mật mã') || roomTitle.includes('bóng đêm')) {
-                        addNightCipherDecorations();
-                    } else if (roomTitle.includes('cổ vật') || roomTitle.includes('thức tỉnh')) {
-                        addAncientVaultDecorations();
-                    }
-                }
-
-                // 🧪 SCIENCE LAB DECORATIONS
-                function addScienceLabDecorations() {
-                    // Ceiling with industrial panels
-                    const ceiling = new THREE.Mesh(
-                        new THREE.PlaneGeometry(24, 24),
-                        new THREE.MeshStandardMaterial({
-                            color: 0xf0f8ff,
-                            roughness: 0.6,
-                            metalness: 0.2
-                        })
-                    );
-                    ceiling.rotation.x = Math.PI / 2;
-                    ceiling.position.y = 5.6;
-                    threeScene.add(ceiling);
-
-                    // Fluorescent light strips
-                    const stripPositions = [
-                        { x: -4, y: 5.4, z: -4 },
-                        { x: 4, y: 5.4, z: -4 },
-                        { x: -4, y: 5.4, z: -8 },
-                        { x: 4, y: 5.4, z: -8 }
-                    ];
-
-                    stripPositions.forEach(pos => {
-                        const lightStrip = new THREE.Mesh(
-                            new THREE.BoxGeometry(3, 0.1, 0.3),
-                            new THREE.MeshStandardMaterial({
-                                color: 0xffffff,
-                                emissive: 0xddeeff,
-                                emissiveIntensity: 0.8
-                            })
-                        );
-                        lightStrip.position.set(pos.x, pos.y, pos.z);
-                        threeScene.add(lightStrip);
-                    });
-
-                    // Lab stations/workbenches
-                    const stationPositions = [
-                        { x: -9, y: 0.4, z: -6, ry: Math.PI / 2 },
-                        { x: 9, y: 0.4, z: -6, ry: -Math.PI / 2 },
-                        { x: 0, y: 0.4, z: -10.5, ry: 0 }
-                    ];
-
-                    stationPositions.forEach(pos => {
-                        const station = new THREE.Mesh(
-                            new THREE.BoxGeometry(3, 0.8, 1.2),
-                            new THREE.MeshStandardMaterial({
-                                color: 0xe6f3ff,
-                                roughness: 0.3,
-                                metalness: 0.4
-                            })
-                        );
-                        station.position.set(pos.x, pos.y, pos.z);
-                        station.rotation.y = pos.ry;
-                        threeScene.add(station);
-                        collisionEntries.push(createCollisionEntryForMesh(station, 0.2));
-                    });
-
-                    // Computer terminals
-                    const terminalPositions = [
-                        { x: -8.5, y: 1.5, z: -6 },
-                        { x: 8.5, y: 1.5, z: -6 }
-                    ];
-
-                    terminalPositions.forEach(pos => {
-                        const monitor = new THREE.Mesh(
-                            new THREE.BoxGeometry(0.8, 0.6, 0.1),
-                            new THREE.MeshStandardMaterial({
-                                color: 0x1a1a1a,
-                                emissive: 0x00ff88,
-                                emissiveIntensity: 0.3
-                            })
-                        );
-                        monitor.position.set(pos.x, pos.y, pos.z);
-                        threeScene.add(monitor);
-                    });
-
-                    // Specimen containers
-                    const specimenPositions = [
-                        { x: -7, y: 1.2, z: -5.5 },
-                        { x: -6, y: 1.2, z: -5.5 },
-                        { x: 7, y: 1.2, z: -5.5 },
-                        { x: 6, y: 1.2, z: -5.5 }
-                    ];
-
-                    specimenPositions.forEach((pos, i) => {
-                        const container = new THREE.Mesh(
-                            new THREE.CylinderGeometry(0.15, 0.15, 0.4, 16),
-                            new THREE.MeshStandardMaterial({
-                                color: 0x88ddff,
-                                transparent: true,
-                                opacity: 0.7,
-                                roughness: 0.1,
-                                metalness: 0.1
-                            })
-                        );
-                        container.position.set(pos.x, pos.y, pos.z);
-                        threeScene.add(container);
-
-                        // Specimen inside
-                        const specimen = new THREE.Mesh(
-                            new THREE.SphereGeometry(0.08, 16, 16),
-                            new THREE.MeshStandardMaterial({
-                                color: i % 2 === 0 ? 0xff6666 : 0x66ff66,
-                                emissive: i % 2 === 0 ? 0x441111 : 0x114411,
-                                emissiveIntensity: 0.4
-                            })
-                        );
-                        specimen.position.copy(container.position);
-                        threeScene.add(specimen);
-                    });
-
-                    // Ventilation system
-                    const ventPositions = [
-                        { x: -10, y: 4.8, z: -2 },
-                        { x: 10, y: 4.8, z: -2 },
-                        { x: 0, y: 4.8, z: -11 }
-                    ];
-
-                    ventPositions.forEach(pos => {
-                        const vent = new THREE.Mesh(
-                            new THREE.BoxGeometry(1.2, 0.3, 0.8),
-                            new THREE.MeshStandardMaterial({
-                                color: 0x7a8a9a,
-                                roughness: 0.5,
-                                metalness: 0.6
-                            })
-                        );
-                        vent.position.set(pos.x, pos.y, pos.z);
-                        threeScene.add(vent);
-                    });
-
-                    // Warning signs on walls
-                    const signPositions = [
-                        { x: -11.5, y: 2.5, z: -3, ry: Math.PI / 2 },
-                        { x: 11.5, y: 2.5, z: -3, ry: -Math.PI / 2 }
-                    ];
-
-                    signPositions.forEach(pos => {
-                        const sign = new THREE.Mesh(
-                            new THREE.PlaneGeometry(0.8, 0.6),
-                            new THREE.MeshStandardMaterial({
-                                color: 0xffdd00,
-                                emissive: 0xff4444,
-                                emissiveIntensity: 0.2
-                            })
-                        );
-                        sign.position.set(pos.x, pos.y, pos.z);
-                        sign.rotation.y = pos.ry;
-                        threeScene.add(sign);
-                    });
-                }
-
-                // 🌙 NIGHT CIPHER DECORATIONS
-                function addNightCipherDecorations() {
-                    // Dark ceiling with mystical patterns
-                    const ceiling = new THREE.Mesh(
-                        new THREE.PlaneGeometry(24, 24),
-                        new THREE.MeshStandardMaterial({
-                            color: 0x1a0d2e,
-                            roughness: 0.9,
-                            emissive: 0x330066,
-                            emissiveIntensity: 0.1
-                        })
-                    );
-                    ceiling.rotation.x = Math.PI / 2;
-                    ceiling.position.y = 5.6;
-                    threeScene.add(ceiling);
-
-                    // Mystical floating orbs
-                    const orbPositions = [
-                        { x: -6, y: 3.5, z: -3, color: 0xaa66ff, size: 0.3 },
-                        { x: 6, y: 2.8, z: -7, color: 0x6633cc, size: 0.25 },
-                        { x: -3, y: 4.2, z: -9, color: 0xcc66aa, size: 0.2 },
-                        { x: 3, y: 3.6, z: -5, color: 0x9944ff, size: 0.28 },
-                        { x: 0, y: 4.8, z: -6, color: 0xdd88ff, size: 0.35 }
-                    ];
-
-                    orbPositions.forEach(orb => {
-                        const orbSphere = new THREE.Mesh(
-                            new THREE.SphereGeometry(orb.size, 32, 32),
-                            new THREE.MeshStandardMaterial({
-                                color: orb.color,
-                                emissive: orb.color,
-                                emissiveIntensity: 0.6,
-                                transparent: true,
-                                opacity: 0.8
-                            })
-                        );
-                        orbSphere.position.set(orb.x, orb.y, orb.z);
-                        threeScene.add(orbSphere);
-
-                        // Orb glow ring
-                        const glowRing = new THREE.Mesh(
-                            new THREE.RingGeometry(orb.size * 1.5, orb.size * 2, 32),
-                            new THREE.MeshStandardMaterial({
-                                color: orb.color,
-                                emissive: orb.color,
-                                emissiveIntensity: 0.3,
-                                transparent: true,
-                                opacity: 0.4,
-                                side: THREE.DoubleSide
-                            })
-                        );
-                        glowRing.position.copy(orbSphere.position);
-                        glowRing.rotation.x = Math.random() * Math.PI;
-                        glowRing.rotation.y = Math.random() * Math.PI;
-                        threeScene.add(glowRing);
-                    });
-
-                    // Cipher panels on walls
-                    const panelPositions = [
-                        { x: -11.5, y: 2.2, z: -5, ry: Math.PI / 2 },
-                        { x: 11.5, y: 2.2, z: -7, ry: -Math.PI / 2 },
-                        { x: -2, y: 2.5, z: -11.8, ry: 0 },
-                        { x: 4, y: 2.5, z: -11.8, ry: 0 }
-                    ];
-
-                    panelPositions.forEach(pos => {
-                        const panel = new THREE.Mesh(
-                            new THREE.PlaneGeometry(1.2, 1.6),
-                            new THREE.MeshStandardMaterial({
-                                color: 0x2a1a4d,
-                                emissive: 0x6633cc,
-                                emissiveIntensity: 0.3,
-                                roughness: 0.7
-                            })
-                        );
-                        panel.position.set(pos.x, pos.y, pos.z);
-                        panel.rotation.y = pos.ry;
-                        threeScene.add(panel);
-
-                        // Glowing runes on panel
-                        for (let i = 0; i < 6; i++) {
-                            const rune = new THREE.Mesh(
-                                new THREE.CircleGeometry(0.08, 16),
-                                new THREE.MeshStandardMaterial({
-                                    color: 0xdd88ff,
-                                    emissive: 0xdd88ff,
-                                    emissiveIntensity: 0.7
-                                })
-                            );
-                            rune.position.copy(panel.position);
-                            rune.position.x += (pos.ry === 0 ? (Math.random() - 0.5) * 0.8 : 0);
-                            rune.position.y += (Math.random() - 0.5) * 1.2;
-                            rune.position.z += (pos.ry !== 0 ? (Math.random() - 0.5) * 0.8 : 0);
-                            if (pos.ry === Math.PI / 2) rune.position.x -= 0.05;
-                            else if (pos.ry === -Math.PI / 2) rune.position.x += 0.05;
-                            else rune.position.z -= 0.05;
-                            rune.rotation.copy(panel.rotation);
-                            threeScene.add(rune);
-                        }
-                    });
-
-                    // Moonlight window effect
-                    const moonWindow = new THREE.Mesh(
-                        new THREE.PlaneGeometry(2.5, 3),
-                        new THREE.MeshStandardMaterial({
-                            color: 0x1a2333,
-                            emissive: 0x334466,
-                            emissiveIntensity: 0.2,
-                            transparent: true,
-                            opacity: 0.8
-                        })
-                    );
-                    moonWindow.position.set(-4, 2.8, -11.9);
-                    threeScene.add(moonWindow);
-
-                    // Dark pedestals
-                    const pedestalPositions = [
-                        { x: -7, y: 0.6, z: -8 },
-                        { x: 7, y: 0.6, z: -4 },
-                        { x: 0, y: 0.6, z: -9.5 }
-                    ];
-
-                    pedestalPositions.forEach(pos => {
-                        const pedestal = new THREE.Mesh(
-                            new THREE.CylinderGeometry(0.6, 0.8, 1.2, 8),
-                            new THREE.MeshStandardMaterial({
-                                color: 0x2d1f42,
-                                roughness: 0.8,
-                                metalness: 0.1
-                            })
-                        );
-                        pedestal.position.set(pos.x, pos.y, pos.z);
-                        threeScene.add(pedestal);
-                        collisionEntries.push(createCollisionEntryForMesh(pedestal, 0.2));
-
-                        // Crystal on pedestal
-                        const crystal = new THREE.Mesh(
-                            new THREE.OctahedronGeometry(0.15),
-                            new THREE.MeshStandardMaterial({
-                                color: 0x9966ff,
-                                emissive: 0x6633cc,
-                                emissiveIntensity: 0.5,
-                                transparent: true,
-                                opacity: 0.9
-                            })
-                        );
-                        crystal.position.set(pos.x, pos.y + 0.75, pos.z);
-                        crystal.rotation.x = Math.PI / 4;
-                        crystal.rotation.z = Math.PI / 4;
-                        threeScene.add(crystal);
-                    });
-
-                    // Mystical particle system
-                    const mysticalParticleCount = 60;
-                    const mysticalGeometry = new THREE.BufferGeometry();
-                    const mysticalPositions = new Float32Array(mysticalParticleCount * 3);
-
-                    for (let i = 0; i < mysticalParticleCount * 3; i += 3) {
-                        mysticalPositions[i] = (Math.random() - 0.5) * 18;
-                        mysticalPositions[i + 1] = Math.random() * 4 + 1;
-                        mysticalPositions[i + 2] = (Math.random() - 0.5) * 18 - 4;
-                    }
-
-                    mysticalGeometry.setAttribute('position', new THREE.BufferAttribute(mysticalPositions, 3));
-
-                    const mysticalMaterial = new THREE.PointsMaterial({
-                        color: 0xaa66ff,
-                        size: 0.08,
-                        transparent: true,
-                        opacity: 0.6,
-                        blending: THREE.AdditiveBlending
-                    });
-
-                    const mysticalParticles = new THREE.Points(mysticalGeometry, mysticalMaterial);
-                    threeScene.add(mysticalParticles);
-
-                    // Store mystical animation
-                    const mysticalVels = [];
-                    for (let i = 0; i < mysticalParticleCount; i++) {
-                        mysticalVels.push({
-                            x: (Math.random() - 0.5) * 0.003,
-                            y: Math.random() * 0.002 + 0.001,
-                            z: (Math.random() - 0.5) * 0.003
-                        });
-                    }
-
-                    function animateMysticalParticles() {
-                        const positions = mysticalParticles.geometry.attributes.position.array;
-                        for (let i = 0; i < mysticalParticleCount; i++) {
-                            positions[i * 3] += mysticalVels[i].x;
-                            positions[i * 3 + 1] += mysticalVels[i].y;
-                            positions[i * 3 + 2] += mysticalVels[i].z;
-
-                            if (positions[i * 3 + 1] > 5) {
-                                positions[i * 3 + 1] = 1;
-                            }
-                        }
-                        mysticalParticles.geometry.attributes.position.needsUpdate = true;
-                    }
-
-                    threeScene.userData.animateMysticalParticles = animateMysticalParticles;
-                }
-
-                // 🏺 ANCIENT VAULT DECORATIONS
-                function addAncientVaultDecorations() {
-                    // Ancient stone ceiling
-                    const ceiling = new THREE.Mesh(
-                        new THREE.PlaneGeometry(24, 24),
-                        new THREE.MeshStandardMaterial({
-                            color: 0x4d3d1f,
-                            roughness: 0.95,
-                            emissive: 0x2a1f0d,
-                            emissiveIntensity: 0.1
-                        })
-                    );
-                    ceiling.rotation.x = Math.PI / 2;
-                    ceiling.position.y = 5.6;
-                    threeScene.add(ceiling);
-
-                    // Torch holders on walls
-                    const torchPositions = [
-                        { x: -11.2, y: 2.5, z: -4, ry: Math.PI / 2 },
-                        { x: -11.2, y: 2.5, z: -8, ry: Math.PI / 2 },
-                        { x: 11.2, y: 2.5, z: -4, ry: -Math.PI / 2 },
-                        { x: 11.2, y: 2.5, z: -8, ry: -Math.PI / 2 },
-                        { x: -6, y: 2.8, z: -11.7, ry: 0 },
-                        { x: 6, y: 2.8, z: -11.7, ry: 0 }
-                    ];
-
-                    torchPositions.forEach(pos => {
-                        // Torch holder
-                        const holder = new THREE.Mesh(
-                            new THREE.CylinderGeometry(0.05, 0.08, 0.6, 8),
-                            new THREE.MeshStandardMaterial({
-                                color: 0x3d2817,
-                                roughness: 0.9,
-                                metalness: 0.2
-                            })
-                        );
-                        holder.position.set(pos.x, pos.y, pos.z);
-                        holder.rotation.y = pos.ry;
-                        threeScene.add(holder);
-
-                        // Torch flame
-                        const flame = new THREE.Mesh(
-                            new THREE.ConeGeometry(0.1, 0.3, 8),
-                            new THREE.MeshStandardMaterial({
-                                color: 0xff6600,
-                                emissive: 0xff4400,
-                                emissiveIntensity: 0.8
-                            })
-                        );
-                        flame.position.set(pos.x, pos.y + 0.45, pos.z);
-                        flame.rotation.y = pos.ry;
-                        threeScene.add(flame);
-                    });
-
-                    // Ancient altar/pedestal (center)
-                    const altar = new THREE.Group();
-                    const altarBase = new THREE.Mesh(
-                        new THREE.CylinderGeometry(1.2, 1.5, 1.5, 8),
-                        new THREE.MeshStandardMaterial({
-                            color: 0x6b5233,
-                            roughness: 0.9,
-                            metalness: 0.05
-                        })
-                    );
-                    altar.add(altarBase);
-
-                    const altarTop = new THREE.Mesh(
-                        new THREE.CylinderGeometry(1.0, 1.0, 0.2, 8),
-                        new THREE.MeshStandardMaterial({
-                            color: 0x8b6d3f,
-                            roughness: 0.7,
-                            metalness: 0.1
-                        })
-                    );
-                    altarTop.position.y = 0.85;
-                    altar.add(altarTop);
-
-                    altar.position.set(0, 0.75, -6);
-                    threeScene.add(altar);
-                    collisionEntries.push(createCollisionEntryForMesh(altarBase, 0.3));
-
-                    // Golden artifact on altar
-                    const artifact = new THREE.Mesh(
-                        new THREE.OctahedronGeometry(0.25),
-                        new THREE.MeshStandardMaterial({
-                            color: 0xffd700,
-                            emissive: 0xffaa00,
-                            emissiveIntensity: 0.4,
-                            roughness: 0.2,
-                            metalness: 0.8
-                        })
-                    );
-                    artifact.position.set(0, 1.9, -6);
-                    artifact.rotation.x = Math.PI / 4;
-                    threeScene.add(artifact);
-
-                    // Guardian statues
-                    const guardianPositions = [
-                        { x: -8, y: 1.5, z: -9 },
-                        { x: 8, y: 1.5, z: -9 }
-                    ];
-
-                    guardianPositions.forEach(pos => {
-                        const guardian = new THREE.Mesh(
-                            new THREE.BoxGeometry(1.2, 3, 0.8),
-                            new THREE.MeshStandardMaterial({
-                                color: 0x4a3d2a,
-                                roughness: 0.8,
-                                metalness: 0.1
-                            })
-                        );
-                        guardian.position.set(pos.x, pos.y, pos.z);
-                        threeScene.add(guardian);
-                        collisionEntries.push(createCollisionEntryForMesh(guardian, 0.2));
-
-                        // Guardian eyes (glowing red)
-                        const eyeLeft = new THREE.Mesh(
-                            new THREE.SphereGeometry(0.08, 16, 16),
-                            new THREE.MeshStandardMaterial({
-                                color: 0xff3333,
-                                emissive: 0xff0000,
-                                emissiveIntensity: 0.8
-                            })
-                        );
-                        eyeLeft.position.set(pos.x - 0.15, pos.y + 0.8, pos.z + 0.42);
-                        threeScene.add(eyeLeft);
-
-                        const eyeRight = new THREE.Mesh(
-                            new THREE.SphereGeometry(0.08, 16, 16),
-                            new THREE.MeshStandardMaterial({
-                                color: 0xff3333,
-                                emissive: 0xff0000,
-                                emissiveIntensity: 0.8
-                            })
-                        );
-                        eyeRight.position.set(pos.x + 0.15, pos.y + 0.8, pos.z + 0.42);
-                        threeScene.add(eyeRight);
-                    });
-
-                    // Ancient pillars
-                    const pillarPositions = [
-                        { x: -9, y: 2, z: -3 },
-                        { x: 9, y: 2, z: -3 },
-                        { x: -5, y: 2, z: -11 },
-                        { x: 5, y: 2, z: -11 }
-                    ];
-
-                    pillarPositions.forEach(pos => {
-                        const pillar = new THREE.Mesh(
-                            new THREE.CylinderGeometry(0.4, 0.5, 4, 12),
-                            new THREE.MeshStandardMaterial({
-                                color: 0x5d4d2f,
-                                roughness: 0.85,
-                                metalness: 0.05
-                            })
-                        );
-                        pillar.position.set(pos.x, pos.y, pos.z);
-                        threeScene.add(pillar);
-                        collisionEntries.push(createCollisionEntryForMesh(pillar, 0.2));
-
-                        // Ancient runes on pillars
-                        for (let i = 0; i < 4; i++) {
-                            const rune = new THREE.Mesh(
-                                new THREE.CircleGeometry(0.1, 16),
-                                new THREE.MeshStandardMaterial({
-                                    color: 0x44ccff,
-                                    emissive: 0x2288aa,
-                                    emissiveIntensity: 0.4
-                                })
-                            );
-                            const angle = (i / 4) * Math.PI * 2;
-                            rune.position.set(
-                                pos.x + Math.cos(angle) * 0.42,
-                                pos.y + (Math.random() - 0.5) * 2,
-                                pos.z + Math.sin(angle) * 0.42
-                            );
-                            rune.lookAt(pos.x, rune.position.y, pos.z);
-                            threeScene.add(rune);
-                        }
-                    });
-
-                    // Treasure chests in corners
-                    const chestPositions = [
-                        { x: -10, y: 0.3, z: -10 },
-                        { x: 10, y: 0.3, z: -10 }
-                    ];
-
-                    chestPositions.forEach(pos => {
-                        const chest = new THREE.Mesh(
-                            new THREE.BoxGeometry(1, 0.6, 0.8),
-                            new THREE.MeshStandardMaterial({
-                                color: 0x4d3417,
-                                roughness: 0.8,
-                                metalness: 0.3
-                            })
-                        );
-                        chest.position.set(pos.x, pos.y, pos.z);
-                        threeScene.add(chest);
-                        collisionEntries.push(createCollisionEntryForMesh(chest, 0.2));
-
-                        // Gold gleam effect
-                        const gleam = new THREE.Mesh(
-                            new THREE.PlaneGeometry(0.3, 0.1),
-                            new THREE.MeshStandardMaterial({
-                                color: 0xffd700,
-                                emissive: 0xffaa00,
-                                emissiveIntensity: 0.6,
-                                transparent: true,
-                                opacity: 0.8
-                            })
-                        );
-                        gleam.position.set(pos.x, pos.y + 0.35, pos.z);
-                        gleam.rotation.x = -Math.PI / 2;
-                        threeScene.add(gleam);
-                    });
-
-                    // Sand/dust effect
-                    const ancientParticleCount = 40;
-                    const ancientGeometry = new THREE.BufferGeometry();
-                    const ancientPositions = new Float32Array(ancientParticleCount * 3);
-
-                    for (let i = 0; i < ancientParticleCount * 3; i += 3) {
-                        ancientPositions[i] = (Math.random() - 0.5) * 20;
-                        ancientPositions[i + 1] = Math.random() * 3 + 0.5;
-                        ancientPositions[i + 2] = (Math.random() - 0.5) * 20 - 5;
-                    }
-
-                    ancientGeometry.setAttribute('position', new THREE.BufferAttribute(ancientPositions, 3));
-
-                    const ancientMaterial = new THREE.PointsMaterial({
-                        color: 0xcc9966,
-                        size: 0.06,
-                        transparent: true,
-                        opacity: 0.5
-                    });
-
-                    const ancientParticles = new THREE.Points(ancientGeometry, ancientMaterial);
-                    threeScene.add(ancientParticles);
-
-                    const ancientVels = [];
-                    for (let i = 0; i < ancientParticleCount; i++) {
-                        ancientVels.push({
-                            x: (Math.random() - 0.5) * 0.001,
-                            y: Math.random() * 0.003 + 0.001,
-                            z: (Math.random() - 0.5) * 0.001
-                        });
-                    }
-
-                    function animateAncientParticles() {
-                        const positions = ancientParticles.geometry.attributes.position.array;
-                        for (let i = 0; i < ancientParticleCount; i++) {
-                            positions[i * 3] += ancientVels[i].x;
-                            positions[i * 3 + 1] += ancientVels[i].y;
-                            positions[i * 3 + 2] += ancientVels[i].z;
-
-                            if (positions[i * 3 + 1] > 4) {
-                                positions[i * 3 + 1] = 0.5;
-                            }
-                        }
-                        ancientParticles.geometry.attributes.position.needsUpdate = true;
-                    }
-
-                    threeScene.userData.animateAncientParticles = animateAncientParticles;
-                }
-
-                // Initialize global arrays needed by decoration functions
-                const interactableHits = [];
-                const collisionEntries = [];
-                const worldStates = [];
-                let focusedState = null;
-
-                // Helper function for collision detection
-                function createCollisionEntryForMesh(mesh, padding) {
-                    const box = new THREE.Box3();
-                    return {
-                        mesh,
-                        padding: padding || 0,
-                        getBox() {
-                            box.setFromObject(mesh);
-                            return box;
-                        }
-                    };
-                }
-
-                // Room decorations are now loaded with delay after GLTFLoader is ready
-
-                function parseWorldPositionFromNode(node) {
-                    const classPosMap = {
-                        'pos-1': { left: 15, top: 60 },
-                        'pos-2': { left: 35, top: 50 },
-                        'pos-3': { left: 55, top: 55 },
-                        'pos-4': { left: 75, top: 45 },
-                        'pos-5': { left: 25, top: 70 },
-                        'pos-6': { left: 65, top: 65 }
-                    };
-
-                    let fallback = null;
-                    Object.keys(classPosMap).some((className) => {
-                        if (node.classList && node.classList.contains(className)) {
-                            fallback = classPosMap[className];
-                            return true;
-                        }
-                        return false;
-                    });
-
-                    const leftRaw = node.style.left || (fallback ? String(fallback.left) : '50');
-                    const topRaw = node.style.top || (fallback ? String(fallback.top) : '50');
-                    const left = parseFloat(leftRaw);
-                    const top = parseFloat(topRaw);
-                    const safeLeft = Number.isFinite(left) ? left : 50;
-                    const safeTop = Number.isFinite(top) ? top : 50;
-                    const x = ((safeLeft / 100) - 0.5) * 17.5;
-                    const z = ((safeTop / 100) - 0.5) * 15.5;
-                    return { x, z };
-                }
-
-                function addLatheMachine() {
-                    const roomTitleNode = document.querySelector('.room-hud h1 span');
-                    const roomTitle = roomTitleNode ? roomTitleNode.textContent.toLowerCase() : '';
-                    const shouldAddLathe = roomTitle.includes('thí nghiệm') || roomTitle.includes('mật mã') || roomTitle.includes('cổ vật');
-                    if (!shouldAddLathe) {
-                        return;
-                    }
-
-                    const latheGroup = new THREE.Group();
-                    latheGroup.position.set(-6.9, 0, -9.3);
-
-                    // Try to load GLB model first, fallback to BoxGeometry if fails
-                    loadGLBModel('/images/3D/lathe-machine/source/Lathe Machine.glb')
-                        .then(model => {
-                            // Scale and position the model
-                            model.scale.set(0.8, 0.8, 0.8);
-                            model.position.set(0, 0, 0);
-                            model.rotation.y = Math.PI; // Rotate if needed
-
-                            latheGroup.add(model);
-                            console.log('✅ GLB Lathe Machine loaded successfully');
-                        })
-                        .catch(error => {
-                            console.warn('⚠️ GLB Lathe failed, using fallback BoxGeometry:', error);
-
-                            // Fallback to original BoxGeometry design
-                            const bodyMaterial = new THREE.MeshStandardMaterial({
-                                color: 0x2d3748,
-                                roughness: 0.35,
-                                metalness: 0.85,
-                                emissive: new THREE.Color(0x1a202c),
-                                emissiveIntensity: 0.05,
-                                envMap: cubeRenderTarget.texture,
-                                envMapIntensity: 0.8
-                            });
-                            const accentMaterial = new THREE.MeshStandardMaterial({
-                                color: 0x0ea5e9,
-                                roughness: 0.25,
-                                metalness: 0.8,
-                                emissive: new THREE.Color(0x075985),
-                                emissiveIntensity: 0.12,
-                                envMap: cubeRenderTarget.texture,
-                                envMapIntensity: 0.9
-                            });
-
-                            const base = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.65, 1.2), bodyMaterial);
-                            base.position.y = 0.35;
-                            latheGroup.add(base);
-
-                            const rail = new THREE.Mesh(new THREE.BoxGeometry(2.05, 0.16, 0.42), accentMaterial);
-                            rail.position.y = 0.77;
-                            latheGroup.add(rail);
-
-                            const chuck = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.34, 24), accentMaterial);
-                            chuck.rotation.z = Math.PI / 2;
-                            chuck.position.set(-0.86, 0.93, 0);
-                            latheGroup.add(chuck);
-
-                            const head = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.65, 0.76), bodyMaterial);
-                            head.position.set(-0.95, 0.95, 0);
-                            latheGroup.add(head);
-
-                            const tail = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.48, 0.56), bodyMaterial);
-                            tail.position.set(0.74, 0.83, 0);
-                            latheGroup.add(tail);
-                        });
-
-                    // Create invisible hit area for interaction (same for both GLB and fallback)
-                    const actionHit = new THREE.Mesh(
-                        new THREE.BoxGeometry(2.8, 1.45, 1.6),
-                        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
-                    );
-                    actionHit.position.y = 0.82;
-                    latheGroup.add(actionHit);
-
-                    threeScene.add(latheGroup);
-
-                    const state = {
-                        kind: 'lathe',
-                        group: latheGroup,
-                        hitMesh: actionHit,
-                        label: 'Máy tiện kết hợp',
-                        destroyed: false,
-                        setHighlighted(active) {
-                            // For GLB model, try to find and highlight accent materials
-                            latheGroup.traverse(child => {
-                                if (child.isMesh && child.material) {
-                                    if (child.material.color) {
-                                        const baseColor = active ? 0x22d3ee : 0x0891b2;
-                                        if (child.material.emissive) {
-                                            child.material.emissive.setHex(baseColor);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                    };
-
-                    actionHit.userData.state = state;
-                    interactableHits.push(actionHit);
-                    collisionEntries.push(createCollisionEntryForMesh(actionHit, 0.12));
-                    worldStates.push(state);
-                }
-
-                function hasUnlockKeyInInventory() {
-                    if (!inventoryContainer) {
-                        return false;
-                    }
-                    const keyPattern = /(key|card|pass|ch[iì]a|kho[áa]|th[eẻ])/i;
-                    return Array.from(inventoryContainer.querySelectorAll('.inventory-item-chip[data-item-collected="true"]'))
-                        .some((node) => keyPattern.test(node.dataset.itemKey || '') || keyPattern.test(node.dataset.itemName || ''));
-                }
-
-                function resolveCrateHint(state) {
-                    if (!state.revealed) {
-                        return 'F: Mở tủ để tìm hộp giấu vật phẩm';
-                    }
-                    if (state.lockType === 'key-lock' && !state.unlocked) {
-                        return 'F: Dùng chìa khóa/thẻ để mở hộp - ' + state.label;
-                    }
-                    if (state.lockType === 'code-lock' && !state.unlocked) {
-                        return 'F: Nhập mật khẩu mở hộp - ' + state.label;
-                    }
-                    if (!state.opened) {
-                        return 'F: Mở hộp - ' + state.label;
-                    }
-                    return 'F: Lấy vật phẩm trong hộp - ' + state.label;
-                }
-
-                function addCrateInteractable(formNode, crateIndex) {
-                    const pos = parseWorldPositionFromNode(formNode);
-                    const crateGroup = new THREE.Group();
-                    crateGroup.position.set(pos.x, 0, pos.z);
-
-                    const lockType = crateIndex === 0 ? 'hidden-cabinet' : (crateIndex % 2 === 0 ? 'key-lock' : 'code-lock');
-                    const lockCodes = ['314', '271', '159'];
-                    const lockCode = lockCodes[crateIndex % lockCodes.length];
-
-                    if (lockType === 'hidden-cabinet') {
-                        crateGroup.position.set(-10.15, 0, -6.15);
-                    }
-
-                    // Variables for fallback BoxGeometry (in case GLB fails)
-                    let base = null, lid = null, lidPivot = null, cabinetDoorPivot = null;
-                    let revealProgress = lockType === 'hidden-cabinet' ? 0 : 1;
-                    let revealTarget = lockType === 'hidden-cabinet' ? 0 : 1;
-                    let useGLBModel = false;
-                    let fallbackCreated = false;
-
-                    // Choose appropriate GLB model based on lockType
-                    const modelPath = lockType === 'hidden-cabinet'
-                        ? '/images/3D/laboratory_cabinet_storage__pbr_low_poly__free.glb'
-                        : (crateIndex % 2 === 0
-                            ? '/images/3D/wooden_storage_box.glb'
-                            : '/images/3D/simple_short_crate.glb');
-
-                    console.log('📦 Crate Creation Debug:');
-                    console.log('   Crate Index:', crateIndex);
-                    console.log('   Lock Type:', lockType);
-                    console.log('   Model Path:', modelPath);
-
-                    // Try to load GLB model first with timeout
-                    const glbTimeout = setTimeout(() => {
-                        console.warn('⏰ GLB loading timeout for:', modelPath);
-                        createFallbackCrate();
-                    }, 10000); // 10 second timeout
-
-                    loadGLBModel(modelPath)
-                        .then(model => {
-                            clearTimeout(glbTimeout);
-
-                            if (fallbackCreated) {
-                                console.warn('⚠️ GLB arrived after fallback was created, skipping duplicate model:', modelPath);
-                                return;
-                            }
-
-                            // Scale and position the model appropriately
-                            if (lockType === 'hidden-cabinet') {
-                                model.scale.set(1.2, 1.2, 1.2);
-                                model.position.set(0, 0, 0);
-                            } else {
-                                model.scale.set(0.8, 0.8, 0.8);
-                                model.position.set(0, 0, 0);
-                            }
-
-                            crateGroup.add(model);
-                            useGLBModel = true;
-                            console.log('✅ GLB Crate loaded and added to scene:', modelPath);
-                        })
-                        .catch(error => {
-                            clearTimeout(glbTimeout);
-                            console.warn('⚠️ GLB Crate failed, using fallback BoxGeometry:', error);
-                            createFallbackCrate();
-                        });
-
-                    // Fallback BoxGeometry creation
-                    function createFallbackCrate() {
-                        if (fallbackCreated || useGLBModel) {
-                            return;
-                        }
-
-                        fallbackCreated = true;
-                        console.log('🎲 Creating fallback BoxGeometry crate for:', lockType);
-
-                        const crateMat = new THREE.MeshStandardMaterial({
-                            map: boxTexture || null,
-                            color: boxTexture ? 0xffffff : 0xcd853f,
-                            roughness: 0.75,
-                            metalness: 0.02,
-                            emissive: new THREE.Color(0x2d1810),
-                            emissiveIntensity: 0.04,
-                            bumpScale: 0.3,
-                            transparent: true,
-                            opacity: 0.98,
-                            envMap: cubeRenderTarget.texture,
-                            envMapIntensity: 0.2
-                        });
-                        crateMaterials.push(crateMat);
-
-                        base = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.9, 1.45), crateMat);
-                        base.position.y = 0.45;
-                        base.castShadow = true;
-                        base.receiveShadow = true;
-                        crateGroup.add(base);
-                        console.log('✅ Added base box to crate group');
-
-                        lidPivot = new THREE.Object3D();
-                        lidPivot.position.set(0, 0.9, -0.72);
-                        crateGroup.add(lidPivot);
-
-                        lid = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.16, 1.5), crateMat.clone());
-                        crateMaterials.push(lid.material);
-                        lid.position.set(0, 0.08, 0.72);
-                        lid.castShadow = true;
-                        lid.receiveShadow = true;
-                        lidPivot.add(lid);
-
-                        if (lockType === 'hidden-cabinet') {
-                            const cabinetShellMaterial = new THREE.MeshStandardMaterial({
-                                color: 0x4a5568,
-                                roughness: 0.45,
-                                metalness: 0.65,
-                                emissive: new THREE.Color(0x1a202c),
-                                emissiveIntensity: 0.08,
-                                envMap: cubeRenderTarget.texture,
-                                envMapIntensity: 0.7
-                            });
-                            const cabinetShell = new THREE.Mesh(new THREE.BoxGeometry(1.56, 1.28, 0.92), cabinetShellMaterial);
-                            cabinetShell.position.set(0, 0.64, 0);
-                            crateGroup.add(cabinetShell);
-
-                            const cavity = new THREE.Mesh(
-                                new THREE.BoxGeometry(1.24, 0.94, 0.66),
-                                new THREE.MeshStandardMaterial({
-                                    color: 0x0f172a,
-                                    roughness: 0.85,
-                                    metalness: 0.15,
-                                    emissive: new THREE.Color(0x1e293b),
-                                    emissiveIntensity: 0.15,
-                                    transparent: true,
-                                    opacity: 0.9,
-                                    envMap: cubeRenderTarget.texture,
-                                    envMapIntensity: 0.3
-                                })
-                            );
-                            cavity.position.set(0, 0.62, -0.06);
-                            crateGroup.add(cavity);
-
-                            cabinetDoorPivot = new THREE.Object3D();
-                            cabinetDoorPivot.position.set(-0.74, 0.05, 0.44);
-                            crateGroup.add(cabinetDoorPivot);
-
-                            const cabinetDoor = new THREE.Mesh(new THREE.BoxGeometry(1.48, 1.18, 0.07), cabinetShellMaterial.clone());
-                            cabinetDoor.position.set(0.74, 0.59, 0);
-                            cabinetDoorPivot.add(cabinetDoor);
-
-                            base.visible = false;
-                            lid.visible = false;
-                        }
-                    }
-
-                    // Create invisible hit area for interaction (same for both GLB and fallback)
-                    const hitMesh = new THREE.Mesh(
-                        new THREE.BoxGeometry(lockType === 'hidden-cabinet' ? 1.4 : 1.8, lockType === 'hidden-cabinet' ? 1.25 : 1.5, lockType === 'hidden-cabinet' ? 1.1 : 1.8),
-                        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
-                    );
-                    hitMesh.position.y = lockType === 'hidden-cabinet' ? 0.7 : 0.75;
-                    crateGroup.add(hitMesh);
-
-                    const state = {
-                        kind: 'crate',
-                        lockType,
-                        lockCode,
-                        unlocked: lockType === 'hidden-cabinet' ? true : false,
-                        opened: false,
-                        revealed: lockType !== 'hidden-cabinet',
-                        openProgress: 0,
-                        targetOpen: 0,
-                        revealProgress,
-                        revealTarget,
-                        group: crateGroup,
-                        base: base || null,              // null if using GLB model
-                        lid: lid || null,                // null if using GLB model
-                        lidPivot: lidPivot || null,      // null if using GLB model
-                        cabinetDoorPivot: cabinetDoorPivot || null,  // null if using GLB model
-                        hitMesh,
-                        formNode,
-                        label: formNode.dataset.itemName || 'Thùng đồ',
-                        destroyed: false,
-                        isGLBModel: () => useGLBModel,   // Function to check if using GLB model
-                        setHighlighted(active) {
-                            const highlight = active ? 0x1a3b1f : 0x000000;
-                            // For GLB model, try to find and highlight materials
-                            crateGroup.traverse(child => {
-                                if (child.isMesh && child.material) {
-                                    if (child.material.emissive) {
-                                        child.material.emissive.setHex(highlight);
-                                    }
-                                }
-                            });
-                            // Fallback for BoxGeometry
-                            if (base && base.material && base.material.emissive) {
-                                base.material.emissive.setHex(highlight);
-                            }
-                        }
-                    };
-
-                    hitMesh.userData.state = state;
-                    interactableHits.push(hitMesh);
-                    collisionEntries.push(createCollisionEntryForMesh(hitMesh, 0.06));
-                    worldStates.push(state);
-                    threeScene.add(crateGroup);
-                }
-
-                document.querySelectorAll('.scene-collect-spot').forEach((collectForm, collectIndex) => {
-                    if (collectForm.isConnected) {
-                        addCrateInteractable(collectForm, collectIndex);
-                    }
-                });
-
-                function addSceneObjectInteractable(anchorNode) {
-                    const hotspot = anchorNode.closest('.simple-hotspot');
-                    if (!hotspot) {
-                        return;
-                    }
-                    const rawPos = parseWorldPositionFromNode(hotspot);
-                    const labelNode = anchorNode.querySelector('strong');
-                    const label = labelNode ? labelNode.textContent.trim() : 'Thiết bị';
-
-                    // Snap interactable doors to nearest wall so they visually sit on a wall.
-                    let pos = { x: rawPos.x, z: rawPos.z };
-                    if (Math.abs(rawPos.x) >= Math.abs(rawPos.z)) {
-                        pos = { x: rawPos.x > 0 ? 10.7 : -10.7, z: Math.max(-7.8, Math.min(7.8, rawPos.z)) };
-                    } else {
-                        pos = { x: Math.max(-7.8, Math.min(7.8, rawPos.x)), z: rawPos.z > 0 ? 10.7 : -10.7 };
-                    }
-
-                    const isDoor = true;
-
-                    let mesh;
-                    let hitTarget;
-                    let doorPivot = null;
-                    const doorGroup = new THREE.Group();
-                    doorGroup.position.set(pos.x, 0, pos.z);
-
-                    const frame = new THREE.Mesh(
-                        new THREE.BoxGeometry(1.85, 2.8, 0.24),
-                        new THREE.MeshStandardMaterial({ color: 0x2c2c36, roughness: 0.7, metalness: 0.2 })
-                    );
-                    frame.position.y = 1.4;
-                    doorGroup.add(frame);
-                    hitTarget = frame;
-
-                    doorPivot = new THREE.Object3D();
-                    doorPivot.position.set(-0.76, 0.05, 0.13);
-                    doorGroup.add(doorPivot);
-
-                    const doorMaterial = new THREE.MeshStandardMaterial({
-                        map: doorTexture || null,
-                        color: doorTexture ? 0xffffff : 0x8b7355,
-                        roughness: 0.62,
-                        metalness: 0.12
-                    });
-                    doorMaterials.push(doorMaterial);
-                    const doorPanel = new THREE.Mesh(new THREE.BoxGeometry(1.52, 2.6, 0.08), doorMaterial);
-                    doorPanel.position.set(0.76, 1.3, 0);
-                    doorPivot.add(doorPanel);
-
-                    mesh = doorGroup;
-
-                    if (Math.abs(pos.x) > Math.abs(pos.z)) {
-                        mesh.rotation.y = pos.x > 0 ? -Math.PI / 2 : Math.PI / 2;
-                    } else {
-                        mesh.rotation.y = pos.z > 0 ? Math.PI : 0;
-                    }
-
-                    threeScene.add(mesh);
-
-                    const state = {
-                        kind: 'object',
-                        mesh,
-                        hitMesh: hitTarget,
-                        actionNode: anchorNode,
-                        label,
-                        isDoor,
-                        doorPivot,
-                        openProgress: 0,
-                        targetOpen: 0,
-                        destroyed: false,
-                        setHighlighted(active) {
-                            if (isDoor) {
-                                return;
-                            }
-                            mesh.material.emissive.setHex(active ? 0x335500 : 0x123e58);
-                        }
-                    };
-
-                    hitTarget.userData.state = state;
-                    interactableHits.push(hitTarget);
-                    collisionEntries.push(createCollisionEntryForMesh(mesh, 0.18));
-                    worldStates.push(state);
-                }
-
-                document.querySelectorAll('.simple-hotspot .simple-target.ready').forEach((targetNode) => {
-                    addSceneObjectInteractable(targetNode);
-                });
-
-                addLatheMachine();
-
-                scene.classList.add('fps-mode');
-
-                const keyState = { KeyW: false, KeyA: false, KeyS: false, KeyD: false };
-                let yaw = 0;
-                let pitch = 0;
-                let pointerLocked = false;
-                const walkSpeed = 5.2;
-                const playerRadius = 0.36;
-
-                function setMovementKeysActive(active) {
-                    if (active) {
-                        return;
-                    }
-                    keyState.KeyW = false;
-                    keyState.KeyA = false;
-                    keyState.KeyS = false;
-                    keyState.KeyD = false;
-                }
-
-                function saveCurrentFpsState() {
-                    if (!fpsStateKey) {
-                        return;
-                    }
-                    const payload = {
-                        x: camera.position.x,
-                        z: camera.position.z,
-                        yaw,
-                        pitch,
-                        ts: Date.now()
-                    };
-                    try {
-                        sessionStorage.setItem(fpsStateKey, JSON.stringify(payload));
-                    } catch (error) {
-                        // Ignore storage failures on private/strict browser modes.
-                    }
-                }
-
-                function restoreFpsState() {
-                    if (!fpsStateKey) {
-                        return;
-                    }
-                    let raw = null;
-                    try {
-                        raw = sessionStorage.getItem(fpsStateKey);
-                    } catch (error) {
-                        return;
-                    }
-                    if (!raw) {
-                        return;
-                    }
-
-                    let parsed;
-                    try {
-                        parsed = JSON.parse(raw);
-                    } catch (error) {
-                        return;
-                    }
-
-                    const maxPitch = 0.55;
-                    const safeX = Number.isFinite(parsed.x) ? parsed.x : camera.position.x;
-                    const safeZ = Number.isFinite(parsed.z) ? parsed.z : camera.position.z;
-                    const safeYaw = Number.isFinite(parsed.yaw) ? parsed.yaw : yaw;
-                    const safePitch = Number.isFinite(parsed.pitch)
-                        ? Math.max(-maxPitch, Math.min(maxPitch, parsed.pitch))
-                        : pitch;
-
-                    const clampPadding = 0.45;
-                    camera.position.x = Math.max(-boundaryHalf + clampPadding, Math.min(boundaryHalf - clampPadding, safeX));
-                    camera.position.z = Math.max(-boundaryHalf + clampPadding, Math.min(boundaryHalf - clampPadding, safeZ));
-                    camera.position.y = 1.6;
-                    yaw = safeYaw;
-                    pitch = safePitch;
-                }
-
-                persistFpsState = saveCurrentFpsState;
-
-                const raycaster = new THREE.Raycaster();
-                const center = new THREE.Vector2(0, 0);
-                const cameraEuler = new THREE.Euler(0, 0, 0, 'YXZ');
-
-                function resizeRenderer() {
-                    const width = scene.clientWidth;
-                    const height = scene.clientHeight;
-                    camera.aspect = width / Math.max(height, 1);
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(width, height);
-                }
-
-                function toggleBagWithKey() {
-                    if (!bagToggleButton || !bagPanel) {
-                        return;
-                    }
-                    bagToggleButton.click();
-                }
-
-                function updateDynamicHint(text) {
-                    if (!text) {
-                        dynamicHint.classList.remove('show');
-                        dynamicHint.textContent = '';
-                        return;
-                    }
-                    dynamicHint.textContent = text;
-                    dynamicHint.classList.add('show');
-                }
-
-                function isBlocked(nextX, nextZ) {
-                    if (nextX < -boundaryHalf || nextX > boundaryHalf || nextZ < -boundaryHalf || nextZ > boundaryHalf) {
-                        return true;
-                    }
-
-                    for (const entry of collisionEntries) {
-                        const box = entry.getBox();
-                        const pad = entry.padding;
-                        const minX = box.min.x - pad;
-                        const maxX = box.max.x + pad;
-                        const minZ = box.min.z - pad;
-                        const maxZ = box.max.z + pad;
-                        if (nextX + playerRadius > minX && nextX - playerRadius < maxX && nextZ + playerRadius > minZ && nextZ - playerRadius < maxZ) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-
-                function updateFocusedObject() {
-                    raycaster.setFromCamera(center, camera);
-                    const hits = raycaster.intersectObjects(interactableHits, false);
-                    const nearest = hits.find((hit) => hit.distance <= 3.2);
-
-                    if (focusedState) {
-                        focusedState.setHighlighted(false);
-                    }
-
-                    focusedState = nearest ? nearest.object.userData.state : null;
-                    if (!focusedState) {
-                        updateDynamicHint('');
-                        return;
-                    }
-
-                    focusedState.setHighlighted(true);
-
-                    if (focusedState.kind === 'crate') {
-                        updateDynamicHint(resolveCrateHint(focusedState));
-                    } else if (focusedState.kind === 'lathe') {
-                        updateDynamicHint('F: Mở máy tiện để kéo-thả kết hợp vật phẩm');
-                    } else {
-                        updateDynamicHint('F: Tương tác - ' + focusedState.label);
-                    }
-                }
-
-                function removeWorldState(state) {
-                    state.destroyed = true;
-
-                    if (state.kind === 'crate') {
-                        threeScene.remove(state.group);
-                        const hitIndex = interactableHits.indexOf(state.hitMesh);
-                        if (hitIndex >= 0) {
-                            interactableHits.splice(hitIndex, 1);
-                        }
-                    } else if (state.kind === 'object') {
-                        threeScene.remove(state.mesh);
-                        const hitIndex = interactableHits.indexOf(state.hitMesh);
-                        if (hitIndex >= 0) {
-                            interactableHits.splice(hitIndex, 1);
-                        }
-                    } else if (state.kind === 'lathe') {
-                        threeScene.remove(state.group);
-                        const hitIndex = interactableHits.indexOf(state.hitMesh);
-                        if (hitIndex >= 0) {
-                            interactableHits.splice(hitIndex, 1);
-                        }
-                    }
-
-                    for (let i = collisionEntries.length - 1; i >= 0; i -= 1) {
-                        if (state.kind === 'crate' && collisionEntries[i].mesh === state.hitMesh) {
-                            collisionEntries.splice(i, 1);
-                        }
-                        if (state.kind === 'object' && collisionEntries[i].mesh === state.mesh) {
-                            collisionEntries.splice(i, 1);
-                        }
-                        if (state.kind === 'lathe' && collisionEntries[i].mesh === state.hitMesh) {
-                            collisionEntries.splice(i, 1);
-                        }
-                    }
-
-                    const stateIndex = worldStates.indexOf(state);
-                    if (stateIndex >= 0) {
-                        worldStates.splice(stateIndex, 1);
-                    }
-                }
-
-                function interactFocusedObject() {
-                    if (!focusedState) {
-                        enqueueFeedback('Không có vật thể để tương tác.', true);
-                        return;
-                    }
-
-                    if (focusedState.kind === 'crate') {
-                        if (!focusedState.revealed) {
-                            focusedState.revealed = true;
-                            focusedState.revealTarget = 1;
-                            if (focusedState.base) {
-                                focusedState.base.visible = true;
-                            }
-                            if (focusedState.lid) {
-                                focusedState.lid.visible = true;
-                            }
-                            enqueueFeedback('Bạn vừa phát hiện một hộp giấu trong tủ!', false);
-                            return;
-                        }
-
-                        if (focusedState.lockType === 'key-lock' && !focusedState.unlocked) {
-                            if (!hasUnlockKeyInInventory()) {
-                                enqueueFeedback('Hộp này cần chìa khóa hoặc thẻ mở.', true);
-                                return;
-                            }
-                            focusedState.unlocked = true;
-                            enqueueFeedback('Bạn đã mở khóa hộp bằng chìa.', false);
-                        }
-
-                        if (focusedState.lockType === 'code-lock' && !focusedState.unlocked) {
-                            const inputCode = window.prompt('Nhập mật khẩu 3 số để mở hộp:');
-                            if (!inputCode) {
-                                enqueueFeedback('Bạn chưa nhập mật khẩu.', true);
-                                return;
-                            }
-                            if (String(inputCode).trim() !== focusedState.lockCode) {
-                                enqueueFeedback('Sai mật khẩu. Gợi ý: quan sát kỹ môi trường.', true);
-                                return;
-                            }
-                            focusedState.unlocked = true;
-                            enqueueFeedback('Mật khẩu đúng, hộp đã được mở khóa.', false);
-                        }
-
-                        if (!focusedState.opened) {
-                            focusedState.opened = true;
-                            focusedState.targetOpen = 1;
-                            enqueueFeedback('Đã mở nắp hộp. Nhấn F lần nữa để lấy vật phẩm.', false);
-                            return;
-                        }
-
-                        const formNode = focusedState.formNode;
-                        if (formNode && formNode.isConnected) {
-                            formNode.requestSubmit();
-                            setTimeout(() => {
-                                if (!formNode.isConnected && !focusedState.destroyed) {
-                                    removeWorldState(focusedState);
-                                    focusedState = null;
-                                    updateDynamicHint('');
-                                }
-                            }, 900);
-                        }
-                        return;
-                    }
-
-                    if (focusedState.kind === 'lathe') {
-                        openLathePanel();
-                        enqueueFeedback('Máy tiện mở: kéo vật phẩm vào 2 ô để kết hợp.', false);
-                        return;
-                    }
-
-                    if (focusedState.actionNode) {
-                        saveCurrentFpsState();
-                        if (focusedState.isDoor) {
-                            focusedState.targetOpen = 1;
-                        }
-                        focusedState.actionNode.click();
-                    }
-                }
-
-                function drawMiniMap() {
-                    if (!miniMapCtx) {
-                        return;
-                    }
-
-                    const w = miniMapCanvas.width;
-                    const h = miniMapCanvas.height;
-                    miniMapCtx.clearRect(0, 0, w, h);
-                    miniMapCtx.fillStyle = '#041225';
-                    miniMapCtx.fillRect(0, 0, w, h);
-
-                    const margin = 12;
-                    const mapSize = w - margin * 2;
-                    miniMapCtx.strokeStyle = 'rgba(56, 189, 248, 0.9)';
-                    miniMapCtx.lineWidth = 1.5;
-                    miniMapCtx.strokeRect(margin, margin, mapSize, mapSize);
-
-                    function worldToMapX(x) {
-                        return margin + ((x + 20) / 40) * mapSize;
-                    }
-
-                    function worldToMapY(z) {
-                        return margin + ((z + 20) / 40) * mapSize;
-                    }
-
-                    for (const state of worldStates) {
-                        if (state.destroyed) {
-                            continue;
-                        }
-                        const ref = state.kind === 'crate'
-                            ? state.group.position
-                            : (state.kind === 'lathe' ? state.group.position : state.mesh.position);
-                        miniMapCtx.beginPath();
-                        miniMapCtx.fillStyle = state.kind === 'crate' ? (state.opened ? '#f59e0b' : '#dc2626') : '#38bdf8';
-                        miniMapCtx.arc(worldToMapX(ref.x), worldToMapY(ref.z), 3.4, 0, Math.PI * 2);
-                        miniMapCtx.fill();
-                    }
-
-                    const px = worldToMapX(camera.position.x);
-                    const py = worldToMapY(camera.position.z);
-                    miniMapCtx.beginPath();
-                    miniMapCtx.fillStyle = '#10b981';
-                    miniMapCtx.arc(px, py, 4.2, 0, Math.PI * 2);
-                    miniMapCtx.fill();
-
-                    const dx = Math.sin(yaw) * 10;
-                    const dy = -Math.cos(yaw) * 10;
-                    miniMapCtx.beginPath();
-                    miniMapCtx.strokeStyle = '#86efac';
-                    miniMapCtx.lineWidth = 2;
-                    miniMapCtx.moveTo(px, py);
-                    miniMapCtx.lineTo(px + dx, py + dy);
-                    miniMapCtx.stroke();
-                }
-
-                function onMouseMove(event) {
-                    if (!pointerLocked) {
-                        return;
-                    }
-
-                    if (isAnyGameModalOpen()) {
-                        return;
-                    }
-
-                    const sensitivity = 0.0018;
-                    yaw -= event.movementX * sensitivity;
-                    pitch -= event.movementY * sensitivity;
-
-                    const maxPitch = 0.55;
-                    if (pitch > maxPitch) {
-                        pitch = maxPitch;
-                    }
-                    if (pitch < -maxPitch) {
-                        pitch = -maxPitch;
-                    }
-                }
-
-                function isTypingTarget(node) {
-                    if (!node) {
-                        return false;
-                    }
-                    const tag = node.tagName;
-                    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || node.isContentEditable;
-                }
-
-                function onKeyDown(event) {
-                    if (isTypingTarget(event.target)) {
-                        return;
-                    }
-                    if (event.code === 'Tab') {
-                        event.preventDefault();
-                        document.body.classList.remove('fps-hud-hidden');
-                        return;
-                    }
-                    if (event.code in keyState) {
-                        if (!pointerLocked || isAnyGameModalOpen()) {
-                            return;
-                        }
-                        keyState[event.code] = true;
-                    }
                     if (event.code === 'KeyE') {
                         event.preventDefault();
-                        if (document.pointerLockElement) {
-                            document.exitPointerLock();
+                        if (bagPanel && (bagPanel.hidden || bagPanel.style.display === 'none')) {
+                            openBagPanel();
+                        } else {
+                            closeBagPanel();
                         }
-                        toggleBagWithKey();
                     }
-                    if (event.code === 'KeyF') {
+
+                    if (event.code === 'Escape') {
+                        closeBagPanel();
+                    }
+
+                    if (event.code === 'KeyH') {
                         event.preventDefault();
-                        interactFocusedObject();
-                    }
-                }
-
-                function onKeyUp(event) {
-                    if (event.code === 'Tab') {
-                        event.preventDefault();
-                        document.body.classList.add('fps-hud-hidden');
-                        return;
-                    }
-                    if (event.code in keyState) {
-                        keyState[event.code] = false;
-                    }
-                }
-
-                wrap.addEventListener('click', async () => {
-                    await ensureAudioReady();
-                    if (isAnyGameModalOpen()) {
-                        return;
-                    }
-                    if (document.pointerLockElement !== wrap) {
-                        wrap.requestPointerLock();
+                        useHintWithPenalty();
                     }
                 });
 
-                document.addEventListener('pointerlockchange', () => {
-                    pointerLocked = document.pointerLockElement === wrap;
-                    if (pointerLocked) {
-                        enqueueFeedback('FPS: chuột đổi góc nhìn, WASD di chuyển.', false);
-                    } else {
-                        setMovementKeysActive(false);
-                        saveCurrentFpsState();
-                    }
-                });
-
-                document.addEventListener('mousemove', onMouseMove);
-                window.addEventListener('keydown', onKeyDown);
-                window.addEventListener('keyup', onKeyUp);
-                window.addEventListener('resize', resizeRenderer);
-                window.addEventListener('beforeunload', saveCurrentFpsState);
-
-                resizeRenderer();
-                restoreFpsState();
-
-                let last = performance.now();
-                function render(now) {
-                    const dt = Math.min((now - last) / 1000, 0.08);
-                    last = now;
-
-                    cameraEuler.y = yaw;
-                    cameraEuler.x = pitch;
-                    cameraEuler.z = 0;
-                    camera.quaternion.setFromEuler(cameraEuler);
-
-                    const lookVector = new THREE.Vector3();
-                    camera.getWorldDirection(lookVector);
-                    const moveForward = new THREE.Vector3(lookVector.x, 0, lookVector.z).normalize();
-                    const moveRight = new THREE.Vector3()
-                        .crossVectors(moveForward, new THREE.Vector3(0, 1, 0))
-                        .normalize();
-
-                    const velocity = new THREE.Vector3();
-                    if (keyState.KeyW) {
-                        velocity.add(moveForward);
-                    }
-                    if (keyState.KeyS) {
-                        velocity.sub(moveForward);
-                    }
-                    if (keyState.KeyA) {
-                        velocity.sub(moveRight);
-                    }
-                    if (keyState.KeyD) {
-                        velocity.add(moveRight);
-                    }
-
-                    if (pointerLocked && !isAnyGameModalOpen() && velocity.lengthSq() > 0) {
-                        velocity.normalize().multiplyScalar(walkSpeed * dt);
-
-                        const tryX = camera.position.x + velocity.x;
-                        if (!isBlocked(tryX, camera.position.z)) {
-                            camera.position.x = tryX;
-                        }
-
-                        const tryZ = camera.position.z + velocity.z;
-                        if (!isBlocked(camera.position.x, tryZ)) {
-                            camera.position.z = tryZ;
-                        }
-
-                        camera.position.y = 1.6;
-                    }
-
-                    worldStates.forEach((state) => {
-                        if (state.kind === 'crate' && !state.destroyed) {
-                            const target = state.targetOpen;
-                            const speed = 2.8;
-                            const diff = target - state.openProgress;
-                            if (Math.abs(diff) > 0.001) {
-                                state.openProgress += Math.sign(diff) * Math.min(Math.abs(diff), dt * speed);
-                            }
-
-                            // Only animate lidPivot if it exists (fallback BoxGeometry mode)
-                            if (state.lidPivot && state.lidPivot.rotation) {
-                                state.lidPivot.rotation.x = -state.openProgress * (Math.PI * 0.75);
-                            }
-
-                            // Only animate cabinetDoorPivot if it exists (fallback BoxGeometry mode)
-                            if (state.cabinetDoorPivot && state.cabinetDoorPivot.rotation) {
-                                const revealDiff = state.revealTarget - state.revealProgress;
-                                if (Math.abs(revealDiff) > 0.001) {
-                                    state.revealProgress += Math.sign(revealDiff) * Math.min(Math.abs(revealDiff), dt * 2.1);
-                                }
-                                state.cabinetDoorPivot.rotation.y = -state.revealProgress * (Math.PI * 0.8);
-                            }
-
-                            // For GLB models, we can add custom animations here if needed
-                            // TODO: Add GLB model-specific animations
-                        }
-
-                        if (state.kind === 'object' && state.isDoor && state.doorPivot && !state.destroyed) {
-                            const target = state.targetOpen;
-                            const speed = 2.4;
-                            const diff = target - state.openProgress;
-                            if (Math.abs(diff) > 0.001) {
-                                state.openProgress += Math.sign(diff) * Math.min(Math.abs(diff), dt * speed);
-                            }
-                            state.doorPivot.rotation.y = -state.openProgress * (Math.PI * 0.6);
-                        }
-                    });
-
-                    updateFocusedObject();
-
-                    // Animate particles for all room types
-                    if (threeScene.userData.animateParticles) {
-                        threeScene.userData.animateParticles();
-                    }
-                    if (threeScene.userData.animateMysticalParticles) {
-                        threeScene.userData.animateMysticalParticles();
-                    }
-                    if (threeScene.userData.animateAncientParticles) {
-                        threeScene.userData.animateAncientParticles();
-                    }
-
-                    // drawMiniMap(); // Minimap disabled - using 3D view only
-
-                    // Update environment map for dynamic reflections (less frequently for performance)
-                    if (Math.random() < 0.1) { // Update only 10% of frames
-                        cubeCamera.position.copy(camera.position);
-                        cubeCamera.update(renderer, threeScene);
-                    }
-
-                    renderer.render(threeScene, camera);
-                    requestAnimationFrame(render);
-                }
-
-                requestAnimationFrame(render);
-                }
-
-            // Wait for GLTFLoader to load before initializing game
-            if (typeof THREE === 'undefined') {
-                console.error('Three.js not loaded');
-                enqueueFeedback('Không thể khởi tạo chế độ 3D/GLB.', true);
-                if (scene) {
-                    const fatal3d = document.createElement('div');
-                    fatal3d.className = 'fps-hint-dynamic show';
-                    fatal3d.style.top = '50%';
-                    fatal3d.style.left = '50%';
-                    fatal3d.style.transform = 'translate(-50%, -50%)';
-                    fatal3d.style.zIndex = '200';
-                    fatal3d.textContent = 'Trình duyệt chưa tải được Three.js hoặc GLTFLoader. Vui lòng tải lại trang.';
-                    scene.appendChild(fatal3d);
-                }
-            } else {
-                loadGLTFLoader().then(() => {
-                    console.log('✅ GLTFLoader loaded, initializing game...');
-                    // Initialize the game now that GLTFLoader is ready
-                    document.body.classList.add('fps-fullscreen');
-                    initThreeFpsMode();
-                }).catch(() => {
-                    console.warn('GLTFLoader failed to load, some 3D models may not work');
-                    // Still try to initialize game with fallback models
-                    document.body.classList.add('fps-fullscreen');
-                    initThreeFpsMode();
-                });
+                enqueueFeedback('Đã chuyển sang chế độ 2D: bấm hotspot để tương tác, nhấn H để nhận gợi ý (-5 điểm).', false);
             }
 
-            // Game initialization is now handled in the GLTFLoader success callback
-            // to ensure proper timing of 3D model loading
+            initTwoDMode();
         })();
     </script>
 </section>

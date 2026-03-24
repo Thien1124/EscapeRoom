@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Blue Liquid Bottle</title>
+  <desc id="desc">Glass bottle containing blue chemical liquid.</desc>
+  <defs>
+    <linearGradient id="bottleGlass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e1f5fe" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#81d4fa" stop-opacity="0.45"/>
+    </linearGradient>
+    <linearGradient id="blueMix" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#42a5f5"/>
+      <stop offset="1" stop-color="#1565c0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="#1c2731"/>
+  <rect x="224" y="80" width="64" height="70" rx="10" fill="#8d6e63"/>
+  <rect x="176" y="132" width="160" height="300" rx="64" fill="url(#bottleGlass)" stroke="#90caf9" stroke-width="6"/>
+  <path d="M192 300c28-16 100-16 128 0v104c0 16-12 28-28 28h-72c-16 0-28-12-28-28z" fill="url(#blueMix)"/>
+  <path d="M192 300c28 12 100 12 128 0" fill="none" stroke="#90caf9" stroke-width="5" opacity="0.8"/>
+  <rect x="214" y="180" width="84" height="32" rx="6" fill="#e3f2fd" opacity="0.75"/>
+  <text x="256" y="202" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#0d47a1">BLUE</text>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" role="img" aria-label="Pixel purple liquid beaker">
+  <rect width="128" height="128" fill="#1f2634"/>
+  <rect x="40" y="18" width="48" height="8" fill="#d1c4e9"/>
+  <rect x="44" y="26" width="40" height="84" fill="#ede7f6"/>
+  <rect x="46" y="28" width="36" height="80" fill="#c5cae9"/>
+  <rect x="48" y="70" width="32" height="34" fill="#6a1b9a"/>
+  <rect x="48" y="68" width="32" height="2" fill="#ab47bc"/>
+  <rect x="54" y="64" width="4" height="4" fill="#f3e5f5"/>
+  <rect x="62" y="60" width="4" height="4" fill="#e1bee7"/>
+  <rect x="70" y="64" width="4" height="4" fill="#f3e5f5"/>
+</svg>

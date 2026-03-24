@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" role="img" aria-label="Pixel broken microscope">
+  <rect width="128" height="128" fill="#1a2530"/>
+  <rect x="24" y="96" width="80" height="16" fill="#455a64"/>
+  <rect x="48" y="84" width="32" height="12" fill="#607d8b"/>
+  <rect x="56" y="36" width="16" height="28" fill="#546e7a"/>
+  <rect x="64" y="58" width="24" height="8" fill="#37474f"/>
+  <rect x="46" y="54" width="12" height="12" fill="#263238"/>
+  <rect x="46" y="54" width="2" height="12" fill="#ff5252"/>
+  <rect x="56" y="54" width="2" height="12" fill="#ff5252"/>
+  <rect x="42" y="62" width="8" height="26" fill="#78909c"/>
+  <rect x="78" y="62" width="8" height="26" fill="#78909c"/>
+</svg>

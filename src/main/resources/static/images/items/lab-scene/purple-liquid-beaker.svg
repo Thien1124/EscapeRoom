@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Purple Liquid Beaker</title>
+  <desc id="desc">Beaker with finished purple chemical reaction.</desc>
+  <defs>
+    <linearGradient id="beakerGlass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ede7f6" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#b39ddb" stop-opacity="0.45"/>
+    </linearGradient>
+    <linearGradient id="purpleMix" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ab47bc"/>
+      <stop offset="1" stop-color="#6a1b9a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="#1f2634"/>
+  <path d="M164 96h184v30h-20v250c0 32-18 56-50 56h-44c-32 0-50-24-50-56V126h-20z" fill="url(#beakerGlass)" stroke="#d1c4e9" stroke-width="6"/>
+
+  <path d="M196 300c26-12 94-12 120 0v78c0 22-12 38-34 38h-52c-22 0-34-16-34-38z" fill="url(#purpleMix)"/>
+  <path d="M196 300c24 10 96 10 120 0" fill="none" stroke="#ce93d8" stroke-width="5" opacity="0.85"/>
+
+  <circle cx="224" cy="286" r="8" fill="#e1bee7" opacity="0.8"/>
+  <circle cx="250" cy="276" r="10" fill="#f3e5f5" opacity="0.7"/>
+  <circle cx="286" cy="290" r="7" fill="#e1bee7" opacity="0.8"/>
+
+  <text x="256" y="176" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#4527a0">REACTION DONE</text>
+</svg>

@@ -2,6 +2,7 @@ package com.example.gamegiaido.controller;
 
 import com.example.gamegiaido.dto.StartGameForm;
 import com.example.gamegiaido.dto.AnswerForm;
+import com.example.gamegiaido.dto.RoomMapItem;
 import com.example.gamegiaido.model.GameMode;
 import com.example.gamegiaido.model.GameRoom;
 import com.example.gamegiaido.model.PlayerRoomProgress;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
 
 @Controller
 public class GameController {
@@ -73,6 +76,7 @@ public class GameController {
     @GetMapping("/game/rooms/{roomId}")
     public String showRoom(@PathVariable Long roomId,
                            @RequestParam(required = false) Long quizObjectId,
+                           @RequestParam(required = false, defaultValue = "false") boolean replay,
                            Authentication authentication,
                            RedirectAttributes redirectAttributes,
                            Model model) {
@@ -84,8 +88,35 @@ public class GameController {
             return "redirect:/game/map?topicId=" + room.getTopic().getId() + "&mode=" + room.getMode().name();
         }
 
+        if (replay) {
+            try {
+                gamePlayService.restartRoomProgress(authentication.getName(), roomId);
+                redirectAttributes.addFlashAttribute("roomSuccess", "Đã bắt đầu chơi lại phòng để cải thiện điểm.");
+                return "redirect:/game/rooms/" + roomId;
+            } catch (IllegalArgumentException ex) {
+                redirectAttributes.addFlashAttribute("roomError", ex.getMessage());
+                return "redirect:/game/rooms/" + roomId;
+            }
+        }
+
         PlayerRoomProgress progress = gamePlayService.getOrCreateProgress(authentication.getName(), roomId);
         GameRoom nextRoom = gamePlayService.getNextRoom(room);
+        List<RoomMapItem> roomMap = gamePlayService.getRoomMap(authentication.getName(), room.getTopic().getId(), room.getMode());
+        GameRoom previousRoom = null;
+        GameRoom nextNavigableRoom = null;
+        for (int i = 0; i < roomMap.size(); i++) {
+            RoomMapItem item = roomMap.get(i);
+            if (!item.getRoom().getId().equals(roomId)) {
+                continue;
+            }
+            if (i > 0 && roomMap.get(i - 1).isUnlocked()) {
+                previousRoom = roomMap.get(i - 1).getRoom();
+            }
+            if (i < roomMap.size() - 1 && roomMap.get(i + 1).isUnlocked()) {
+                nextNavigableRoom = roomMap.get(i + 1).getRoom();
+            }
+            break;
+        }
         var objects = gamePlayService.getObjects(roomId);
 
         QuizQuestion inlineQuestion = null;
@@ -112,6 +143,8 @@ public class GameController {
         model.addAttribute("objects", objects);
         model.addAttribute("progress", progress);
         model.addAttribute("nextRoom", nextRoom);
+        model.addAttribute("previousRoom", previousRoom);
+        model.addAttribute("nextNavigableRoom", nextNavigableRoom);
         model.addAttribute("maxWrongAttempts", gamePlayService.getMaxWrongAttempts());
         model.addAttribute("playerName", progress.getPlayer().getDisplayName());
         model.addAttribute("inlineQuestion", inlineQuestion);
@@ -154,7 +187,9 @@ public class GameController {
             if (isCorrect) {
                 redirectAttributes.addFlashAttribute("roomSuccess", "Trả lời đúng! Vật thể đã được mở khóa.");
             } else {
-                redirectAttributes.addFlashAttribute("roomError", "Sai đáp án, hãy thử lại.");
+                PlayerRoomProgress progress = gamePlayService.getOrCreateProgress(authentication.getName(), roomId);
+                int remaining = Math.max(0, gamePlayService.getMaxWrongAttempts() - progress.getWrongAttempts());
+                redirectAttributes.addFlashAttribute("roomError", "Sai đáp án, bạn còn " + remaining + " lượt. Nhấn H trong game để xem gợi ý.");
             }
             return "redirect:/game/rooms/" + roomId;
         } catch (IllegalArgumentException ex) {
@@ -188,13 +223,13 @@ public class GameController {
             var inventoryItems = gamePlayService.getCollectedItems(authentication.getName(), roomId);
             int inventoryCount = inventoryItems.size();
             var collectedItem = inventoryItems.stream()
-                    .filter(item -> item.getKey().equals(itemKey))
+                    .filter(item -> item.getKey().equalsIgnoreCase(itemKey))
                     .findFirst()
                     .orElse(null);
             payload.put("success", true);
             payload.put("message", message);
             payload.put("inventoryCount", inventoryCount);
-            payload.put("itemKey", itemKey);
+                payload.put("itemKey", collectedItem != null ? collectedItem.getKey() : itemKey);
             if (collectedItem != null) {
                 payload.put("itemName", collectedItem.getName());
                 payload.put("itemIcon", collectedItem.getIcon());
@@ -230,6 +265,31 @@ public class GameController {
         } catch (IllegalArgumentException ex) {
             payload.put("success", false);
             payload.put("message", ex.getMessage());
+        } catch (Exception ex) {
+            payload.put("success", false);
+            payload.put("message", "Không thể kết hợp vật phẩm lúc này, hãy thử lại.");
+        }
+        return payload;
+    }
+
+    @PostMapping("/game/rooms/{roomId}/hint-ajax")
+    @ResponseBody
+    public java.util.Map<String, Object> useHintAjax(@PathVariable Long roomId,
+                                                      Authentication authentication) {
+        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+        try {
+            java.util.Map<String, Object> hintResult = gamePlayService.useHint(authentication.getName(), roomId);
+            payload.put("success", true);
+            payload.put("hint", hintResult.get("hint"));
+            payload.put("score", hintResult.get("score"));
+            payload.put("penalty", hintResult.get("penalty"));
+            payload.put("message", "Đã dùng gợi ý (-" + hintResult.get("penalty") + " điểm).");
+        } catch (IllegalArgumentException ex) {
+            payload.put("success", false);
+            payload.put("message", ex.getMessage());
+        } catch (Exception ex) {
+            payload.put("success", false);
+            payload.put("message", "Không thể lấy gợi ý lúc này, vui lòng thử lại.");
         }
         return payload;
     }

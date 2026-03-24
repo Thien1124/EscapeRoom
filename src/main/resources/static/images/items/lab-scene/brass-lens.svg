@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Brass Lens</title>
+  <desc id="desc">Large collectible brass microscope lens.</desc>
+  <defs>
+    <radialGradient id="glass" cx="45%" cy="40%" r="55%">
+      <stop offset="0" stop-color="#dff7ff"/>
+      <stop offset="1" stop-color="#4fc3f7"/>
+    </radialGradient>
+    <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6c85f"/>
+      <stop offset="1" stop-color="#b7791f"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="#1d2730"/>
+  <circle cx="256" cy="256" r="148" fill="url(#brass)" stroke="#8d5a14" stroke-width="12"/>
+  <circle cx="256" cy="256" r="102" fill="url(#glass)" stroke="#d7ccc8" stroke-width="8"/>
+  <circle cx="226" cy="224" r="22" fill="#ffffff" opacity="0.35"/>
+  <circle cx="294" cy="300" r="14" fill="#bbdefb" opacity="0.45"/>
+
+  <path d="M146 196l-18-14M166 170l-14-18M366 196l18-14M346 170l14-18" stroke="#ffecb3" stroke-width="6" stroke-linecap="round"/>
+</svg>

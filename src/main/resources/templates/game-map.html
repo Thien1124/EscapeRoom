@@ -789,7 +789,7 @@
             <div class="room-actions">
                 <a th:if="${item.completed}" 
                    class="btn-enter completed" 
-                   th:href="@{'/game/rooms/' + ${item.room.id}}">
+                         th:href="@{'/game/rooms/' + ${item.room.id} + '(?replay=true)'}">
                     <i class="fas fa-rotate"></i>
                     Chơi lại
                 </a>

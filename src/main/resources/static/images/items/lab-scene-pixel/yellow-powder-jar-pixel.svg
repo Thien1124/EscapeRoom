@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" role="img" aria-label="Pixel yellow powder jar">
+  <rect width="128" height="128" fill="#202b33"/>
+  <rect x="42" y="18" width="44" height="12" fill="#455a64"/>
+  <rect x="36" y="30" width="56" height="80" fill="#e8f5e9"/>
+  <rect x="38" y="32" width="52" height="76" fill="#f1f8e9"/>
+  <rect x="40" y="74" width="48" height="32" fill="#fdd835"/>
+  <rect x="46" y="80" width="6" height="6" fill="#f9a825"/>
+  <rect x="58" y="84" width="6" height="6" fill="#f9a825"/>
+  <rect x="70" y="80" width="6" height="6" fill="#f9a825"/>
+  <rect x="44" y="46" width="40" height="10" fill="#fffde7"/>
+</svg>

@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -42,11 +43,13 @@ public class GamePlayService {
     private final PlayerRoomProgressRepository playerRoomProgressRepository;
     private final PlayHistoryRepository playHistoryRepository;
 
-    private static final int MAX_WRONG_ATTEMPTS = 3;
-    private static final int QUIZ_CORRECT_SCORE = 10;
-    private static final int INTERACTION_SCORE = 5;
-    private static final int QUIZ_WRONG_PENALTY = 5;
-    private static final int COLLECT_ITEM_SCORE = 2;
+    private static final int MAX_WRONG_ATTEMPTS = 5;
+    private static final int BASE_ROOM_SCORE = 100;
+    private static final int QUIZ_CORRECT_SCORE = 0;
+    private static final int INTERACTION_SCORE = 0;
+    private static final int QUIZ_WRONG_PENALTY = 2;
+    private static final int COLLECT_ITEM_SCORE = 0;
+    private static final int HINT_PENALTY = 5;
 
     private static final String FLAG_PAPER_REVEALED = "paper_revealed";
     private static final String FLAG_CABINET_OPEN = "cabinet_open";
@@ -56,6 +59,7 @@ public class GamePlayService {
     private static final String ITEM_LENS = "lens";
     private static final String ITEM_PENCIL = "pencil";
     private static final String ITEM_WHITE_PAPER = "white_paper";
+    private static final String ITEM_CODE_CLUE_NOTE = "code_clue_note";
     private static final String ITEM_GLASS_CUP = "glass_cup";
     private static final String ITEM_YELLOW_POWDER = "yellow_powder";
     private static final String ITEM_SLIDE = "slide";
@@ -67,6 +71,7 @@ public class GamePlayService {
     private static final String META_CLICK = "meta:clicks:";
     private static final String META_START = "meta:start:";
     private static final String META_FINISH = "meta:finish:";
+    private static final String STATE_PICKED_PREFIX = "state:picked:";
 
     private static final String SCENARIO_ROOM_KEYWORD = "thí nghiệm bị ngắt quãng";
 
@@ -101,6 +106,7 @@ public class GamePlayService {
                     progress.setPlayer(player);
                     progress.setRoom(room);
                     progress.setCurrentStep(1);
+                    progress.setScore(BASE_ROOM_SCORE);
                     progress.setCompleted(false);
                     Set<String> state = parseCsv(progress.getDiscoveredClues());
                     upsertMeta(state, META_CLICK, "0");
@@ -123,11 +129,18 @@ public class GamePlayService {
                 .stream()
                 .collect(Collectors.toMap(progress -> progress.getRoom().getId(), progress -> progress));
 
+        Set<Long> wonRoomIds = playHistoryRepository.findByPlayerIdAndRoomIdIn(player.getId(), roomIds)
+            .stream()
+            .filter(history -> history.getResult() == PlayResult.WIN)
+            .map(history -> history.getRoom().getId())
+            .collect(Collectors.toSet());
+
         boolean previousCompleted = true;
         List<RoomMapItem> roomMap = new java.util.ArrayList<>();
         for (GameRoom room : rooms) {
             PlayerRoomProgress progress = progressMap.get(room.getId());
-            boolean completed = progress != null && progress.getCompleted() && Boolean.TRUE.equals(progress.getWon());
+            boolean completed = wonRoomIds.contains(room.getId())
+                    || (progress != null && progress.getCompleted() && Boolean.TRUE.equals(progress.getWon()));
             boolean unlocked = previousCompleted;
             roomMap.add(new RoomMapItem(room, unlocked, completed));
             previousCompleted = completed;
@@ -211,6 +224,18 @@ public class GamePlayService {
         } else {
             progress.setWrongAttempts(progress.getWrongAttempts() + 1);
             progress.setScore(Math.max(0, progress.getScore() - QUIZ_WRONG_PENALTY));
+
+            List<String> hints = getSearchHints(roomId);
+            if (!hints.isEmpty()) {
+                int hintIndex = Math.max(0, progress.getWrongAttempts() - 1) % hints.size();
+                String hintEntry = "Gợi ý: " + hints.get(hintIndex);
+                Set<String> discovered = parseCsv(progress.getDiscoveredClues());
+                if (!discovered.contains(hintEntry)) {
+                    discovered.add(hintEntry);
+                    progress.setDiscoveredClues(joinCsv(discovered));
+                }
+            }
+
             if (progress.getWrongAttempts() >= MAX_WRONG_ATTEMPTS) {
                 finalizeProgress(progress, false);
             }
@@ -228,7 +253,10 @@ public class GamePlayService {
         List<RoomKeyConfig> roomKeyConfigs = roomKeyConfigRepository.findByRoomIdOrderByIdAsc(roomId);
         if (!roomKeyConfigs.isEmpty()) {
             return roomKeyConfigs.stream()
-                    .map(config -> new CollectibleItem(config.getKeyCode(), config.getKeyName(), "🗝️"))
+                    .map(config -> {
+                        String icon = hasText(config.getImageUrl()) ? config.getImageUrl() : "🗝️";
+                        return new CollectibleItem(config.getKeyCode(), config.getKeyName(), icon);
+                    })
                     .toList();
         }
         return getCollectiblesByRoomName(room.getName());
@@ -385,8 +413,8 @@ public class GamePlayService {
         if (!hasText(firstItemKey) || !hasText(secondItemKey)) {
             throw new IllegalArgumentException("Bạn cần chọn đủ hai vật phẩm để kết hợp.");
         }
-        String normalizedFirst = firstItemKey.trim().toLowerCase();
-        String normalizedSecond = secondItemKey.trim().toLowerCase();
+        String normalizedFirst = canonicalizeItemKey(firstItemKey);
+        String normalizedSecond = canonicalizeItemKey(secondItemKey);
 
         if (normalizedFirst.equals(normalizedSecond)) {
             throw new IllegalArgumentException("Hai vật phẩm phải khác nhau để kết hợp.");
@@ -395,7 +423,7 @@ public class GamePlayService {
         PlayerRoomProgress progress = getOrCreateProgress(username, roomId);
         Set<String> collected = parseCsv(progress.getCollectedItems());
         Set<String> normalizedCollected = collected.stream()
-            .map(entry -> entry.trim().toLowerCase(Locale.ROOT))
+            .map(this::canonicalizeItemKey)
             .collect(Collectors.toSet());
         if (!normalizedCollected.contains(normalizedFirst) || !normalizedCollected.contains(normalizedSecond)) {
             throw new IllegalArgumentException("Bạn chưa nhặt đủ hai vật phẩm này.");
@@ -489,7 +517,23 @@ public class GamePlayService {
         playerRoomProgressRepository.save(progress);
 
         PlayerProfile player = progress.getPlayer();
-        player.setTotalScore(player.getTotalScore() + progress.getScore());
+
+        Integer previousBestWinScore = playHistoryRepository
+                .findTopByPlayerIdAndRoomIdAndResultOrderByScoreDescPlayedAtDesc(
+                        player.getId(),
+                        progress.getRoom().getId(),
+                        PlayResult.WIN
+                )
+                .map(PlayHistory::getScore)
+                .orElse(null);
+
+        if (won) {
+            if (previousBestWinScore == null) {
+                player.setTotalScore(player.getTotalScore() + progress.getScore());
+            } else if (progress.getScore() > previousBestWinScore) {
+                player.setTotalScore(player.getTotalScore() + (progress.getScore() - previousBestWinScore));
+            }
+        }
         if (won) {
             player.setTotalWin(player.getTotalWin() + 1);
         }
@@ -504,8 +548,57 @@ public class GamePlayService {
         playHistoryRepository.save(history);
     }
 
+    @Transactional
+    public void restartRoomProgress(String username, Long roomId) {
+        PlayerRoomProgress progress = getOrCreateProgress(username, roomId);
+        if (!Boolean.TRUE.equals(progress.getCompleted()) || !Boolean.TRUE.equals(progress.getWon())) {
+            throw new IllegalArgumentException("Chỉ có thể chơi lại phòng đã hoàn thành.");
+        }
+
+        progress.setCurrentStep(1);
+        progress.setCompleted(false);
+        progress.setWon(null);
+        progress.setResultFinalized(false);
+        progress.setWrongAttempts(0);
+        progress.setScore(BASE_ROOM_SCORE);
+        progress.setCollectedItems("");
+
+        Set<String> state = new LinkedHashSet<>();
+        upsertMeta(state, META_CLICK, "0");
+        upsertMeta(state, META_START, String.valueOf(System.currentTimeMillis()));
+        progress.setDiscoveredClues(joinCsv(state));
+        playerRoomProgressRepository.save(progress);
+    }
+
     public int getMaxWrongAttempts() {
         return MAX_WRONG_ATTEMPTS;
+    }
+
+    @Transactional
+    public Map<String, Object> useHint(String username, Long roomId) {
+        PlayerRoomProgress progress = getOrCreateProgress(username, roomId);
+        if (progress.getCompleted()) {
+            throw new IllegalArgumentException("Ván chơi đã kết thúc, không thể dùng gợi ý nữa.");
+        }
+
+        List<String> hints = getSearchHints(roomId);
+        String hintMessage = hints.isEmpty()
+                ? "Hãy quan sát các hotspot đang phát sáng để tìm manh mối."
+                : hints.get((int) (System.currentTimeMillis() % hints.size()));
+
+        progress.setScore(Math.max(0, progress.getScore() - HINT_PENALTY));
+        incrementClick(progress);
+
+        Set<String> discovered = parseCsv(progress.getDiscoveredClues());
+        discovered.add("Gợi ý(H): " + hintMessage);
+        progress.setDiscoveredClues(joinCsv(discovered));
+        playerRoomProgressRepository.save(progress);
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("hint", hintMessage);
+        payload.put("score", progress.getScore());
+        payload.put("penalty", HINT_PENALTY);
+        return payload;
     }
 
     public int getActionCount(String username, Long roomId) {
@@ -532,30 +625,36 @@ public class GamePlayService {
     private List<CollectibleItem> getCollectiblesByRoomName(String roomName) {
         String normalized = roomName == null ? "" : roomName.toLowerCase();
 
-        if (normalized.contains("thí nghiệm")) {
-            return List.of(
-                    new CollectibleItem("microscope", "Kính hiển vi", "🔬"),
-                    new CollectibleItem("slide", "Lam kính", "🧫")
-            );
-        }
-
         if (normalized.contains("mật mã")) {
             return List.of(
                     new CollectibleItem("map_fragment", "Mảnh bản đồ", "🗺️"),
-                    new CollectibleItem("uv_lamp", "Đèn UV", "💡")
+                new CollectibleItem("uv_lamp", "Đèn UV", "💡"),
+                new CollectibleItem("cipher_disk", "Đĩa mật mã", "💿"),
+                new CollectibleItem("rune_note", "Giấy rune", "📜")
             );
         }
 
         if (normalized.contains("cổ vật")) {
             return List.of(
                     new CollectibleItem("stone_tablet", "Phiến đá cổ", "🪨"),
-                    new CollectibleItem("charcoal", "Than đồ nét", "🧱")
+                new CollectibleItem("charcoal", "Than đồ nét", "🧱"),
+                new CollectibleItem("bronze_key", "Chìa đồng cổ", "🗝️"),
+                new CollectibleItem("ancient_ruby", "Hồng ngọc cổ", "💎")
+            );
+        }
+
+        if (normalized.contains("victorian") || normalized.contains("nghiên cứu")) {
+            return List.of(
+                new CollectibleItem("clock_gear", "Bánh răng đồng hồ", "⚙️"),
+                new CollectibleItem("old_blueprint", "Bản thiết kế cũ", "📘"),
+                new CollectibleItem("brass_rod", "Thanh đồng", "🛠️")
             );
         }
 
         return List.of(
                 new CollectibleItem("gear", "Bánh răng", "⚙️"),
-                new CollectibleItem("wire", "Cuộn dây", "🧵")
+            new CollectibleItem("wire", "Cuộn dây", "🧵"),
+            new CollectibleItem("fuse", "Cầu chì", "🔋")
         );
     }
 
@@ -571,21 +670,46 @@ public class GamePlayService {
         if (normalized.contains("mật mã")) {
             spots.put("map_fragment", new int[]{31, 47});
             spots.put("uv_lamp", new int[]{74, 31});
+            spots.put("cipher_disk", new int[]{22, 66});
+            spots.put("rune_note", new int[]{63, 58});
             return spots;
         }
         if (normalized.contains("cổ vật")) {
             spots.put("stone_tablet", new int[]{62, 42});
             spots.put("charcoal", new int[]{21, 58});
+            spots.put("bronze_key", new int[]{74, 30});
+            spots.put("ancient_ruby", new int[]{38, 28});
+            return spots;
+        }
+        if (normalized.contains("victorian") || normalized.contains("nghiên cứu")) {
+            spots.put("clock_gear", new int[]{24, 48});
+            spots.put("old_blueprint", new int[]{56, 42});
+            spots.put("brass_rod", new int[]{78, 63});
             return spots;
         }
 
         spots.put("gear", new int[]{72, 54});
         spots.put("wire", new int[]{28, 39});
+        spots.put("fuse", new int[]{45, 65});
         return spots;
     }
 
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    private String canonicalizeItemKey(String rawKey) {
+        if (!hasText(rawKey)) {
+            return "";
+        }
+        String normalized = rawKey.trim().toLowerCase(Locale.ROOT).replace('-', '_');
+        return switch (normalized) {
+            case "whitepaper", "paper", "white_paper_item" -> ITEM_WHITE_PAPER;
+            case "bluesolution", "blue_liquid", "blue_solution_item" -> ITEM_BLUE_SOLUTION;
+            case "yellowpowder", "yellow_powder_item" -> ITEM_YELLOW_POWDER;
+            case "glasscup", "cup" -> ITEM_GLASS_CUP;
+            default -> normalized;
+        };
     }
 
     private String normalizeCode(String rawCode) {
@@ -628,12 +752,18 @@ public class GamePlayService {
         }
 
         Set<String> collected = parseCsv(progress.getCollectedItems());
+        Set<String> state = parseCsv(progress.getDiscoveredClues());
+        if (state.contains(pickedFlag(itemKey))) {
+            return "Bạn đã nhặt vật phẩm này rồi.";
+        }
         if (collected.contains(itemKey)) {
             return "Bạn đã nhặt vật phẩm này rồi.";
         }
 
         collected.add(itemKey);
+        state.add(pickedFlag(itemKey));
         progress.setCollectedItems(joinCsv(collected));
+        progress.setDiscoveredClues(joinCsv(state));
         progress.setScore(progress.getScore() + COLLECT_ITEM_SCORE);
         incrementClick(progress);
         playerRoomProgressRepository.save(progress);
@@ -649,11 +779,22 @@ public class GamePlayService {
 
         if (pair.equals(List.of(ITEM_PENCIL, ITEM_WHITE_PAPER).stream().sorted().toList())) {
             if (!hasStateFlag(progress, FLAG_PAPER_REVEALED)) {
+                if (!collected.contains(ITEM_PENCIL) || !collected.contains(ITEM_WHITE_PAPER)) {
+                    throw new IllegalArgumentException("Bạn cần bút chì và tờ giấy trắng để làm lộ mã.");
+                }
+
+                // Consume the used items and grant a clue-note item.
+                collected.remove(ITEM_PENCIL);
+                collected.remove(ITEM_WHITE_PAPER);
+                collected.add(ITEM_CODE_CLUE_NOTE);
+
                 setStateFlag(state, FLAG_PAPER_REVEALED);
                 state.add("Các con số ẩn đã hiện lên trên tờ giấy.");
+                state.add("Bạn nhận được Mảnh ghi chú mã số.");
+                progress.setCollectedItems(joinCsv(collected));
                 progress.setDiscoveredClues(joinCsv(state));
                 playerRoomProgressRepository.save(progress);
-                return "Những nét chì làm hiện ra các con số ẩn trên tờ giấy!";
+                return "Những nét chì làm hiện ra các con số ẩn! Bút chì và giấy đã đổi thành Mảnh ghi chú mã số.";
             }
             return "Các con số ẩn đã hiện rõ trên tờ giấy rồi.";
         }
@@ -723,6 +864,7 @@ public class GamePlayService {
     private List<CollectibleSpot> getLabCollectibleSpots(PlayerRoomProgress progress, Long roomId) {
         Set<String> collected = parseCsv(progress.getCollectedItems());
         List<RoomKeyConfig> roomKeyConfigs = roomKeyConfigRepository.findByRoomIdOrderByIdAsc(roomId);
+        Set<String> state = parseCsv(progress.getDiscoveredClues());
         return roomKeyConfigs.stream()
                 .filter(config -> isLabSceneItem(config.getKeyCode()))
                 .filter(config -> isLabItemVisible(progress, config.getKeyCode()))
@@ -732,7 +874,7 @@ public class GamePlayService {
                         config.getSpotX(),
                         config.getSpotY(),
                     hasText(config.getImageUrl()) ? config.getImageUrl() : getLabDefaultImage(config.getKeyCode()),
-                        collected.contains(config.getKeyCode())
+                collected.contains(config.getKeyCode()) || state.contains(pickedFlag(config.getKeyCode()))
                 ))
                 .toList();
     }
@@ -809,6 +951,10 @@ public class GamePlayService {
         return "state:" + flag;
     }
 
+    private String pickedFlag(String itemKey) {
+        return STATE_PICKED_PREFIX + itemKey;
+    }
+
     private boolean isLabScenario(GameRoom room) {
         String roomName = room.getName() == null ? "" : room.getName().toLowerCase();
         return roomName.contains(SCENARIO_ROOM_KEYWORD) || roomName.contains("thí nghiệm bị ngắt quãng");
@@ -819,6 +965,7 @@ public class GamePlayService {
         catalog.put(ITEM_LENS, new CollectibleItem(ITEM_LENS, "Ống kính", "/images/items/lens.svg"));
         catalog.put(ITEM_PENCIL, new CollectibleItem(ITEM_PENCIL, "Bút chì", "/images/items/pencil.svg"));
         catalog.put(ITEM_WHITE_PAPER, new CollectibleItem(ITEM_WHITE_PAPER, "Tờ giấy trắng", "/images/items/white-paper.svg"));
+        catalog.put(ITEM_CODE_CLUE_NOTE, new CollectibleItem(ITEM_CODE_CLUE_NOTE, "Mảnh ghi chú mã số", "/images/items/lab-scene/code-clue-note.svg"));
         catalog.put(ITEM_GLASS_CUP, new CollectibleItem(ITEM_GLASS_CUP, "Cốc thủy tinh", "/images/items/glass-cup.svg"));
         catalog.put(ITEM_YELLOW_POWDER, new CollectibleItem(ITEM_YELLOW_POWDER, "Lọ bột màu vàng", "/images/items/yellow-powder.svg"));
         catalog.put(ITEM_SLIDE, new CollectibleItem(ITEM_SLIDE, "Mẫu vật (Slide)", "/images/items/slide.svg"));

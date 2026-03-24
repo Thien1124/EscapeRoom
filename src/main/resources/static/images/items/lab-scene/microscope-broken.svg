@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Broken Microscope</title>
+  <desc id="desc">A lab microscope missing a lens module.</desc>
+  <rect width="512" height="512" fill="#19252d"/>
+
+  <rect x="110" y="390" width="292" height="62" rx="14" fill="#455a64"/>
+  <rect x="196" y="350" width="120" height="42" rx="10" fill="#607d8b"/>
+
+  <path d="M198 340c0-74 30-138 104-168l40 52c-48 24-64 60-64 112z" fill="#78909c"/>
+  <rect x="250" y="110" width="44" height="90" rx="10" fill="#546e7a"/>
+
+  <rect x="302" y="220" width="84" height="28" rx="10" fill="#37474f"/>
+  <circle cx="394" cy="234" r="20" fill="#263238"/>
+
+  <circle cx="286" cy="260" r="20" fill="#263238"/>
+  <path d="M272 245l28 28" stroke="#ff5252" stroke-width="8" stroke-linecap="round"/>
+  <path d="M300 245l-28 28" stroke="#ff5252" stroke-width="8" stroke-linecap="round"/>
+
+  <rect x="156" y="338" width="24" height="52" rx="8" fill="#90a4ae"/>
+  <rect x="332" y="338" width="24" height="52" rx="8" fill="#90a4ae"/>
+</svg>

@@ -230,6 +230,9 @@ public class RoomObjectSchemaUpdater implements CommandLineRunner {
         insertKeySpot(roomId, "map_fragment", "Mảnh bản đồ", 28, 52);
         insertKeySpot(roomId, "uv_lamp", "Đèn UV", 73, 30);
         insertKeySpot(roomId, "cipher_ring", "Vòng giải mã", 51, 64);
+        insertKeySpot(roomId, "moon_shard", "Mảnh trăng vỡ", 18, 36);
+        insertKeySpot(roomId, "shadow_ink", "Mực bóng đêm", 62, 70);
+        insertKeySpot(roomId, "star_compass", "La bàn sao", 84, 56);
         }
 
         private void seedAncientVaultRoom(Long topicId) {
@@ -260,6 +263,9 @@ public class RoomObjectSchemaUpdater implements CommandLineRunner {
         insertKeySpot(roomId, "stone_tablet", "Phiến đá cổ", 66, 44);
         insertKeySpot(roomId, "charcoal", "Than đồ nét", 22, 61);
         insertKeySpot(roomId, "bronze_key", "Chìa đồng", 48, 25);
+        insertKeySpot(roomId, "relic_coin", "Đồng xu cổ", 34, 42);
+        insertKeySpot(roomId, "scarab_token", "Bùa bọ hung", 78, 64);
+        insertKeySpot(roomId, "obsidian_fragment", "Mảnh hắc thạch", 12, 48);
     }
 
     private void seedVictorianStudyRoom(Long topicId) {
@@ -305,6 +311,8 @@ public class RoomObjectSchemaUpdater implements CommandLineRunner {
         insertKeySpot(roomId, "blueprint", "Bản thiết kế máy tiện", 16, 52);
         insertKeySpot(roomId, "metal_rod", "Thanh kim loại", 35, 65);
         insertKeySpot(roomId, "polish_oil", "Dầu đánh bóng", 70, 35);
+        insertKeySpot(roomId, "clock_key", "Chìa đồng hồ", 58, 30);
+        insertKeySpot(roomId, "wax_seal", "Con dấu sáp", 82, 55);
     }
 
         private Long insertRoom(Long topicId, String name, String description, int order) {
@@ -391,6 +399,20 @@ public class RoomObjectSchemaUpdater implements CommandLineRunner {
             case "white_paper" -> "/images/items/white-paper.svg";
             case "glass_cup" -> "/images/items/glass-cup.svg";
             case "yellow_powder" -> "/images/items/yellow-powder.svg";
+            // Night Cipher Room items
+            case "map_fragment" -> "/images/items/map-fragment.svg";
+            case "uv_lamp" -> "/images/items/uv-lamp.svg";
+            case "cipher_ring" -> "/images/items/cipher-ring.svg";
+            case "moon_shard" -> "/images/items/moon-shard.svg";
+            case "shadow_ink" -> "/images/items/shadow-ink.svg";
+            case "star_compass" -> "/images/items/star-compass.svg";
+            // Ancient Vault Room items
+            case "stone_tablet" -> "/images/items/stone-tablet.svg";
+            case "charcoal" -> "/images/items/charcoal.svg";
+            case "bronze_key" -> "/images/items/bronze-key.svg";
+            case "relic_coin" -> "/images/items/relic-coin.svg";
+            case "scarab_token" -> "/images/items/scarab-token.svg";
+            case "obsidian_fragment" -> "/images/items/obsidian-fragment.svg";
             // Victorian Study Room items
             case "window_clue" -> "/images/items/window-clue.svg";
             case "diary_clue" -> "/images/items/diary-clue.svg";
@@ -398,6 +420,8 @@ public class RoomObjectSchemaUpdater implements CommandLineRunner {
             case "blueprint" -> "/images/items/blueprint.svg";
             case "metal_rod" -> "/images/items/metal-rod.svg";
             case "polish_oil" -> "/images/items/polish-oil.svg";
+            case "clock_key" -> "/images/items/clock-key.svg";
+            case "wax_seal" -> "/images/items/wax-seal.svg";
             default -> null;
         };
         jdbcTemplate.update(

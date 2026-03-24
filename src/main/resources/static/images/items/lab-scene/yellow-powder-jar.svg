@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Yellow Powder Jar</title>
+  <desc id="desc">Lab jar with yellow reactive powder.</desc>
+  <defs>
+    <linearGradient id="jarGlass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f1f8e9" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#dcedc8" stop-opacity="0.5"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="#202b33"/>
+  <rect x="172" y="92" width="168" height="48" rx="10" fill="#455a64"/>
+  <rect x="152" y="134" width="208" height="294" rx="22" fill="url(#jarGlass)" stroke="#cfd8dc" stroke-width="6"/>
+
+  <path d="M168 322c28-10 148-10 176 0v78c0 16-12 28-28 28H196c-16 0-28-12-28-28z" fill="#fdd835"/>
+  <circle cx="214" cy="338" r="8" fill="#f9a825"/>
+  <circle cx="246" cy="356" r="10" fill="#fbc02d"/>
+  <circle cx="286" cy="344" r="9" fill="#f9a825"/>
+
+  <rect x="206" y="190" width="100" height="36" rx="6" fill="#fffde7" opacity="0.85"/>
+  <text x="256" y="214" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#6d4c41">YELLOW POWDER</text>
+</svg>

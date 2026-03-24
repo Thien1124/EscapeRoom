@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" role="img" aria-label="Pixel blue liquid bottle">
+  <rect width="128" height="128" fill="#1c2731"/>
+  <rect x="56" y="16" width="16" height="18" fill="#8d6e63"/>
+  <rect x="44" y="34" width="40" height="76" fill="#b3e5fc"/>
+  <rect x="46" y="36" width="36" height="72" fill="#dff7ff"/>
+  <rect x="48" y="72" width="32" height="34" fill="#1565c0"/>
+  <rect x="48" y="70" width="32" height="2" fill="#42a5f5"/>
+  <rect x="52" y="50" width="24" height="10" fill="#e3f2fd"/>
+  <text x="64" y="57" text-anchor="middle" font-family="sans-serif" font-size="6" fill="#0d47a1">BLUE</text>
+</svg>
