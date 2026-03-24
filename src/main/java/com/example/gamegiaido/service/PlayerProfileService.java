@@ -36,21 +36,4 @@ public class PlayerProfileService {
         profile.setDisplayName(form.getDisplayName().trim());
         return playerProfileRepository.save(profile);
     }
-
-    @Transactional
-    public void changePassword(String username, ChangePasswordForm form) {
-        UserAccount account = userAccountRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản"));
-
-        if (!passwordEncoder.matches(form.getCurrentPassword(), account.getPassword())) {
-            throw new IllegalArgumentException("Mật khẩu hiện tại không đúng");
-        }
-
-        if (!form.getNewPassword().equals(form.getConfirmPassword())) {
-            throw new IllegalArgumentException("Mật khẩu xác nhận không khớp");
-        }
-
-        account.setPassword(passwordEncoder.encode(form.getNewPassword()));
-        userAccountRepository.save(account);
-    }
 }

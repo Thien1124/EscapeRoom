@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(pageTitle, content)">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    th:fragment="layout(pageTitle, content)">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,7 +43,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
+            background:
                 radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.3) 0%, transparent 50%),
                 radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.3) 0%, transparent 50%);
             animation: bgShift 15s ease-in-out infinite;
@@ -50,8 +52,15 @@
         }
 
         @keyframes bgShift {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 0.8; }
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
         }
 
         /* 3D Header */
@@ -60,7 +69,7 @@
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(20px);
             border-bottom: 2px solid rgba(99, 102, 241, 0.3);
-            box-shadow: 
+            box-shadow:
                 0 10px 40px rgba(0, 0, 0, 0.3),
                 0 0 80px rgba(99, 102, 241, 0.2);
             transform-style: preserve-3d;
@@ -69,8 +78,15 @@
         }
 
         @keyframes headerFloat {
-            0%, 100% { transform: translateZ(0px) rotateX(0deg); }
-            50% { transform: translateZ(10px) rotateX(-1deg); }
+
+            0%,
+            100% {
+                transform: translateZ(0px) rotateX(0deg);
+            }
+
+            50% {
+                transform: translateZ(10px) rotateX(-1deg);
+            }
         }
 
         .app-topbar-inner {
@@ -102,8 +118,15 @@
         }
 
         @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
         }
 
         .top-nav {
@@ -147,7 +170,7 @@
             background: rgba(99, 102, 241, 0.2);
             border-color: var(--primary);
             transform: translateY(-3px) translateZ(10px);
-            box-shadow: 
+            box-shadow:
                 0 10px 30px rgba(99, 102, 241, 0.4),
                 0 0 40px rgba(99, 102, 241, 0.2);
         }
@@ -168,7 +191,7 @@
             border-radius: 30px;
             border: 2px solid rgba(255, 255, 255, 0.18);
             padding: 3rem;
-            box-shadow: 
+            box-shadow:
                 0 30px 90px rgba(0, 0, 0, 0.3),
                 0 0 100px rgba(99, 102, 241, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -178,14 +201,18 @@
         }
 
         @keyframes cardFloat {
-            0%, 100% { 
-                transform: translateZ(50px) rotateX(0deg) rotateY(0deg); 
+
+            0%,
+            100% {
+                transform: translateZ(50px) rotateX(0deg) rotateY(0deg);
             }
-            33% { 
-                transform: translateZ(60px) rotateX(2deg) rotateY(-1deg); 
+
+            33% {
+                transform: translateZ(60px) rotateX(2deg) rotateY(-1deg);
             }
-            66% { 
-                transform: translateZ(40px) rotateX(-1deg) rotateY(2deg); 
+
+            66% {
+                transform: translateZ(40px) rotateX(-1deg) rotateY(2deg);
             }
         }
 
@@ -215,12 +242,15 @@
                 transform: translateY(100vh) translateX(0) translateZ(0) scale(0);
                 opacity: 0;
             }
+
             10% {
                 opacity: 1;
             }
+
             90% {
                 opacity: 1;
             }
+
             100% {
                 transform: translateY(-100vh) translateX(100px) translateZ(100px) scale(1.5);
                 opacity: 0;
@@ -257,8 +287,15 @@
         }
 
         @keyframes gradientRotate {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
         }
 
         .app-shell:hover::before {
@@ -289,20 +326,26 @@
 
         /* Loading Animation */
         @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
+            0% {
+                background-position: -1000px 0;
+            }
+
+            100% {
+                background-position: 1000px 0;
+            }
         }
 
         .loading {
-            background: linear-gradient(90deg, 
-                rgba(255,255,255,0.1) 25%, 
-                rgba(255,255,255,0.3) 50%, 
-                rgba(255,255,255,0.1) 75%);
+            background: linear-gradient(90deg,
+                    rgba(255, 255, 255, 0.1) 25%,
+                    rgba(255, 255, 255, 0.3) 50%,
+                    rgba(255, 255, 255, 0.1) 75%);
             background-size: 1000px 100%;
             animation: shimmer 2s infinite;
         }
     </style>
 </head>
+
 <body class="theme-main">
     <!-- Particle Background -->
     <div class="particles" id="particles"></div>
@@ -314,7 +357,17 @@
                 <a th:href="@{/}">🏠 Trang chủ</a>
                 <a th:href="@{/game/start}">🎯 Bắt đầu</a>
                 <a th:href="@{/leaderboard}">🏆 BXH</a>
-                <a th:href="@{/history}">📊 Lịch sử</a>
+                <a sec:authorize="isAuthenticated()" th:href="@{/history}">📊 Lịch sử</a>
+                <a sec:authorize="isAuthenticated()" th:href="@{/profile}"
+                    style="background: rgba(255, 0, 0, 0.2); border-color: rgba(255, 0, 0, 0.4);">🔐 Đổi Mật Khẩu / Hồ
+                    Sơ</a>
+                <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit"
+                        style="background:none; border:none; color: #ff5555; cursor:pointer; font:inherit; padding:0; margin-left:15px;">
+                        🚪 Đăng xuất
+                    </button>
+                </form>
+                <a sec:authorize="isAnonymous()" th:href="@{/login}">🔑 Đăng Nhập</a>
             </nav>
         </div>
     </header>
@@ -362,7 +415,7 @@
         });
 
         // Reset on mouse leave
-        document.querySelector('.app-shell')?.addEventListener('mouseleave', function() {
+        document.querySelector('.app-shell')?.addEventListener('mouseleave', function () {
             this.style.transform = 'translateZ(50px) rotateX(0deg) rotateY(0deg)';
         });
 
@@ -379,4 +432,5 @@
         });
     </script>
 </body>
+
 </html>

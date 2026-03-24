@@ -1,0 +1,19 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.example:Gamegiaido >-----------------------
+[INFO] Building Gamegiaido 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ Gamegiaido ---
+[INFO] Copying 5 resources from src\main\resources to target\classes
+[INFO] Copying 83 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ Gamegiaido ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.272 s
+[INFO] Finished at: 2026-03-24T21:31:55+07:00
+[INFO] ------------------------------------------------------------------------

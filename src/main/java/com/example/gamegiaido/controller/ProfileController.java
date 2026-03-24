@@ -4,6 +4,7 @@ import com.example.gamegiaido.dto.ChangePasswordForm;
 import com.example.gamegiaido.dto.UpdateProfileForm;
 import com.example.gamegiaido.model.PlayerProfile;
 import com.example.gamegiaido.service.PlayerProfileService;
+import com.example.gamegiaido.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -18,9 +19,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ProfileController {
 
     private final PlayerProfileService playerProfileService;
+    private final AuthService authService;
 
-    public ProfileController(PlayerProfileService playerProfileService) {
+    public ProfileController(PlayerProfileService playerProfileService, AuthService authService) {
         this.playerProfileService = playerProfileService;
+        this.authService = authService;
     }
 
     @GetMapping("/profile")
@@ -69,7 +72,7 @@ public class ProfileController {
         }
 
         try {
-            playerProfileService.changePassword(authentication.getName(), changePasswordForm);
+            authService.changePassword(authentication.getName(), changePasswordForm);
             redirectAttributes.addFlashAttribute("passwordSuccess", "Đổi mật khẩu thành công.");
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("passwordError", ex.getMessage());

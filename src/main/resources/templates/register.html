@@ -1,1170 +1,333 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Đăng ký', ~{::section})}">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <!-- Font Awesome Icons -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống An Ninh - Đăng Ký</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-            --warning-gradient: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
-            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --glass-bg: rgba(255, 255, 255, 0.15);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --card-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-        /* Auth Page Container */
-        .auth-page {
+        :root {
+            --cyan: #00e5ff;
+            --cyan-dim: rgba(0, 229, 255, 0.35);
+            --dark: #03080c;
+        }
+
+        body {
+            background: var(--dark);
+            font-family: 'Share Tech Mono', monospace;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
-        /* Animated Background - Different from login */
-        .auth-page::before {
+        body::after {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 50%, #667eea 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
-            z-index: -2;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Floating Geometric Shapes */
-        .floating-shapes {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 229, 255, 0.012) 2px, rgba(0, 229, 255, 0.012) 4px);
             pointer-events: none;
-            z-index: -1;
-            overflow: hidden;
+            z-index: 9999;
         }
 
-        .shape {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            animation: float-around 20s ease-in-out infinite;
+        .topbar {
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom: 1px solid #0b1a24;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .shape.circle {
-            border-radius: 50%;
+        .brand {
+            font-size: 1.4rem;
+            color: var(--cyan);
+            text-decoration: none;
+            text-shadow: 0 0 10px var(--cyan-dim);
+            letter-spacing: 2px;
         }
 
-        .shape.square {
-            border-radius: 15px;
-            transform: rotate(45deg);
+        .brand::before {
+            content: '> ';
         }
 
-        .shape.triangle {
-            width: 0 !important;
-            height: 0 !important;
-            background: transparent !important;
-            border-left: 75px solid transparent;
-            border-right: 75px solid transparent;
-            border-bottom: 130px solid rgba(255, 255, 255, 0.1);
+        .topbar-nav a {
+            color: #2a3a44;
+            text-decoration: none;
+            margin-left: 1.5rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
         }
 
-        .shape:nth-child(1) {
-            width: 300px;
-            height: 300px;
-            top: -150px;
-            right: -100px;
-            animation-delay: 0s;
+        .topbar-nav a:hover {
+            color: var(--cyan);
+            text-shadow: 0 0 5px var(--cyan-dim);
         }
 
-        .shape:nth-child(2) {
-            width: 200px;
-            height: 200px;
-            bottom: 10%;
-            left: -100px;
-            animation-delay: -5s;
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 1rem;
         }
 
-        .shape:nth-child(3) {
-            width: 150px;
-            height: 150px;
-            top: 40%;
-            right: 5%;
-            animation-delay: -10s;
-        }
-
-        .shape:nth-child(4) {
-            width: 100px;
-            height: 100px;
-            bottom: 20%;
-            right: 20%;
-            animation-delay: -15s;
-        }
-
-        .shape:nth-child(5) {
-            top: 20%;
-            left: 10%;
-            animation-delay: -7s;
-        }
-
-        @keyframes float-around {
-            0%, 100% { 
-                transform: translateY(0) rotate(0deg) scale(1); 
-            }
-            25% { 
-                transform: translateY(-30px) rotate(90deg) scale(1.1); 
-            }
-            50% { 
-                transform: translateY(-50px) rotate(180deg) scale(1); 
-            }
-            75% { 
-                transform: translateY(-20px) rotate(270deg) scale(0.9); 
-            }
-        }
-
-        /* Floating Icons */
-        .floating-icons {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .vault {
+            background: #020609;
+            border: 1px solid #0b1a24;
+            border-top: 2px solid var(--cyan);
             width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
+            max-width: 460px;
+            padding: 2.5rem;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 229, 255, 0.05);
         }
 
-        .float-icon {
+        .vault::before {
+            content: '';
             position: absolute;
-            font-size: 2rem;
-            color: rgba(255, 255, 255, 0.2);
-            animation: icon-float 15s ease-in-out infinite;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            animation: scan-v 3s linear infinite;
+            top: 0;
+            box-shadow: 0 0 10px var(--cyan);
         }
 
-        .float-icon:nth-child(1) { top: 8%; left: 5%; animation-delay: 0s; }
-        .float-icon:nth-child(2) { top: 15%; right: 8%; animation-delay: -2s; }
-        .float-icon:nth-child(3) { top: 55%; left: 3%; animation-delay: -4s; }
-        .float-icon:nth-child(4) { top: 65%; right: 5%; animation-delay: -6s; }
-        .float-icon:nth-child(5) { top: 35%; left: 8%; animation-delay: -8s; }
-        .float-icon:nth-child(6) { bottom: 15%; right: 12%; animation-delay: -10s; }
-        .float-icon:nth-child(7) { bottom: 25%; left: 15%; animation-delay: -12s; }
-        .float-icon:nth-child(8) { top: 45%; right: 15%; animation-delay: -14s; }
-
-        @keyframes icon-float {
-            0%, 100% { 
-                transform: translateY(0) rotate(0deg); 
-                opacity: 0.2;
+        @keyframes scan-v {
+            0% {
+                top: 0;
+                opacity: 0;
             }
-            50% { 
-                transform: translateY(-40px) rotate(180deg); 
-                opacity: 0.4;
+
+            5% {
+                opacity: 1;
+            }
+
+            95% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 100%;
+                opacity: 0;
             }
         }
 
-        /* Hero Section 3D */
-        .app-hero {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            color: white;
-            padding: 2.5rem 3rem;
-            border-radius: 25px;
-            box-shadow: var(--card-shadow);
+        .vault-title {
+            color: var(--cyan);
+            font-size: 1.2rem;
+            letter-spacing: 3px;
             text-align: center;
             margin-bottom: 2rem;
-            transform: perspective(1000px) rotateX(5deg);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            max-width: 500px;
-            width: 100%;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed #0b1a24;
+            text-shadow: 0 0 8px var(--cyan-dim);
         }
 
-        .app-hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
-            animation: shimmer 8s linear infinite;
+        .vault-title i {
+            margin-right: 10px;
         }
 
-        @keyframes shimmer {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .app-hero:hover {
-            transform: perspective(1000px) rotateX(0deg) translateY(-10px);
-            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.3);
-        }
-
-        .app-hero h1 {
-            margin: 0 0 1rem 0;
-            font-size: 2.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            position: relative;
-            z-index: 1;
-            text-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .app-hero h1 i {
-            font-size: 2.5rem;
-            animation: rocket-launch 3s ease-in-out infinite;
-        }
-
-        @keyframes rocket-launch {
-            0%, 100% { 
-                transform: translateY(0) rotate(-45deg); 
-            }
-            50% { 
-                transform: translateY(-15px) rotate(-45deg); 
-            }
-        }
-
-        .app-hero p {
-            margin: 0;
-            opacity: 0.95;
-            font-size: 1.1rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .app-hero p i {
-            margin-right: 0.5rem;
-        }
-
-        /* Auth Card 3D */
-        .auth-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 3rem;
-            border-radius: 25px;
-            box-shadow: var(--card-shadow);
-            max-width: 480px;
-            width: 100%;
-            transform: perspective(1000px) rotateX(-5deg);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .auth-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg, 
-                transparent, 
-                rgba(255, 255, 255, 0.4), 
-                transparent
-            );
-            transition: left 0.7s ease;
-        }
-
-        .auth-card:hover::before {
-            left: 100%;
-        }
-
-        .auth-card:hover {
-            transform: perspective(1000px) rotateX(0deg) translateY(-10px);
-            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.3);
-        }
-
-        .auth-card h2 {
-            margin: 0 0 2rem 0;
-            font-size: 2rem;
-            text-align: center;
-            background: var(--success-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.8rem;
-        }
-
-        .auth-card h2::before {
-            content: '\f234';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            -webkit-text-fill-color: #11998e;
-            font-size: 1.8rem;
-        }
-
-        /* Notice Messages 3D */
         .notice {
-            padding: 1rem 1.5rem;
-            border-radius: 15px;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-weight: 500;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            animation: slideIn 0.5s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        @keyframes slideIn {
-            from { 
-                opacity: 0; 
-                transform: translateX(-30px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateX(0); 
-            }
-        }
-
-        .notice::before {
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            font-size: 1.3rem;
+            padding: 10px 12px;
+            margin-bottom: 1.2rem;
+            font-size: 0.85rem;
+            border-left: 3px solid;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .notice.error {
-            background: linear-gradient(135deg, rgba(235, 51, 73, 0.15) 0%, rgba(244, 92, 67, 0.15) 100%);
-            border-left: 4px solid #f45c43;
-            color: #c0392b;
+            background: rgba(255, 0, 0, 0.07);
+            border-color: #ff2200;
+            color: #ff5533;
         }
 
-        .notice.error::before {
-            content: '\f06a';
-            color: #f45c43;
+        .notice::before {
+            content: '>> ';
         }
 
-        .notice.success {
-            background: linear-gradient(135deg, rgba(17, 153, 142, 0.15) 0%, rgba(56, 239, 125, 0.15) 100%);
-            border-left: 4px solid #38ef7d;
-            color: #0d7a6e;
-        }
-
-        .notice.success::before {
-            content: '\f058';
-            color: #38ef7d;
-        }
-
-        /* Form Grid */
-        .grid {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        /* Input Fields 3D */
         .field {
-            position: relative;
+            margin-bottom: 1.3rem;
         }
 
         .field label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.6rem;
-            font-weight: 600;
-            color: #444;
-            font-size: 0.95rem;
-        }
-
-        .field label i {
-            color: #11998e;
-            font-size: 1rem;
-        }
-
-        .field input {
-            width: 100%;
-            padding: 1rem 1.2rem 1rem 3rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 15px;
-            font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: #f8f9ff;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-
-        .field::after {
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            left: 1rem;
-            top: 2.8rem;
-            color: #aaa;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            pointer-events: none;
-        }
-
-        .field:nth-child(1)::after { content: '\f007'; }
-        .field:nth-child(2)::after { content: '\f023'; }
-        .field:nth-child(3)::after { content: '\f2c1'; }
-
-        .field input:focus {
-            outline: none;
-            border-color: #11998e;
-            background: white;
-            box-shadow: 0 0 0 4px rgba(17, 153, 142, 0.2),
-                        0 10px 30px rgba(17, 153, 142, 0.15);
-            transform: translateY(-3px);
-        }
-
-        .field:focus-within::after {
-            color: #11998e;
-            transform: scale(1.1);
-        }
-
-        /* Validation Error */
-        .field small {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-            color: #e74c3c;
-            font-size: 0.85rem;
-            animation: shake 0.5s ease;
-        }
-
-        .field small::before {
-            content: '\f071';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .field:has(small) input {
-            border-color: #e74c3c;
-            background: rgba(231, 76, 60, 0.05);
-        }
-
-        /* Password Strength Indicator */
-        .password-strength {
-            margin-top: 0.8rem;
-        }
-
-        .strength-bar {
-            height: 6px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 0.5rem;
-        }
-
-        .strength-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: all 0.3s ease;
-            width: 0%;
-        }
-
-        .strength-fill.weak { width: 33%; background: var(--danger-gradient); }
-        .strength-fill.medium { width: 66%; background: var(--warning-gradient); }
-        .strength-fill.strong { width: 100%; background: var(--success-gradient); }
-
-        .strength-text {
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .strength-text.weak { color: #e74c3c; }
-        .strength-text.medium { color: #f39c12; }
-        .strength-text.strong { color: #27ae60; }
-
-        /* Password Toggle */
-        .password-toggle {
-            position: absolute;
-            right: 1rem;
-            top: 2.7rem;
-            background: none;
-            border: none;
-            color: #aaa;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            padding: 0;
-        }
-
-        .password-toggle:hover {
-            color: #11998e;
-            transform: scale(1.1);
-        }
-
-        /* Requirements Checklist */
-        .requirements {
-            background: linear-gradient(135deg, rgba(17, 153, 142, 0.05) 0%, rgba(56, 239, 125, 0.05) 100%);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-
-        .requirements h4 {
-            margin: 0 0 0.8rem 0;
-            font-size: 0.9rem;
-            color: #666;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .requirements h4 i {
-            color: #11998e;
-        }
-
-        .requirements ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.5rem;
-        }
-
-        .requirements li {
-            font-size: 0.85rem;
-            color: #999;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .requirements li i {
-            font-size: 0.8rem;
-        }
-
-        .requirements li.valid {
-            color: #27ae60;
-        }
-
-        .requirements li.valid i {
-            color: #27ae60;
-        }
-
-        /* Actions */
-        .actions {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-top: 0.5rem;
-        }
-
-        /* Buttons 3D */
-        button[type="submit"], .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.8rem;
-            padding: 1.1rem 2rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            text-align: center;
-        }
-
-        button[type="submit"]::before, .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s ease, height 0.6s ease;
-        }
-
-        button[type="submit"]:hover::before, .btn:hover::before {
-            width: 400px;
-            height: 400px;
-        }
-
-        button[type="submit"] {
-            background: var(--success-gradient);
-            color: white;
-            box-shadow: 0 10px 30px rgba(17, 153, 142, 0.4);
-        }
-
-        button[type="submit"]:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(17, 153, 142, 0.5);
-        }
-
-        button[type="submit"]:active {
-            transform: translateY(-2px);
-        }
-
-        .btn.secondary {
-            background: linear-gradient(135deg, rgba(17, 153, 142, 0.1) 0%, rgba(56, 239, 125, 0.1) 100%);
-            color: #11998e;
-            border: 2px solid #11998e;
-            box-shadow: 0 10px 30px rgba(17, 153, 142, 0.2);
-        }
-
-        .btn.secondary:hover {
-            background: var(--success-gradient);
-            color: white;
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(17, 153, 142, 0.4);
-        }
-
-        /* Divider */
-        .divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            color: #aaa;
-            font-size: 0.9rem;
-            margin: 0.5rem 0;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .divider span {
-            padding: 0 1rem;
-        }
-
-        /* Benefits Section */
-        .benefits {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #eee;
-        }
-
-        .benefit-item {
-            text-align: center;
-            padding: 1rem;
-            border-radius: 12px;
-            background: linear-gradient(135deg, rgba(17, 153, 142, 0.05) 0%, rgba(56, 239, 125, 0.05) 100%);
-            transition: all 0.3s ease;
-        }
-
-        .benefit-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .benefit-item i {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
             display: block;
+            color: #2a4455;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
         }
 
-        .benefit-item:nth-child(1) i { color: #667eea; }
-        .benefit-item:nth-child(2) i { color: #f5576c; }
-        .benefit-item:nth-child(3) i { color: #38ef7d; }
-
-        .benefit-item span {
-            font-size: 0.85rem;
-            color: #666;
-            font-weight: 500;
-        }
-
-        /* Footer */
-        .auth-footer {
-            text-align: center;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #eee;
-        }
-
-        .auth-footer p {
-            color: #888;
-            font-size: 0.9rem;
-        }
-
-        .auth-footer a {
-            color: #11998e;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .auth-footer a:hover {
-            color: #0d7a6e;
-            text-decoration: underline;
-        }
-
-        /* Terms Checkbox */
-        .terms-field {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.8rem;
-            padding: 1rem;
-            background: #f8f9ff;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .terms-field:hover {
-            background: #f0f1ff;
-        }
-
-        .terms-field input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            accent-color: #11998e;
-            cursor: pointer;
-            margin-top: 2px;
-        }
-
-        .terms-field label {
-            font-size: 0.9rem;
-            color: #666;
-            cursor: pointer;
-            line-height: 1.5;
-        }
-
-        .terms-field label a {
-            color: #11998e;
-            text-decoration: none;
-        }
-
-        .terms-field label a:hover {
-            text-decoration: underline;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .auth-page {
-                padding: 1rem;
-            }
-
-            .app-hero {
-                padding: 2rem;
-            }
-
-            .app-hero h1 {
-                font-size: 1.8rem;
-                flex-direction: column;
-            }
-
-            .auth-card {
-                padding: 2rem 1.5rem;
-            }
-
-            .auth-card h2 {
-                font-size: 1.5rem;
-            }
-
-            .requirements ul {
-                grid-template-columns: 1fr;
-            }
-
-            .benefits {
-                grid-template-columns: 1fr;
-            }
-
-            button[type="submit"], .btn {
-                padding: 1rem 1.5rem;
-                font-size: 1rem;
-            }
-        }
-
-        /* Loading Animation */
-        .btn-loading {
+        .input-wrap {
             position: relative;
-            pointer-events: none;
-            opacity: 0.8;
         }
 
-        .btn-loading::after {
-            content: '' !important;
+        .input-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #1a2d3a;
+            transition: 0.3s;
+            font-size: 0.9rem;
         }
 
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .input-wrap input {
+            width: 100%;
+            background: #010305;
+            border: 1px solid #0b1a24;
+            color: var(--cyan);
+            padding: 11px 12px 11px 36px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s;
         }
 
-        /* Success Animation */
-        @keyframes success-pop {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+        .input-wrap input:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
         }
 
-        .success-icon {
-            animation: success-pop 0.5s ease;
+        .input-wrap:focus-within i {
+            color: var(--cyan);
         }
 
-        /* Confetti (Optional) */
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            background: #f5576c;
-            top: -10px;
-            animation: confetti-fall 3s ease-in-out forwards;
-            z-index: 1000;
+        .field small {
+            display: block;
+            color: #ff4422;
+            font-size: 0.78rem;
+            margin-top: 5px;
+            text-transform: uppercase;
         }
 
-        @keyframes confetti-fall {
-            to {
-                transform: translateY(100vh) rotate(720deg);
-                opacity: 0;
-            }
+        .btn-submit {
+            width: 100%;
+            padding: 13px;
+            background: transparent;
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            font-family: inherit;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            background: var(--cyan);
+            color: #000;
+            box-shadow: 0 0 20px var(--cyan-dim);
+        }
+
+        .vault-footer {
+            margin-top: 2rem;
+            padding-top: 1.2rem;
+            border-top: 1px dashed #0b1a24;
+            text-align: center;
+            font-size: 0.82rem;
+            color: #1a2d3a;
+        }
+
+        .vault-footer a {
+            color: #2a4455;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .vault-footer a:hover {
+            color: var(--cyan);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: #0b1a24;
+            font-size: 0.8rem;
+            border-top: 1px solid #060f15;
         }
     </style>
 </head>
 
-<section class="auth-page">
-    <!-- Floating Background Shapes -->
-    <div class="floating-shapes">
-        <div class="shape circle"></div>
-        <div class="shape square"></div>
-        <div class="shape circle"></div>
-        <div class="shape square"></div>
-        <div class="shape triangle"></div>
-    </div>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/">Quiz Escape Room</a>
+        <nav class="topbar-nav">
+            <a href="/">🏠 Trang Chủ</a>
+            <a href="/game/start">🎯 Bắt Đầu</a>
+            <a href="/leaderboard">🏆 BXH</a>
+        </nav>
+    </header>
 
-    <!-- Floating Icons -->
-    <div class="floating-icons">
-        <i class="fas fa-user-plus float-icon"></i>
-        <i class="fas fa-gamepad float-icon"></i>
-        <i class="fas fa-trophy float-icon"></i>
-        <i class="fas fa-star float-icon"></i>
-        <i class="fas fa-puzzle-piece float-icon"></i>
-        <i class="fas fa-rocket float-icon"></i>
-        <i class="fas fa-gem float-icon"></i>
-        <i class="fas fa-crown float-icon"></i>
-    </div>
+    <main>
+        <div class="vault">
+            <h1 class="vault-title">
+                <i class="fas fa-microchip"></i> KHỞI TẠO TÍN HIỆU
+            </h1>
 
-    <!-- Hero Section -->
-    <section class="card app-hero">
-        <h1>
-            <i class="fas fa-rocket"></i>
-            Tạo tài khoản mới
-        </h1>
-        <p>
-            <i class="fas fa-gamepad"></i>
-            Tham gia game giải đố point & click ngay hôm nay!
-        </p>
-    </section>
+            <div class="notice error" th:if="${registerError}" th:text="${registerError}"></div>
 
-    <!-- Register Card -->
-    <div class="card auth-card">
-        <h2>Đăng ký tài khoản</h2>
-
-        <!-- Error Notice -->
-        <div class="notice error" th:if="${registerError}">
-            <span th:text="${registerError}"></span>
-        </div>
-
-        <!-- Register Form -->
-        <form th:action="@{/register}" th:object="${registerForm}" method="post" class="grid" id="registerForm">
-            
-            <!-- Username Field -->
-            <div class="field">
-                <label>
-                    <i class="fas fa-user"></i>
-                    Tên đăng nhập
-                </label>
-                <input type="text" 
-                       th:field="*{username}" 
-                       placeholder="Nhập tên đăng nhập (4-20 ký tự)..."
-                       minlength="4"
-                       maxlength="20"
-                       required>
-                <small th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></small>
-            </div>
-            
-            <!-- Password Field -->
-            <div class="field">
-                <label>
-                    <i class="fas fa-lock"></i>
-                    Mật khẩu
-                </label>
-                <input type="password" 
-                       th:field="*{password}" 
-                       id="password"
-                       placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)..."
-                       minlength="6"
-                       required>
-                <button type="button" class="password-toggle" onclick="togglePassword()">
-                    <i class="fas fa-eye" id="toggleIcon"></i>
-                </button>
-                <small th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
-                
-                <!-- Password Strength -->
-                <div class="password-strength" id="passwordStrength">
-                    <div class="strength-bar">
-                        <div class="strength-fill" id="strengthFill"></div>
+            <form th:action="@{/register}" th:object="${registerForm}" method="post">
+                <div class="field">
+                    <label>Lập Định Danh (Username)</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-terminal"></i>
+                        <input type="text" th:field="*{username}" placeholder="nhập định danh..." required
+                            autocomplete="off">
                     </div>
-                    <div class="strength-text" id="strengthText">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Nhập mật khẩu để kiểm tra độ mạnh</span>
+                    <small th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></small>
+                </div>
+
+                <div class="field">
+                    <label>Căn Cước Điệp Viên (Tên Hiển Thị)</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user-tag"></i>
+                        <input type="text" th:field="*{displayName}" placeholder="tên điệp viên..." required>
                     </div>
+                    <small th:if="${#fields.hasErrors('displayName')}" th:errors="*{displayName}"></small>
                 </div>
-            </div>
-            
-            <!-- Display Name Field -->
-            <div class="field">
-                <label>
-                    <i class="fas fa-id-card"></i>
-                    Tên hiển thị
-                </label>
-                <input type="text" 
-                       th:field="*{displayName}" 
-                       placeholder="Tên sẽ hiển thị trong game..."
-                       maxlength="50"
-                       required>
-                <small th:if="${#fields.hasErrors('displayName')}" th:errors="*{displayName}"></small>
-            </div>
 
-            <!-- Password Requirements -->
-            <div class="requirements">
-                <h4>
-                    <i class="fas fa-clipboard-check"></i>
-                    Yêu cầu mật khẩu:
-                </h4>
-                <ul>
-                    <li id="req-length">
-                        <i class="fas fa-circle"></i>
-                        Ít nhất 6 ký tự
-                    </li>
-                    <li id="req-upper">
-                        <i class="fas fa-circle"></i>
-                        Có chữ hoa (A-Z)
-                    </li>
-                    <li id="req-lower">
-                        <i class="fas fa-circle"></i>
-                        Có chữ thường (a-z)
-                    </li>
-                    <li id="req-number">
-                        <i class="fas fa-circle"></i>
-                        Có số (0-9)
-                    </li>
-                </ul>
-            </div>
+                <div class="field">
+                    <label>Thiết Lập Mã Khóa (Password)</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-key"></i>
+                        <input type="password" th:field="*{password}" placeholder="tạo mã khóa bảo mật..." required>
+                    </div>
+                    <small th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
+                </div>
 
-            <!-- Terms Agreement -->
-            <div class="terms-field">
-                <input type="checkbox" id="terms" required>
-                <label for="terms">
-                    Tôi đồng ý với <a href="#">Điều khoản dịch vụ</a> 
-                    và <a href="#">Chính sách bảo mật</a> của Quiz Escape Room
-                </label>
-            </div>
-
-            <!-- Actions -->
-            <div class="actions">
-                <button type="submit" id="submitBtn">
-                    <i class="fas fa-user-plus"></i>
-                    Tạo tài khoản
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-satellite-dish"></i> ĐĂNG KÝ GHI DANH
                 </button>
-                
-                <div class="divider">
-                    <span>hoặc</span>
-                </div>
-                
-                <a class="btn secondary" th:href="@{/login}">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Đã có tài khoản? Đăng nhập
-                </a>
-            </div>
-        </form>
+            </form>
 
-        <!-- Benefits -->
-        <div class="benefits">
-            <div class="benefit-item">
-                <i class="fas fa-infinity"></i>
-                <span>Chơi miễn phí</span>
-            </div>
-            <div class="benefit-item">
-                <i class="fas fa-trophy"></i>
-                <span>Xếp hạng toàn cầu</span>
-            </div>
-            <div class="benefit-item">
-                <i class="fas fa-bolt"></i>
-                <span>Thử thách hấp dẫn</span>
+            <div class="vault-footer">
+                <span>> Đã có tín hiệu? </span>
+                <a th:href="@{/login}">[Xác Thực Ngay]</a>
             </div>
         </div>
+    </main>
 
-        <!-- Footer -->
-        <div class="auth-footer">
-            <p>
-                <i class="fas fa-lock"></i>
-                Thông tin của bạn được bảo mật an toàn
-            </p>
-        </div>
-    </div>
-</section>
+    <footer>&gt; QUIZ ESCAPE ROOM · NEW PROTOCOL INIT &lt;</footer>
+</body>
 
-<script>
-    // Toggle Password Visibility
-    function togglePassword() {
-        const passwordInput = document.getElementById('password');
-        const toggleIcon = document.getElementById('toggleIcon');
-        
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            toggleIcon.classList.remove('fa-eye');
-            toggleIcon.classList.add('fa-eye-slash');
-        } else {
-            passwordInput.type = 'password';
-            toggleIcon.classList.remove('fa-eye-slash');
-            toggleIcon.classList.add('fa-eye');
-        }
-    }
-
-    // Password Strength Checker
-    const passwordInput = document.getElementById('password');
-    const strengthFill = document.getElementById('strengthFill');
-    const strengthText = document.getElementById('strengthText');
-
-    passwordInput.addEventListener('input', function() {
-        const password = this.value;
-        let strength = 0;
-        let text = '';
-        
-        // Check requirements
-        const hasLength = password.length >= 6;
-        const hasUpper = /[A-Z]/.test(password);
-        const hasLower = /[a-z]/.test(password);
-        const hasNumber = /[0-9]/.test(password);
-        const hasSpecial = /[!@#$%^&*]/.test(password);
-
-        // Update requirement indicators
-        updateRequirement('req-length', hasLength);
-        updateRequirement('req-upper', hasUpper);
-        updateRequirement('req-lower', hasLower);
-        updateRequirement('req-number', hasNumber);
-
-        // Calculate strength
-        if (hasLength) strength++;
-        if (hasUpper) strength++;
-        if (hasLower) strength++;
-        if (hasNumber) strength++;
-        if (hasSpecial) strength++;
-
-        // Update UI
-        strengthFill.className = 'strength-fill';
-        strengthText.className = 'strength-text';
-
-        if (password.length === 0) {
-            strengthText.innerHTML = '<i class="fas fa-shield-alt"></i> <span>Nhập mật khẩu để kiểm tra độ mạnh</span>';
-        } else if (strength <= 2) {
-            strengthFill.classList.add('weak');
-            strengthText.classList.add('weak');
-            strengthText.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span>Mật khẩu yếu</span>';
-        } else if (strength <= 4) {
-            strengthFill.classList.add('medium');
-            strengthText.classList.add('medium');
-            strengthText.innerHTML = '<i class="fas fa-shield-alt"></i> <span>Mật khẩu trung bình</span>';
-        } else {
-            strengthFill.classList.add('strong');
-            strengthText.classList.add('strong');
-            strengthText.innerHTML = '<i class="fas fa-check-circle"></i> <span>Mật khẩu mạnh!</span>';
-        }
-    });
-
-    function updateRequirement(id, isValid) {
-        const element = document.getElementById(id);
-        const icon = element.querySelector('i');
-        
-        if (isValid) {
-            element.classList.add('valid');
-            icon.classList.remove('fa-circle');
-            icon.classList.add('fa-check-circle');
-        } else {
-            element.classList.remove('valid');
-            icon.classList.remove('fa-check-circle');
-            icon.classList.add('fa-circle');
-        }
-    }
-
-    // Form Submit Loading
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-        const btn = document.getElementById('submitBtn');
-        btn.classList.add('btn-loading');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tạo tài khoản...';
-    });
-
-    // Add floating particles
-    function createParticles() {
-        const colors = ['#11998e', '#38ef7d', '#667eea', '#f5576c'];
-        
-        for (let i = 0; i < 15; i++) {
-            const particle = document.createElement('div');
-            particle.style.cssText = `
-                position: fixed;
-                width: ${5 + Math.random() * 10}px;
-                height: ${5 + Math.random() * 10}px;
-                background: ${colors[Math.floor(Math.random() * colors.length)]};
-                border-radius: 50%;
-                pointer-events: none;
-                z-index: -1;
-                left: ${Math.random() * 100}%;
-                top: 100%;
-                opacity: 0.5;
-                animation: particle-rise ${10 + Math.random() * 10}s linear infinite;
-                animation-delay: ${Math.random() * 10}s;
-            `;
-            document.body.appendChild(particle);
-        }
-    }
-
-    // Add particle animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes particle-rise {
-            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.5; }
-            90% { opacity: 0.5; }
-            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    createParticles();
-</script>
 </html>

@@ -26,6 +26,9 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Authentication authentication, Model model) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
         String username = authentication.getName();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
