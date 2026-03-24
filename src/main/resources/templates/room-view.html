@@ -1862,37 +1862,50 @@
 
     <script th:src="@{/vendor/three.min.js(v='20260321-1')}" src="/vendor/three.min.js"></script>
     <script>
-        // Load GLTFLoader with proper error handling
+        // Load GLTFLoader exactly once and reuse the same promise across calls.
         function loadGLTFLoader() {
-            return new Promise((resolve, reject) => {
-                if (typeof THREE !== 'undefined' && THREE.GLTFLoader) {
+            if (window.__gltfLoaderPromise) {
+                return window.__gltfLoaderPromise;
+            }
+
+            window.__gltfLoaderPromise = new Promise((resolve, reject) => {
+                if (typeof THREE === 'undefined') {
+                    reject(new Error('Three.js not available'));
+                    return;
+                }
+
+                if (typeof THREE.GLTFLoader === 'function') {
                     resolve();
+                    return;
+                }
+
+                const existingScript = document.querySelector('script[src="/vendor/GLTFLoader.js"]');
+
+                const onLoaded = () => {
+                    if (typeof THREE.GLTFLoader === 'function') {
+                        resolve();
+                    } else {
+                        reject(new Error('GLTFLoader not available after loading script'));
+                    }
+                };
+
+                const onFailed = () => reject(new Error('Failed to load GLTFLoader'));
+
+                if (existingScript) {
+                    existingScript.addEventListener('load', onLoaded, { once: true });
+                    existingScript.addEventListener('error', onFailed, { once: true });
                     return;
                 }
 
                 const script = document.createElement('script');
                 script.type = 'text/javascript';
-                script.onload = () => {
-                    if (typeof THREE !== 'undefined' && THREE.GLTFLoader) {
-                        console.log('GLTFLoader loaded successfully');
-                        resolve();
-                    } else {
-                        reject(new Error('GLTFLoader not available after loading'));
-                    }
-                };
-                script.onerror = () => reject(new Error('Failed to load GLTFLoader'));
                 script.src = '/vendor/GLTFLoader.js';
+                script.onload = onLoaded;
+                script.onerror = onFailed;
                 document.head.appendChild(script);
             });
-        }
 
-        // Wait for GLTFLoader to load before initializing game
-        if (typeof THREE === 'undefined') {
-            console.error('Three.js not loaded');
-        } else {
-            loadGLTFLoader().catch(() => {
-                console.warn('GLTFLoader failed to load, some 3D models may not work');
-            });
+            return window.__gltfLoaderPromise;
         }
     </script>
 
@@ -2794,7 +2807,21 @@
                     : null;
 
                 const textureLoader = new THREE.TextureLoader();
+                // GLTFLoader is now initialized after it's confirmed to be loaded
                 const gltfLoader = typeof THREE.GLTFLoader === 'function' ? new THREE.GLTFLoader() : null;
+
+                if (gltfLoader) {
+                    console.log('✅ GLTFLoader initialized successfully in game');
+                    // Give GLTFLoader more time to be fully ready before loading models
+                    setTimeout(() => {
+                        console.log('🎮 Starting room decoration loading...');
+                        console.log('🔄 Re-checking GLTFLoader availability:', typeof THREE.GLTFLoader);
+                        addRoomDecorations();
+                    }, 500); // Increased delay to ensure GLTFLoader is ready
+                } else {
+                    console.warn('⚠️ GLTFLoader not available, fallback models will be used');
+                    addRoomDecorations(); // Still add decorations, but they'll be fallback boxes
+                }
 
                 // Create a simple environment map for better reflections
                 const envGeometry = new THREE.BoxGeometry(100, 100, 100);
@@ -2824,6 +2851,8 @@
 
                 function loadGLBModel(path) {
                     console.log('🔄 Loading GLB Model:', path);
+                    console.log('🔧 GLTFLoader instance:', gltfLoader);
+                    console.log('🔧 THREE.GLTFLoader type:', typeof THREE.GLTFLoader);
 
                     if (modelCache[path]) {
                         console.log('✅ Using cached model:', path);
@@ -2845,14 +2874,29 @@
                         gltfLoader.load(
                             path,
                             (gltf) => {
-                                console.log('✅ GLTFLoader success for:', path);
+                                console.log('✅ GLTFLoader success for:', path, gltf);
+
+                                if (!gltf.scene) {
+                                    console.error('❌ No scene in GLTF file:', path);
+                                    reject(new Error('No scene in GLTF file'));
+                                    return;
+                                }
+
                                 const model = gltf.scene;
+                                console.log('📊 Model stats:', {
+                                    children: model.children.length,
+                                    type: model.type,
+                                    name: model.name
+                                });
+
                                 modelCache[path] = model;
                                 delete loadingPromises[path];
 
                                 // Enable shadows for all meshes in model
+                                let meshCount = 0;
                                 model.traverse((child) => {
                                     if (child.isMesh) {
+                                        meshCount++;
                                         child.castShadow = true;
                                         child.receiveShadow = true;
                                         // Enhance materials if needed
@@ -2866,14 +2910,20 @@
                                     }
                                 });
 
-                                console.log('✅ Loaded GLB model:', path);
+                                console.log('✅ Loaded GLB model:', path, `(${meshCount} meshes)`);
                                 resolve(model.clone());
                             },
                             (progress) => {
-                                // Loading progress
+                                if (progress && progress.total > 0) {
+                                    const percent = (progress.loaded / progress.total) * 100;
+                                    console.log(`📥 Loading ${path}: ${percent.toFixed(0)}%`);
+                                }
                             },
                             (error) => {
-                                console.error('❌ Failed to load GLB model:', path, error);
+                                console.error('❌ Failed to load GLB model:', path);
+                                console.error('   Error type:', error.type || 'unknown');
+                                console.error('   Error message:', error.message || error);
+                                console.error('   Full error:', error);
                                 delete loadingPromises[path];
                                 reject(error);
                             }
@@ -3319,6 +3369,7 @@
                     } else if (isScienceLabRoom) {
                         // Science Laboratory Room Layout
                         console.log('🔬 Setting up Science Laboratory with industrial equipment');
+                        console.log('🧪 GLTFLoader status:', gltfLoader ? 'Available ✅' : 'Not Available ❌');
 
                         // Central Control Panel
                         loadGLBModel('/images/3D/old_control_panel.glb')
@@ -4363,7 +4414,7 @@
                     };
                 }
 
-                addRoomDecorations();
+                // Room decorations are now loaded with delay after GLTFLoader is ready
 
                 function parseWorldPositionFromNode(node) {
                     const classPosMap = {
@@ -4542,6 +4593,7 @@
                     let revealProgress = lockType === 'hidden-cabinet' ? 0 : 1;
                     let revealTarget = lockType === 'hidden-cabinet' ? 0 : 1;
                     let useGLBModel = false;
+                    let fallbackCreated = false;
 
                     // Choose appropriate GLB model based on lockType
                     const modelPath = lockType === 'hidden-cabinet'
@@ -4555,9 +4607,21 @@
                     console.log('   Lock Type:', lockType);
                     console.log('   Model Path:', modelPath);
 
-                    // Try to load GLB model first
+                    // Try to load GLB model first with timeout
+                    const glbTimeout = setTimeout(() => {
+                        console.warn('⏰ GLB loading timeout for:', modelPath);
+                        createFallbackCrate();
+                    }, 10000); // 10 second timeout
+
                     loadGLBModel(modelPath)
                         .then(model => {
+                            clearTimeout(glbTimeout);
+
+                            if (fallbackCreated) {
+                                console.warn('⚠️ GLB arrived after fallback was created, skipping duplicate model:', modelPath);
+                                return;
+                            }
+
                             // Scale and position the model appropriately
                             if (lockType === 'hidden-cabinet') {
                                 model.scale.set(1.2, 1.2, 1.2);
@@ -4569,15 +4633,23 @@
 
                             crateGroup.add(model);
                             useGLBModel = true;
-                            console.log('✅ GLB Crate loaded:', modelPath);
+                            console.log('✅ GLB Crate loaded and added to scene:', modelPath);
                         })
                         .catch(error => {
+                            clearTimeout(glbTimeout);
                             console.warn('⚠️ GLB Crate failed, using fallback BoxGeometry:', error);
                             createFallbackCrate();
                         });
 
                     // Fallback BoxGeometry creation
                     function createFallbackCrate() {
+                        if (fallbackCreated || useGLBModel) {
+                            return;
+                        }
+
+                        fallbackCreated = true;
+                        console.log('🎲 Creating fallback BoxGeometry crate for:', lockType);
+
                         const crateMat = new THREE.MeshStandardMaterial({
                             map: boxTexture || null,
                             color: boxTexture ? 0xffffff : 0xcd853f,
@@ -4598,6 +4670,7 @@
                         base.castShadow = true;
                         base.receiveShadow = true;
                         crateGroup.add(base);
+                        console.log('✅ Added base box to crate group');
 
                         lidPivot = new THREE.Object3D();
                         lidPivot.position.set(0, 0.9, -0.72);
@@ -5338,10 +5411,9 @@
                 requestAnimationFrame(render);
                 }
 
-            if (window.THREE) {
-                document.body.classList.add('fps-fullscreen');
-                initThreeFpsMode();
-            } else {
+            // Wait for GLTFLoader to load before initializing game
+            if (typeof THREE === 'undefined') {
+                console.error('Three.js not loaded');
                 enqueueFeedback('Không thể khởi tạo chế độ 3D/GLB.', true);
                 if (scene) {
                     const fatal3d = document.createElement('div');
@@ -5353,7 +5425,22 @@
                     fatal3d.textContent = 'Trình duyệt chưa tải được Three.js hoặc GLTFLoader. Vui lòng tải lại trang.';
                     scene.appendChild(fatal3d);
                 }
+            } else {
+                loadGLTFLoader().then(() => {
+                    console.log('✅ GLTFLoader loaded, initializing game...');
+                    // Initialize the game now that GLTFLoader is ready
+                    document.body.classList.add('fps-fullscreen');
+                    initThreeFpsMode();
+                }).catch(() => {
+                    console.warn('GLTFLoader failed to load, some 3D models may not work');
+                    // Still try to initialize game with fallback models
+                    document.body.classList.add('fps-fullscreen');
+                    initThreeFpsMode();
+                });
             }
+
+            // Game initialization is now handled in the GLTFLoader success callback
+            // to ensure proper timing of 3D model loading
         })();
     </script>
 </section>

@@ -170,7 +170,18 @@ public class AdminService {
         if (imageUrl == null || imageUrl.trim().isEmpty()) {
             return null;
         }
-        return imageUrl.trim();
+        String normalized = imageUrl.trim();
+        String lower = normalized.toLowerCase(Locale.ROOT);
+
+        if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:")) {
+            throw new IllegalArgumentException("Đường dẫn ảnh không hợp lệ.");
+        }
+
+        if (normalized.startsWith("/") || lower.startsWith("http://") || lower.startsWith("https://")) {
+            return normalized;
+        }
+
+        throw new IllegalArgumentException("Đường dẫn ảnh phải là URL http(s) hoặc đường dẫn bắt đầu bằng '/'.");
     }
 
     private void seedDefaultRoomKeys(GameRoom room) {

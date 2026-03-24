@@ -347,20 +347,33 @@ public class GamePlayService {
             return collectLabItem(progress, roomId, itemKey);
         }
 
-        Set<String> validKeys = getCollectibles(roomId).stream()
-                .map(CollectibleItem::getKey)
-                .collect(Collectors.toSet());
+        if (!hasText(itemKey)) {
+            throw new IllegalArgumentException("Vật phẩm không hợp lệ.");
+        }
 
-        if (!validKeys.contains(itemKey)) {
+        String normalizedItemKey = itemKey.trim().toLowerCase(Locale.ROOT);
+
+        java.util.Map<String, String> validKeyMap = getCollectibles(roomId).stream()
+                .collect(Collectors.toMap(
+                        item -> item.getKey().toLowerCase(Locale.ROOT),
+                        CollectibleItem::getKey,
+                        (first, second) -> first,
+                        java.util.LinkedHashMap::new
+                ));
+
+        String canonicalItemKey = validKeyMap.get(normalizedItemKey);
+        if (canonicalItemKey == null) {
             throw new IllegalArgumentException("Vật phẩm không tồn tại trong phòng này.");
         }
 
         Set<String> collected = parseCsv(progress.getCollectedItems());
-        if (collected.contains(itemKey)) {
+        boolean alreadyCollected = collected.stream()
+                .anyMatch(existing -> existing.equalsIgnoreCase(canonicalItemKey));
+        if (alreadyCollected) {
             return "Bạn đã nhặt vật phẩm này rồi.";
         }
 
-        collected.add(itemKey);
+        collected.add(canonicalItemKey);
         progress.setCollectedItems(joinCsv(collected));
         progress.setScore(progress.getScore() + COLLECT_ITEM_SCORE);
         playerRoomProgressRepository.save(progress);
@@ -381,7 +394,10 @@ public class GamePlayService {
 
         PlayerRoomProgress progress = getOrCreateProgress(username, roomId);
         Set<String> collected = parseCsv(progress.getCollectedItems());
-        if (!collected.contains(normalizedFirst) || !collected.contains(normalizedSecond)) {
+        Set<String> normalizedCollected = collected.stream()
+            .map(entry -> entry.trim().toLowerCase(Locale.ROOT))
+            .collect(Collectors.toSet());
+        if (!normalizedCollected.contains(normalizedFirst) || !normalizedCollected.contains(normalizedSecond)) {
             throw new IllegalArgumentException("Bạn chưa nhặt đủ hai vật phẩm này.");
         }
 
