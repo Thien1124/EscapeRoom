@@ -26,6 +26,9 @@ public class PlayerProfile {
     @Column(nullable = false)
     private Integer totalWin = 0;
 
+    @Column(length = 500)
+    private String avatarUrl;
+
     @OneToOne(optional = false)
     @JoinColumn(name = "account_id", nullable = false, unique = true)
     private UserAccount account;
@@ -56,6 +59,14 @@ public class PlayerProfile {
 
     public void setTotalWin(Integer totalWin) {
         this.totalWin = totalWin;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 
     public UserAccount getAccount() {

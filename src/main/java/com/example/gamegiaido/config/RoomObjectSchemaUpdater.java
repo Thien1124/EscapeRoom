@@ -48,6 +48,16 @@ public class RoomObjectSchemaUpdater implements CommandLineRunner {
             jdbcTemplate.execute("ALTER TABLE player_room_progresses ADD COLUMN discovered_clues VARCHAR(1200) NOT NULL DEFAULT ''");
         }
 
+        Set<String> profileColumns = getColumns("player_profiles");
+        if (!profileColumns.contains("avatar_url")) {
+            jdbcTemplate.execute("ALTER TABLE player_profiles ADD COLUMN avatar_url VARCHAR(500) NULL");
+        }
+
+        Set<String> playHistoryColumns = getColumns("play_histories");
+        if (!playHistoryColumns.contains("action_count")) {
+            jdbcTemplate.execute("ALTER TABLE play_histories ADD COLUMN action_count INT NOT NULL DEFAULT 0");
+        }
+
         Set<String> questionColumns = getColumns("quiz_questions");
         if (!questionColumns.contains("clue_text")) {
             jdbcTemplate.execute("ALTER TABLE quiz_questions ADD COLUMN clue_text VARCHAR(255) NULL");
@@ -56,7 +66,7 @@ public class RoomObjectSchemaUpdater implements CommandLineRunner {
             jdbcTemplate.execute("ALTER TABLE quiz_questions ADD COLUMN answer_code VARCHAR(40) NULL");
         }
 
-        resetToInterruptedExperimentScenario();
+        seedScenarioIfEmpty();
     }
 
     private String getCreateRoomKeyConfigsSql() throws SQLException {
@@ -119,14 +129,11 @@ public class RoomObjectSchemaUpdater implements CommandLineRunner {
         return columns;
     }
 
-    private void resetToInterruptedExperimentScenario() {
-        jdbcTemplate.update("DELETE FROM player_room_progresses");
-        jdbcTemplate.update("DELETE FROM play_histories");
-        jdbcTemplate.update("DELETE FROM quiz_questions");
-        jdbcTemplate.update("DELETE FROM room_key_configs");
-        jdbcTemplate.update("DELETE FROM room_objects");
-        jdbcTemplate.update("DELETE FROM game_rooms");
-        jdbcTemplate.update("DELETE FROM quiz_topics");
+    private void seedScenarioIfEmpty() {
+        Long roomCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM game_rooms", Long.class);
+        if (roomCount != null && roomCount > 0) {
+            return;
+        }
 
         jdbcTemplate.update("INSERT INTO quiz_topics (name, description) VALUES ('Kịch bản', 'Thí Nghiệm Bị Ngắt Quãng')");
 

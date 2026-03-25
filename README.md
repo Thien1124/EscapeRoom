@@ -1,21 +1,21 @@
 # EscapeRoom
 
-## Run with PostgreSQL
+## Run with MySQL (Laragon)
 
-### 1) Start application with PostgreSQL profile
+### 1) Start application with MySQL profile
 
 ```powershell
-./run-postgresql.ps1
+./run-mysql.ps1
 ```
 
 ### 2) Initialize schema and seed data
 
 ```powershell
-./run-postgresql.ps1 -InitDb
+./run-mysql.ps1 -InitDb
 ```
 
 ### 3) Optional environment overrides
 
-- `POSTGRES_URL` (default: `jdbc:postgresql://localhost:5432/gamegiaido`)
-- `POSTGRES_USER` (default: `postgres`)
-- `POSTGRES_PASSWORD` (default: `postgres`)
+- `MYSQL_URL` (default: `jdbc:mysql://localhost:3306/gamegiaido?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh`)
+- `MYSQL_USER` (default: `root`)
+- `MYSQL_PASSWORD` (default: empty)

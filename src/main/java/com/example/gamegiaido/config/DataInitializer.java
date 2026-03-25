@@ -136,7 +136,7 @@ public class DataInitializer implements CommandLineRunner {
         finalQuestion.setOptionB("Hình Tam Giác");
         finalQuestion.setOptionC("Hình Vuông");
         finalQuestion.setOptionD("Hình Lục Giác");
-        finalQuestion.setCorrectOption("B");
+        finalQuestion.setCorrectOption("A");
         quizQuestionRepository.save(finalQuestion);
     }
 

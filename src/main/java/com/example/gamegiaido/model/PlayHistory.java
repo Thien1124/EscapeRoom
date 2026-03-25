@@ -36,6 +36,9 @@ public class PlayHistory {
     private PlayResult result;
 
     @Column(nullable = false)
+    private Integer actionCount = 0;
+
+    @Column(nullable = false)
     private LocalDateTime playedAt;
 
     public Long getId() {
@@ -72,6 +75,14 @@ public class PlayHistory {
 
     public void setResult(PlayResult result) {
         this.result = result;
+    }
+
+    public Integer getActionCount() {
+        return actionCount;
+    }
+
+    public void setActionCount(Integer actionCount) {
+        this.actionCount = actionCount;
     }
 
     public LocalDateTime getPlayedAt() {

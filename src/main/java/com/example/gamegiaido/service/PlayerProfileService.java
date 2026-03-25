@@ -34,7 +34,15 @@ public class PlayerProfileService {
     public PlayerProfile updateDisplayName(String username, UpdateProfileForm form) {
         PlayerProfile profile = getByUsername(username);
         profile.setDisplayName(form.getDisplayName().trim());
+        profile.setAvatarUrl(normalizeAvatarUrl(form.getAvatarUrl()));
         return playerProfileRepository.save(profile);
+    }
+
+    private String normalizeAvatarUrl(String avatarUrl) {
+        if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
+            return null;
+        }
+        return avatarUrl.trim();
     }
 
     @Transactional

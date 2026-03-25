@@ -68,6 +68,20 @@ public class GamePlayService {
     private static final String ITEM_PURPLE_MIX = "purple_mix";
     private static final String ITEM_KEYCARD = "keycard";
 
+    private static final String ITEM_UV_MAP = "uv_map";
+    private static final String ITEM_CIPHER_PATH = "cipher_path";
+    private static final String ITEM_MOON_STAR_KEY = "moon_star_key";
+    private static final String ITEM_SHADOW_KEY = "shadow_key";
+
+    private static final String ITEM_DECODED_TABLET = "decoded_tablet";
+    private static final String ITEM_GUARDIAN_SEAL = "guardian_seal";
+    private static final String ITEM_VAULT_KEY = "vault_key";
+
+    private static final String ITEM_ROUGH_KEY = "rough_key";
+    private static final String ITEM_POLISHED_KEY = "polished_key";
+    private static final String ITEM_MASTER_KEY = "master_key";
+    private static final String ITEM_SEALED_MASTER_KEY = "sealed_master_key";
+
     private static final String META_CLICK = "meta:clicks:";
     private static final String META_START = "meta:start:";
     private static final String META_FINISH = "meta:finish:";
@@ -252,14 +266,15 @@ public class GamePlayService {
         }
         List<RoomKeyConfig> roomKeyConfigs = roomKeyConfigRepository.findByRoomIdOrderByIdAsc(roomId);
         if (!roomKeyConfigs.isEmpty()) {
-            return roomKeyConfigs.stream()
+            List<CollectibleItem> baseItems = roomKeyConfigs.stream()
                     .map(config -> {
                         String icon = hasText(config.getImageUrl()) ? config.getImageUrl() : "🗝️";
                         return new CollectibleItem(config.getKeyCode(), config.getKeyName(), icon);
                     })
                     .toList();
+            return mergeCollectibles(baseItems, getCraftedItemsForRoom(room));
         }
-        return getCollectiblesByRoomName(room.getName());
+        return mergeCollectibles(getCollectiblesByRoomName(room.getName()), getCraftedItemsForRoom(room));
     }
 
     public List<CollectibleItem> getCollectedItems(String username, Long roomId) {
@@ -290,6 +305,7 @@ public class GamePlayService {
         public List<CollectibleSpot> getCollectibleSpots(String username, Long roomId) {
         PlayerRoomProgress progress = getOrCreateProgress(username, roomId);
         Set<String> collectedKeys = parseCsv(progress.getCollectedItems());
+            Set<String> state = parseCsv(progress.getDiscoveredClues());
 
         GameRoom room = gameRoomRepository.findById(roomId)
             .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phòng"));
@@ -307,7 +323,7 @@ public class GamePlayService {
                     config.getSpotX(),
                     config.getSpotY(),
                     config.getImageUrl(),
-                    collectedKeys.contains(config.getKeyCode())
+                    collectedKeys.contains(config.getKeyCode()) || state.contains(pickedFlag(config.getKeyCode()))
                 ))
                 .toList();
         }
@@ -326,7 +342,7 @@ public class GamePlayService {
                     entry.getValue()[0],
                     entry.getValue()[1],
                     null,
-                    collectedKeys.contains(entry.getKey())
+                    collectedKeys.contains(entry.getKey()) || state.contains(pickedFlag(entry.getKey()))
                 );
             })
             .toList();
@@ -381,7 +397,14 @@ public class GamePlayService {
 
         String normalizedItemKey = itemKey.trim().toLowerCase(Locale.ROOT);
 
-        java.util.Map<String, String> validKeyMap = getCollectibles(roomId).stream()
+        List<RoomKeyConfig> roomKeyConfigs = roomKeyConfigRepository.findByRoomIdOrderByIdAsc(roomId);
+        List<CollectibleItem> sceneItems = roomKeyConfigs.isEmpty()
+            ? getCollectiblesByRoomName(progress.getRoom().getName())
+            : roomKeyConfigs.stream()
+            .map(config -> new CollectibleItem(config.getKeyCode(), config.getKeyName(), config.getImageUrl()))
+            .toList();
+
+        java.util.Map<String, String> validKeyMap = sceneItems.stream()
                 .collect(Collectors.toMap(
                         item -> item.getKey().toLowerCase(Locale.ROOT),
                         CollectibleItem::getKey,
@@ -403,6 +426,9 @@ public class GamePlayService {
 
         collected.add(canonicalItemKey);
         progress.setCollectedItems(joinCsv(collected));
+        Set<String> state = parseCsv(progress.getDiscoveredClues());
+        state.add(pickedFlag(canonicalItemKey));
+        progress.setDiscoveredClues(joinCsv(state));
         progress.setScore(progress.getScore() + COLLECT_ITEM_SCORE);
         playerRoomProgressRepository.save(progress);
         return "Đã thêm vật phẩm vào túi đồ.";
@@ -436,7 +462,197 @@ public class GamePlayService {
             return combineItemsForLab(progress, normalizedFirst, normalizedSecond);
         }
 
-        throw new IllegalArgumentException("Hai vật phẩm này chưa tạo ra manh mối mới.");
+        return combineItemsForAdvancedRooms(progress, room, normalizedFirst, normalizedSecond);
+    }
+
+    private String combineItemsForAdvancedRooms(PlayerRoomProgress progress,
+                                                GameRoom room,
+                                                String firstItemKey,
+                                                String secondItemKey) {
+        if (isNightCipherScenario(room)) {
+            return combineItemsForNightCipher(progress, firstItemKey, secondItemKey);
+        }
+        if (isAncientVaultScenario(room)) {
+            return combineItemsForAncientVault(progress, firstItemKey, secondItemKey);
+        }
+        if (isVictorianScenario(room)) {
+            return combineItemsForVictorianStudy(progress, firstItemKey, secondItemKey);
+        }
+        throw new IllegalArgumentException("Màn này chưa hỗ trợ cơ chế kết hợp vật phẩm.");
+    }
+
+    private String combineItemsForNightCipher(PlayerRoomProgress progress, String firstItemKey, String secondItemKey) {
+        Set<String> collected = parseCsv(progress.getCollectedItems());
+        Set<String> state = parseCsv(progress.getDiscoveredClues());
+        incrementClick(progress);
+
+        if (pairMatches(firstItemKey, secondItemKey, "map_fragment", "uv_lamp")) {
+            consumeAndCreate(collected, "map_fragment", "uv_lamp", ITEM_UV_MAP);
+            state.add("Bản đồ đã hiện ký tự ẩn dưới tia UV.");
+            state.add("Mã mở Bảng mã UV: 586.");
+            progress.setCollectedItems(joinCsv(collected));
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+            return "Bạn soi UV lên bản đồ và giải mã được Bản đồ phát quang. Mã mở Bảng mã UV là 586.";
+        }
+
+        if (pairMatches(firstItemKey, secondItemKey, ITEM_UV_MAP, "cipher_ring")) {
+            consumeAndCreate(collected, ITEM_UV_MAP, "cipher_ring", ITEM_CIPHER_PATH);
+            state.add("Các vòng ký hiệu đã khớp và chỉ ra lộ trình bóng đêm.");
+            state.add("Mã mở Bảng mã UV: 586.");
+            progress.setCollectedItems(joinCsv(collected));
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+            return "Bạn khớp vòng giải mã thành công và nhận được Lộ trình mã hóa. Mã mở Bảng mã UV: 586.";
+        }
+
+        if (pairMatches(firstItemKey, secondItemKey, "moon_shard", "star_compass")) {
+            consumeAndCreate(collected, "moon_shard", "star_compass", ITEM_MOON_STAR_KEY);
+            state.add("Mảnh trăng và la bàn sao tạo thành một khóa định hướng.");
+            progress.setCollectedItems(joinCsv(collected));
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+            return "Bạn tạo ra Khóa thiên thể từ mảnh trăng và la bàn sao.";
+        }
+
+        if (pairMatches(firstItemKey, secondItemKey, ITEM_CIPHER_PATH, ITEM_MOON_STAR_KEY)) {
+            consumeAndCreate(collected, ITEM_CIPHER_PATH, ITEM_MOON_STAR_KEY, ITEM_SHADOW_KEY);
+            state.add("Bạn ghép đủ dữ kiện để tạo Chìa bóng đêm.");
+            progress.setCollectedItems(joinCsv(collected));
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+            return "Hoàn tất! Bạn tạo được Chìa bóng đêm cho cơ chế cuối phòng.";
+        }
+
+        throw new IllegalArgumentException("Cặp vật phẩm này chưa khớp quy tắc của Mật Mã Bóng Đêm.");
+    }
+
+    private String combineItemsForAncientVault(PlayerRoomProgress progress, String firstItemKey, String secondItemKey) {
+        Set<String> collected = parseCsv(progress.getCollectedItems());
+        Set<String> state = parseCsv(progress.getDiscoveredClues());
+        incrementClick(progress);
+
+        if (pairMatches(firstItemKey, secondItemKey, "stone_tablet", "charcoal")) {
+            consumeAndCreate(collected, "stone_tablet", "charcoal", ITEM_DECODED_TABLET);
+            state.add("Phiến đá đã lộ rõ ký tự cổ sau khi đồ than.");
+            progress.setCollectedItems(joinCsv(collected));
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+            return "Bạn giải mã được Phiến ký tự đã giải mã.";
+        }
+
+        if (pairMatches(firstItemKey, secondItemKey, "relic_coin", "scarab_token")) {
+            consumeAndCreate(collected, "relic_coin", "scarab_token", ITEM_GUARDIAN_SEAL);
+            state.add("Đồng xu cổ và bùa bọ hung ghép thành ấn canh gác.");
+            progress.setCollectedItems(joinCsv(collected));
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+            return "Bạn tạo được Ấn canh gác.";
+        }
+
+        if (pairMatches(firstItemKey, secondItemKey, ITEM_GUARDIAN_SEAL, "obsidian_fragment")) {
+            consumeAndCreate(collected, ITEM_GUARDIAN_SEAL, "obsidian_fragment", ITEM_VAULT_KEY);
+            state.add("Năng lượng hắc thạch kích hoạt ấn và tạo thành Chìa kho cổ vật.");
+            progress.setCollectedItems(joinCsv(collected));
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+            return "Bạn đã tạo thành công Chìa kho cổ vật.";
+        }
+
+        throw new IllegalArgumentException("Cặp vật phẩm này chưa khớp quy tắc của Kho Cổ Vật.");
+    }
+
+    private String combineItemsForVictorianStudy(PlayerRoomProgress progress, String firstItemKey, String secondItemKey) {
+        Set<String> collected = parseCsv(progress.getCollectedItems());
+        Set<String> state = parseCsv(progress.getDiscoveredClues());
+        incrementClick(progress);
+
+        if (pairMatches(firstItemKey, secondItemKey, "blueprint", "metal_rod")) {
+            consumeAndCreate(collected, "blueprint", "metal_rod", ITEM_ROUGH_KEY);
+            state.add("Bạn tiện được phôi chìa đầu tiên theo bản thiết kế.");
+            progress.setCollectedItems(joinCsv(collected));
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+            return "Bạn tạo được Phôi chìa Victorian.";
+        }
+
+        if (pairMatches(firstItemKey, secondItemKey, ITEM_ROUGH_KEY, "polish_oil")) {
+            consumeAndCreate(collected, ITEM_ROUGH_KEY, "polish_oil", ITEM_POLISHED_KEY);
+            state.add("Phôi chìa đã được đánh bóng mượt.");
+            progress.setCollectedItems(joinCsv(collected));
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+            return "Bạn hoàn thiện Bản chìa đánh bóng.";
+        }
+
+        if (pairMatches(firstItemKey, secondItemKey, ITEM_POLISHED_KEY, "clock_key")) {
+            consumeAndCreate(collected, ITEM_POLISHED_KEY, "clock_key", ITEM_MASTER_KEY);
+            state.add("Cơ cấu đồng hồ đã ăn khớp với bản chìa mới.");
+            progress.setCollectedItems(joinCsv(collected));
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+            return "Bạn tạo được Chìa chính Victorian.";
+        }
+
+        if (pairMatches(firstItemKey, secondItemKey, ITEM_MASTER_KEY, "wax_seal")) {
+            consumeAndCreate(collected, ITEM_MASTER_KEY, "wax_seal", ITEM_SEALED_MASTER_KEY);
+            state.add("Con dấu sáp hoàn tất nghi thức mở cửa thoát hiểm.");
+            progress.setCollectedItems(joinCsv(collected));
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+            return "Chìa chính đã được niêm ấn hoàn tất.";
+        }
+
+        throw new IllegalArgumentException("Cặp vật phẩm này chưa khớp quy tắc của phòng Victorian.");
+    }
+
+    private void consumeAndCreate(Set<String> collected, String first, String second, String created) {
+        if (!collected.contains(first) || !collected.contains(second)) {
+            throw new IllegalArgumentException("Bạn chưa nhặt đủ hai vật phẩm này.");
+        }
+        collected.remove(first);
+        collected.remove(second);
+        collected.add(created);
+    }
+
+    private boolean pairMatches(String firstItemKey, String secondItemKey, String left, String right) {
+        List<String> selectedPair = List.of(firstItemKey, secondItemKey).stream().sorted().toList();
+        List<String> expectedPair = List.of(left, right).stream().sorted().toList();
+        return selectedPair.equals(expectedPair);
+    }
+
+    private List<CollectibleItem> mergeCollectibles(List<CollectibleItem> baseItems, List<CollectibleItem> extraItems) {
+        LinkedHashMap<String, CollectibleItem> merged = new LinkedHashMap<>();
+        baseItems.forEach(item -> merged.put(item.getKey(), item));
+        extraItems.forEach(item -> merged.putIfAbsent(item.getKey(), item));
+        return List.copyOf(merged.values());
+    }
+
+    private List<CollectibleItem> getCraftedItemsForRoom(GameRoom room) {
+        if (isNightCipherScenario(room)) {
+            return List.of(
+                    new CollectibleItem(ITEM_UV_MAP, "Bản đồ phát quang", "🗺️"),
+                    new CollectibleItem(ITEM_CIPHER_PATH, "Lộ trình mã hóa", "🧭"),
+                    new CollectibleItem(ITEM_MOON_STAR_KEY, "Khóa thiên thể", "🌙"),
+                    new CollectibleItem(ITEM_SHADOW_KEY, "Chìa bóng đêm", "🔮")
+            );
+        }
+        if (isAncientVaultScenario(room)) {
+            return List.of(
+                    new CollectibleItem(ITEM_DECODED_TABLET, "Phiến ký tự đã giải mã", "📜"),
+                    new CollectibleItem(ITEM_GUARDIAN_SEAL, "Ấn canh gác", "🪙"),
+                    new CollectibleItem(ITEM_VAULT_KEY, "Chìa kho cổ vật", "🗝️")
+            );
+        }
+        if (isVictorianScenario(room)) {
+            return List.of(
+                    new CollectibleItem(ITEM_ROUGH_KEY, "Phôi chìa Victorian", "🧱"),
+                    new CollectibleItem(ITEM_POLISHED_KEY, "Bản chìa đánh bóng", "🔧"),
+                    new CollectibleItem(ITEM_MASTER_KEY, "Chìa chính Victorian", "🗝️"),
+                    new CollectibleItem(ITEM_SEALED_MASTER_KEY, "Chìa niêm ấn", "🔐")
+            );
+        }
+        return List.of();
     }
 
     @Transactional
@@ -460,8 +676,19 @@ public class GamePlayService {
         }
 
         Set<String> collectedKeys = parseCsv(progress.getCollectedItems());
-        int requiredKeys = getCollectibles(roomId).size();
-        if (collectedKeys.size() < requiredKeys) {
+        List<RoomKeyConfig> roomKeyConfigs = roomKeyConfigRepository.findByRoomIdOrderByIdAsc(roomId);
+        Set<String> requiredSceneKeys = roomKeyConfigs.isEmpty()
+            ? getCollectiblesByRoomName(progress.getRoom().getName()).stream()
+            .map(CollectibleItem::getKey)
+            .collect(Collectors.toSet())
+            : roomKeyConfigs.stream().map(RoomKeyConfig::getKeyCode).collect(Collectors.toSet());
+
+        Set<String> state = parseCsv(progress.getDiscoveredClues());
+        long discoveredSceneItems = requiredSceneKeys.stream()
+            .filter(key -> collectedKeys.contains(key) || state.contains(pickedFlag(key)))
+            .count();
+
+        if (discoveredSceneItems < requiredSceneKeys.size()) {
             throw new IllegalArgumentException("Bạn cần tìm đủ đồ chìa khóa trước khi mở cửa.");
         }
 
@@ -544,6 +771,7 @@ public class GamePlayService {
         history.setRoom(progress.getRoom());
         history.setScore(progress.getScore());
         history.setResult(won ? PlayResult.WIN : PlayResult.LOSE);
+        history.setActionCount((int) readMetaLong(state, META_CLICK, 0));
         history.setPlayedAt(java.time.LocalDateTime.now());
         playHistoryRepository.save(history);
     }
@@ -958,6 +1186,21 @@ public class GamePlayService {
     private boolean isLabScenario(GameRoom room) {
         String roomName = room.getName() == null ? "" : room.getName().toLowerCase();
         return roomName.contains(SCENARIO_ROOM_KEYWORD) || roomName.contains("thí nghiệm bị ngắt quãng");
+    }
+
+    private boolean isNightCipherScenario(GameRoom room) {
+        String roomName = room.getName() == null ? "" : room.getName().toLowerCase();
+        return roomName.contains("mật mã bóng đêm");
+    }
+
+    private boolean isAncientVaultScenario(GameRoom room) {
+        String roomName = room.getName() == null ? "" : room.getName().toLowerCase();
+        return roomName.contains("kho cổ vật");
+    }
+
+    private boolean isVictorianScenario(GameRoom room) {
+        String roomName = room.getName() == null ? "" : room.getName().toLowerCase();
+        return roomName.contains("victorian") || roomName.contains("nghiên cứu");
     }
 
     private static Map<String, CollectibleItem> createLabItemCatalog() {

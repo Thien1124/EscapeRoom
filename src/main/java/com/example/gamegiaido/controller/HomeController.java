@@ -3,6 +3,7 @@ package com.example.gamegiaido.controller;
 import com.example.gamegiaido.repository.PlayHistoryRepository;
 import com.example.gamegiaido.repository.PlayerProfileRepository;
 import com.example.gamegiaido.service.PlayerProfileService;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
@@ -37,7 +38,7 @@ public class HomeController {
 
     @GetMapping("/leaderboard")
     public String leaderboard(Model model) {
-        model.addAttribute("players", playerProfileRepository.findTop20ByOrderByTotalScoreDescTotalWinDesc());
+        model.addAttribute("players", playerProfileRepository.findLeaderboardEntries(PageRequest.of(0, 20)));
         return "leaderboard";
     }
 

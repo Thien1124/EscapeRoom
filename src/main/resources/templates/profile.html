@@ -25,9 +25,9 @@
         /* ==================== HERO SECTION ==================== */
         .pf-hero {
             background: linear-gradient(135deg, 
-                rgba(139, 92, 246, 0.15) 0%, 
-                rgba(6, 182, 212, 0.15) 50%,
-                rgba(236, 72, 153, 0.1) 100%);
+                rgba(30, 41, 59, 0.95) 0%,
+                rgba(51, 65, 85, 0.92) 50%,
+                rgba(30, 41, 59, 0.95) 100%);
             border: 1px solid var(--pf-border);
             border-radius: 24px;
             padding: 2.5rem;
@@ -49,9 +49,9 @@
             background: conic-gradient(
                 from 0deg,
                 transparent,
-                rgba(139, 92, 246, 0.1),
+                rgba(139, 92, 246, 0.04),
                 transparent,
-                rgba(6, 182, 212, 0.1),
+                rgba(6, 182, 212, 0.04),
                 transparent
             );
             animation: rotateGlow 20s linear infinite;
@@ -75,19 +75,14 @@
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 0.8rem;
-            background: linear-gradient(135deg, #fff, var(--pf-primary), var(--pf-secondary));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #f8fafc;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
         }
 
         .pf-hero h1 i {
             font-size: 2.2rem;
-            background: linear-gradient(135deg, var(--pf-primary), var(--pf-secondary));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 20px var(--pf-primary-glow));
+            color: #a78bfa;
+            filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.35));
             animation: iconFloat 3s ease-in-out infinite;
         }
 
@@ -97,7 +92,7 @@
         }
 
         .pf-hero p {
-            color: var(--pf-text-muted);
+            color: rgba(226, 232, 240, 0.9);
             font-size: 1.05rem;
             margin-bottom: 1.5rem;
         }
@@ -128,17 +123,24 @@
             margin-bottom: 1rem;
             border: 4px solid rgba(255, 255, 255, 0.2);
             box-shadow: 
-                0 10px 40px var(--pf-primary-glow),
+                0 8px 25px rgba(15, 23, 42, 0.45),
                 inset 0 -5px 20px rgba(0, 0, 0, 0.3);
             position: relative;
             transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .pf-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .pf-avatar:hover {
             transform: scale(1.1) rotate(5deg);
             box-shadow: 
-                0 15px 50px var(--pf-primary-glow),
-                0 0 60px var(--pf-secondary-glow);
+                0 12px 35px rgba(15, 23, 42, 0.55);
         }
 
         .pf-avatar::after {
@@ -163,7 +165,7 @@
             border-radius: 50px;
             font-size: 0.85rem;
             font-weight: 600;
-            color: #fff;
+            color: #f8fafc;
         }
 
         .pf-level i {
@@ -321,6 +323,30 @@
             font-weight: 600;
             color: #fff;
             margin: 0;
+        }
+
+        .avatar-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .avatar-clear-btn {
+            padding: 0.55rem 0.95rem;
+            border-radius: 10px;
+            border: 1px solid var(--pf-border);
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: rgba(239, 68, 68, 0.45);
         }
 
         /* ==================== NOTICES ==================== */
@@ -688,7 +714,13 @@
             <!-- Avatar Section -->
             <div class="pf-avatar-section">
                 <div class="pf-avatar">
-                    <i class="fas fa-user-astronaut"></i>
+                    <img id="profileAvatarImage"
+                         th:src="${profile.avatarUrl}"
+                         th:alt="${'Avatar của ' + profile.displayName}"
+                         th:style="${#strings.isEmpty(profile.avatarUrl)} ? 'display:none;' : ''">
+                    <i id="profileAvatarFallback"
+                       class="fas fa-user-astronaut"
+                       th:style="${!#strings.isEmpty(profile.avatarUrl)} ? 'display:none;' : ''"></i>
                 </div>
                 <div class="pf-level">
                     <i class="fas fa-star"></i>
@@ -745,6 +777,24 @@
                     <input type="text" th:field="*{displayName}" placeholder="Nhập tên hiển thị của bạn...">
                 </div>
                 <small th:if="${#fields.hasErrors('displayName')}" th:errors="*{displayName}"></small>
+            </div>
+
+            <div class="field">
+                <label>
+                    <i class="fas fa-image"></i>
+                    Ảnh đại diện (URL)
+                </label>
+                <div class="input-wrapper">
+                    <i class="fas fa-link input-icon"></i>
+                    <input type="url" th:field="*{avatarUrl}" placeholder="https://... hoặc /images/...">
+                </div>
+                <div class="avatar-controls">
+                    <button type="button" class="avatar-clear-btn" id="clearAvatarBtn">
+                        <i class="fas fa-trash"></i>
+                        Xóa ảnh
+                    </button>
+                </div>
+                <small th:if="${#fields.hasErrors('avatarUrl')}" th:errors="*{avatarUrl}"></small>
             </div>
 
             <div class="pf-actions">
@@ -944,6 +994,40 @@
                 this.style.borderColor = '';
             });
         });
+
+        const avatarInput = document.getElementById('avatarUrl');
+        const avatarImage = document.getElementById('profileAvatarImage');
+        const avatarFallback = document.getElementById('profileAvatarFallback');
+        const clearAvatarBtn = document.getElementById('clearAvatarBtn');
+
+        function syncAvatarPreview() {
+            if (!avatarInput || !avatarImage || !avatarFallback) {
+                return;
+            }
+
+            const value = avatarInput.value.trim();
+            if (value) {
+                avatarImage.src = value;
+                avatarImage.style.display = 'block';
+                avatarFallback.style.display = 'none';
+            } else {
+                avatarImage.removeAttribute('src');
+                avatarImage.style.display = 'none';
+                avatarFallback.style.display = 'block';
+            }
+        }
+
+        if (avatarInput) {
+            avatarInput.addEventListener('input', syncAvatarPreview);
+            avatarInput.addEventListener('blur', syncAvatarPreview);
+        }
+
+        if (clearAvatarBtn && avatarInput) {
+            clearAvatarBtn.addEventListener('click', () => {
+                avatarInput.value = '';
+                syncAvatarPreview();
+            });
+        }
     </script>
 </section>
 </html>

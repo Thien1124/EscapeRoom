@@ -28,6 +28,7 @@ public class ProfileController {
         PlayerProfile profile = playerProfileService.getByUsername(authentication.getName());
         UpdateProfileForm form = new UpdateProfileForm();
         form.setDisplayName(profile.getDisplayName());
+        form.setAvatarUrl(profile.getAvatarUrl());
 
         model.addAttribute("profile", profile);
         model.addAttribute("updateProfileForm", form);
@@ -63,6 +64,7 @@ public class ProfileController {
             PlayerProfile profile = playerProfileService.getByUsername(authentication.getName());
             UpdateProfileForm updateProfileForm = new UpdateProfileForm();
             updateProfileForm.setDisplayName(profile.getDisplayName());
+            updateProfileForm.setAvatarUrl(profile.getAvatarUrl());
             model.addAttribute("profile", profile);
             model.addAttribute("updateProfileForm", updateProfileForm);
             return "profile";

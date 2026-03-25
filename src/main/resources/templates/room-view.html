@@ -1668,6 +1668,14 @@
             font-size: 1rem;
         }
 
+        .finale-actions {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
         /* ==================== RESPONSIVE ==================== */
         @media (max-width: 768px) {
             .room-hud {
@@ -1726,6 +1734,12 @@
             .finale-stats {
                 flex-direction: column;
                 gap: 0.8rem;
+            }
+
+            .finale-actions {
+                flex-direction: column;
+                width: 100%;
+                max-width: 320px;
             }
         }
 
@@ -2071,6 +2085,20 @@
                         <span th:text="${'Thời gian: ' + elapsedSeconds + ' giây'}">Thời gian: 0 giây</span>
                     </span>
                 </div>
+                <div class="finale-actions">
+                    <a class="btn secondary" th:href="@{/game/rooms/{roomId}(roomId=${room.id},replay=true)}">
+                        <i class="fas fa-rotate-right"></i>
+                        Chơi lại màn này
+                    </a>
+                    <a class="btn secondary" th:if="${nextNavigableRoom != null}" th:href="@{'/game/rooms/' + ${nextNavigableRoom.id}}">
+                        <i class="fas fa-forward"></i>
+                        Tiếp tục màn tiếp theo
+                    </a>
+                    <a class="btn secondary" th:if="${nextNavigableRoom == null}" th:href="@{/leaderboard}">
+                        <i class="fas fa-trophy"></i>
+                        Đến bảng xếp hạng
+                    </a>
+                </div>
             </div>
         </div>
     </section>
@@ -2346,10 +2374,7 @@
 
             const finaleOverlay = document.querySelector('.finale-overlay');
             if (finaleOverlay) {
-                enqueueFeedback('Thoát thành công! Chuyển tới bảng xếp hạng sau 5 giây...', false);
-                setTimeout(() => {
-                    window.location.href = leaderboardUrl;
-                }, 5000);
+                enqueueFeedback('Thoát thành công! Chọn chơi lại hoặc sang màn tiếp theo.', false);
             }
 
             function closeBagPanel() {
