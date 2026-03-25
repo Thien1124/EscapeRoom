@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
-    th:replace="~{fragments/layout-main :: layout('Đăng nhập', ~{::section})}">
+    th:replace="~{fragments/layout-main :: layout('Xác Nhận OTP', ~{::section})}">
 
 <body>
     <section>
@@ -21,45 +21,41 @@
                 box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
                 padding: 2.5rem;
                 width: 100%;
-                max-width: 400px;
+                max-width: 420px;
+                text-align: center;
             }
 
             .auth-title {
                 font-size: 1.75rem;
                 font-weight: 700;
                 color: #1a1a1a;
-                text-align: center;
                 margin-bottom: 0.5rem;
             }
 
             .auth-subtitle {
                 font-size: 0.95rem;
                 color: #666;
-                text-align: center;
                 margin-bottom: 2rem;
+                line-height: 1.5;
             }
 
             .form-group {
                 margin-bottom: 1.25rem;
-            }
-
-            .form-label {
-                display: block;
-                font-size: 0.9rem;
-                font-weight: 500;
-                color: #333;
-                margin-bottom: 0.5rem;
+                text-align: left;
             }
 
             .form-control {
                 width: 100%;
                 padding: 0.85rem 1rem;
-                font-size: 1rem;
+                font-size: 1.2rem;
+                letter-spacing: 0.2em;
+                text-align: center;
                 border: 1px solid #e2e8f0;
                 border-radius: 8px;
                 background-color: #f8fafc;
                 transition: all 0.2s;
                 box-sizing: border-box;
+                font-weight: bold;
             }
 
             .form-control:focus {
@@ -80,27 +76,28 @@
                 width: 100%;
                 cursor: pointer;
                 transition: background-color 0.2s;
-                margin-top: 0.5rem;
+                margin-top: 1rem;
             }
 
             .btn-primary:hover {
                 background-color: #2563eb;
             }
 
-            .form-footer {
-                text-align: center;
-                margin-top: 1.5rem;
-                font-size: 0.95rem;
+            .btn-secondary {
+                background: none;
+                border: none;
                 color: #64748b;
-            }
-
-            .form-footer a {
-                color: #3b82f6;
+                font-size: 0.9rem;
+                font-weight: 500;
+                cursor: pointer;
                 text-decoration: none;
-                font-weight: 600;
+                display: inline-block;
+                margin-top: 1rem;
+                transition: color 0.2s;
             }
 
-            .form-footer a:hover {
+            .btn-secondary:hover {
+                color: #333;
                 text-decoration: underline;
             }
 
@@ -109,6 +106,7 @@
                 border-radius: 8px;
                 margin-bottom: 1.5rem;
                 font-size: 0.95rem;
+                text-align: left;
             }
 
             .alert-error {
@@ -122,40 +120,37 @@
                 color: #16a34a;
                 border: 1px solid #86efac;
             }
+
+            .email-highlight {
+                font-weight: 600;
+                color: #1e293b;
+                background: #f1f5f9;
+                padding: 2px 6px;
+                border-radius: 4px;
+            }
         </style>
         <div class="auth-wrapper">
             <div class="auth-card">
-                <h2 class="auth-title">Đăng Nhập</h2>
-                <p class="auth-subtitle">Chào mừng bạn quay lại với trò chơi</p>
+                <h2 class="auth-title">Xác Nhận OTP</h2>
+                <p class="auth-subtitle">Một mã gồm 6 số đã được gửi tới email <br> <span class="email-highlight"
+                        th:text="${username}"></span><br>Vui lòng nhập để bảo mật tài khoản.</p>
 
-                <div th:if="${param.registered}" class="alert alert-success">Đăng ký thành công, vui lòng đăng nhập!
-                </div>
-                <div th:if="${param.error}" class="alert alert-error">Email hoặc mật khẩu không chính xác.</div>
-                <div th:if="${param.logout}" class="alert alert-success">Bạn đã đăng xuất thành công.</div>
+                <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+                <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
-                <form th:action="@{/login}" method="post">
+                <form th:action="@{/verify-otp}" method="post">
+                    <input type="hidden" name="username" th:value="${username}" />
                     <div class="form-group">
-                        <label class="form-label">Địa chỉ Email</label>
-                        <input type="email" name="username" class="form-control" placeholder="Nhập email của bạn"
-                            required>
+                        <input type="text" name="otpCode" class="form-control" placeholder="••••••" maxlength="6"
+                            autocomplete="off" required>
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label" style="display: flex; justify-content: space-between;">
-                            <span>Mật khẩu</span>
-                            <a href="#" style="color: #3b82f6; font-size: 0.85rem; text-decoration: none;">Quên mật
-                                khẩu?</a>
-                        </label>
-                        <input type="password" name="password" class="form-control" placeholder="Nhập mật khẩu"
-                            required>
-                    </div>
-
-                    <button type="submit" class="btn-primary">Đăng Nhập</button>
+                    <button type="submit" class="btn-primary">Kích Hoạt Tài Khoản</button>
                 </form>
 
-                <div class="form-footer">
-                    Chưa có tài khoản? <a th:href="@{/register}">Đăng ký ngay</a>
-                </div>
+                <form th:action="@{/resend-otp}" method="post" style="display:inline;">
+                    <input type="hidden" name="username" th:value="${username}" />
+                    <button type="submit" class="btn-secondary">Chưa nhận được mã? Gửi lại</button>
+                </form>
             </div>
         </div>
     </section>

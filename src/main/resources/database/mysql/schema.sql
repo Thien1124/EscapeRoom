@@ -3,6 +3,9 @@ CREATE TABLE IF NOT EXISTS user_accounts (
     username VARCHAR(50) NOT NULL,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL,
+    is_verified BIT(1) NOT NULL DEFAULT b'0',
+    otp_code VARCHAR(10),
+    otp_expiry DATETIME,
     PRIMARY KEY (id),
     CONSTRAINT uk_user_accounts_username UNIQUE (username)
 );

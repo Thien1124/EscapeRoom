@@ -44,10 +44,44 @@ public class AuthController {
 
         try {
             authService.register(registerForm);
-            return "redirect:/login?registered";
+            return "redirect:/verify-otp?username=" + java.net.URLEncoder.encode(registerForm.getUsername().trim(), java.nio.charset.StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ex) {
             model.addAttribute("registerError", ex.getMessage());
             return "register";
         }
+    }
+
+    @GetMapping("/verify-otp")
+    public String showVerifyOtp(@org.springframework.web.bind.annotation.RequestParam("username") String username, Model model) {
+        model.addAttribute("username", username);
+        return "verify-otp";
+    }
+
+    @PostMapping("/verify-otp")
+    public String verifyOtp(@org.springframework.web.bind.annotation.RequestParam("username") String username,
+                            @org.springframework.web.bind.annotation.RequestParam("otpCode") String otpCode,
+                            Model model,
+                            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        try {
+            authService.verifyOtp(username, otpCode);
+            redirectAttributes.addFlashAttribute("successMessage", "Xác thực thành công. Bạn có thể đăng nhập.");
+            return "redirect:/login";
+        } catch (IllegalArgumentException ex) {
+            model.addAttribute("error", ex.getMessage());
+            model.addAttribute("username", username);
+            return "verify-otp";
+        }
+    }
+
+    @PostMapping("/resend-otp")
+    public String resendOtp(@org.springframework.web.bind.annotation.RequestParam("username") String username,
+                            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        try {
+            authService.resendOtp(username);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã gửi lại mã OTP. Vui lòng kiểm tra email.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/verify-otp?username=" + java.net.URLEncoder.encode(username, java.nio.charset.StandardCharsets.UTF_8);
     }
 }

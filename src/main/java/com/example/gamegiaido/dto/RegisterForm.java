@@ -1,12 +1,14 @@
 package com.example.gamegiaido.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class RegisterForm {
 
-    @NotBlank(message = "Tên đăng nhập không được để trống")
-    @Size(min = 4, max = 50, message = "Tên đăng nhập từ 4 đến 50 ký tự")
+    @NotBlank(message = "Email không được để trống")
+    @Size(min = 4, max = 50, message = "Email từ 4 đến 50 ký tự")
+    @Email(message = "Định dạng email không hợp lệ")
     private String username;
 
     @NotBlank(message = "Mật khẩu không được để trống")

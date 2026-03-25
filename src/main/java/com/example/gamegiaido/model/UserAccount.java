@@ -28,6 +28,15 @@ public class UserAccount {
     @Column(nullable = false, length = 20)
     private Role role = Role.PLAYER;
 
+    @Column(name = "is_verified", nullable = false)
+    private boolean isVerified = false;
+
+    @Column(name = "otp_code", length = 10)
+    private String otpCode;
+
+    @Column(name = "otp_expiry")
+    private java.time.LocalDateTime otpExpiry;
+
     @OneToOne(mappedBy = "account")
     private PlayerProfile profile;
 
@@ -65,5 +74,29 @@ public class UserAccount {
 
     public void setProfile(PlayerProfile profile) {
         this.profile = profile;
+    }
+
+    public boolean isVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(boolean verified) {
+        isVerified = verified;
+    }
+
+    public String getOtpCode() {
+        return otpCode;
+    }
+
+    public void setOtpCode(String otpCode) {
+        this.otpCode = otpCode;
+    }
+
+    public java.time.LocalDateTime getOtpExpiry() {
+        return otpExpiry;
+    }
+
+    public void setOtpExpiry(java.time.LocalDateTime otpExpiry) {
+        this.otpExpiry = otpExpiry;
     }
 }
