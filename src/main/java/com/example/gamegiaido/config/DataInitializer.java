@@ -141,14 +141,15 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void ensureDefaultAdmin() {
-        if (userAccountRepository.existsByUsername("admin")) {
+        if (userAccountRepository.existsByUsername("admin@gmail.com")) {
             return;
         }
 
         UserAccount adminAccount = new UserAccount();
-        adminAccount.setUsername("admin");
-        adminAccount.setPassword(passwordEncoder.encode("admin123"));
+        adminAccount.setUsername("admin@gmail.com");
+        adminAccount.setPassword(passwordEncoder.encode("Admin123@"));
         adminAccount.setRole(Role.ADMIN);
+        adminAccount.setVerified(true);
         userAccountRepository.save(adminAccount);
 
         PlayerProfile adminProfile = new PlayerProfile();
