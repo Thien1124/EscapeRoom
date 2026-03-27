@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: escaperoom-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: gamegiaido
+      MYSQL_USER: ${MYSQL_USER:-gameuser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-gamepassword}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/database/mysql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - escaperoom-network
+
+  app:
+    image: ${DOCKER_IMAGE:-minhthe2602/escaperoom:latest}
+    container_name: escaperoom-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      MYSQL_URL: jdbc:mysql://mysql:3306/gamegiaido?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+      MYSQL_USER: ${MYSQL_USER:-gameuser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-gamepassword}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-minhthe0359898246@gmail.com}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-fkcv ujoi wtax qrua}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - escaperoom-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  escaperoom-network:
+    driver: bridge
