@@ -2,7 +2,7 @@ spring:
   application:
     name: Gamegiaido
   profiles:
-    active: mysql
+    active: postgresql
 
 server:
   port: 8080

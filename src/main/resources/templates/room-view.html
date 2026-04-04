@@ -1676,6 +1676,188 @@
             margin-top: 1rem;
         }
 
+        .door-maze-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 280;
+            background: radial-gradient(circle at center, rgba(6, 182, 212, 0.2), rgba(2, 6, 23, 0.95));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .door-maze-card {
+            width: min(560px, 95vw);
+            border-radius: 20px;
+            border: 1px solid rgba(34, 211, 238, 0.45);
+            background: rgba(8, 19, 38, 0.92);
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+            padding: 1.1rem;
+            color: #e0f2fe;
+        }
+
+        .door-maze-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.8rem;
+            margin-bottom: 0.7rem;
+        }
+
+        .door-maze-header h3 {
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .door-maze-progress {
+            font-size: 0.85rem;
+            color: #bae6fd;
+        }
+
+        .door-maze-desc {
+            font-size: 0.87rem;
+            color: #cbd5e1;
+            margin-bottom: 0.9rem;
+        }
+
+        .door-maze-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.7rem;
+        }
+
+        .maze-door-btn {
+            position: relative;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+            color: #e2e8f0;
+            padding: 0.9rem 0.45rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            font-weight: 600;
+            min-height: 128px;
+        }
+
+        .maze-door-btn i {
+            font-size: 2rem;
+        }
+
+        .maze-door-btn:hover {
+            transform: translateY(-2px);
+            border-color: rgba(148, 163, 184, 0.5);
+        }
+
+        .maze-door-btn.is-correct {
+            border-color: rgba(148, 163, 184, 0.45);
+            box-shadow: none;
+            background:
+                linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)),
+                radial-gradient(circle at 50% 42%, rgba(34, 197, 94, 0.18), rgba(34, 197, 94, 0.07) 56%, transparent 82%);
+            filter: saturate(1.08) brightness(1.085);
+        }
+
+        .maze-door-btn.is-correct:hover {
+            border-color: rgba(148, 163, 184, 0.5);
+            filter: saturate(1.07) brightness(1.075);
+        }
+
+        .maze-correct-mark {
+            font-size: 0.76rem;
+            color: #86efac;
+            min-height: 1.2em;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            opacity: 0;
+        }
+
+        .door-maze-dead-end {
+            margin-top: 0.8rem;
+            border: 1px solid rgba(248, 113, 113, 0.55);
+            border-radius: 12px;
+            background: rgba(69, 10, 10, 0.42);
+            padding: 0.7rem;
+            color: #fecaca;
+            display: grid;
+            gap: 0.6rem;
+        }
+
+        .door-maze-dead-end p {
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.84rem;
+        }
+
+        .door-maze-dead-end .btn {
+            justify-self: start;
+        }
+
+        .finale-overlay.lose {
+            background: radial-gradient(circle at center, rgba(239, 68, 68, 0.36), rgba(10, 10, 15, 0.96));
+            animation: loseFlash 0.4s ease 2;
+        }
+
+        .finale-overlay.lose .finale-door {
+            color: #f87171;
+            animation: bombShake 0.24s linear infinite;
+        }
+
+        .lose-blast-core {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(251, 113, 133, 0.85) 0%, rgba(239, 68, 68, 0.15) 72%, transparent 100%);
+            animation: blastCore 1.1s ease-in-out infinite;
+        }
+
+        .lose-blast-ring {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid rgba(248, 113, 113, 0.65);
+            animation: blastRing 1.1s ease-out infinite;
+        }
+
+        .finale-overlay.lose .finale-text {
+            background: linear-gradient(135deg, #f87171, #fca5a5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            max-width: min(760px, 92vw);
+        }
+
+        @keyframes bombShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px) rotate(-5deg); }
+            75% { transform: translateX(4px) rotate(5deg); }
+        }
+
+        @keyframes blastCore {
+            0%, 100% { transform: scale(0.72); opacity: 0.7; }
+            50% { transform: scale(1.06); opacity: 1; }
+        }
+
+        @keyframes blastRing {
+            0% { transform: scale(0.6); opacity: 0.95; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+
+        @keyframes loseFlash {
+            0%, 100% { filter: saturate(1); }
+            50% { filter: saturate(1.4) brightness(1.14); }
+        }
+
         /* ==================== RESPONSIVE ==================== */
         @media (max-width: 768px) {
             .room-hud {
@@ -2062,6 +2244,46 @@
                 </section>
             </div>
 
+            <section class="door-maze-overlay game-modal"
+                     id="door-maze-panel"
+                     th:if="${doorMazeState.active}"
+                     th:attr="data-ajax-action=@{'/game/rooms/' + ${room.id} + '/maze-door-ajax'},data-reset-action=@{'/game/rooms/' + ${room.id} + '/maze-door-reset-ajax'},data-correct-door=${doorMazeState.correctDoor},data-level=${doorMazeState.currentLevel},data-total-levels=${doorMazeState.totalLevels},data-dead-end=${doorMazeState.deadEnd}">
+                <div class="door-maze-card">
+                    <div class="door-maze-header">
+                        <h3><i class="fas fa-route"></i> Mê cung cửa thoát</h3>
+                        <span class="door-maze-progress" id="door-maze-progress-text"
+                              th:text="${'Cửa đúng: ' + (doorMazeState.currentLevel + 1) + '/' + doorMazeState.totalLevels}">Cửa đúng: 1/3</span>
+                    </div>
+                    <div class="door-maze-desc">
+                        Chọn đúng cửa để đi tiếp. Nếu chọn sai, bạn bị quay lại điểm đầu và cửa đúng sẽ đổi vị trí.
+                    </div>
+                    <div class="door-maze-grid">
+                        <button type="button" class="maze-door-btn" data-door-index="1">
+                            <i class="fas fa-door-open"></i>
+                            <span>Cửa 1</span>
+                            <span class="maze-correct-mark"></span>
+                        </button>
+                        <button type="button" class="maze-door-btn" data-door-index="2">
+                            <i class="fas fa-door-open"></i>
+                            <span>Cửa 2</span>
+                            <span class="maze-correct-mark"></span>
+                        </button>
+                        <button type="button" class="maze-door-btn" data-door-index="3">
+                            <i class="fas fa-door-open"></i>
+                            <span>Cửa 3</span>
+                            <span class="maze-correct-mark"></span>
+                        </button>
+                    </div>
+                    <div class="door-maze-dead-end" id="door-maze-dead-end" hidden>
+                        <p><i class="fas fa-person-falling"></i> Ngõ cụt rồi. Quay về điểm xuất phát để thử lại đường mới.</p>
+                        <button type="button" class="btn secondary" id="door-maze-reset-btn">
+                            <i class="fas fa-rotate-left"></i>
+                            Quay về điểm xuất phát
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Finale Overlay -->
             <div class="finale-overlay" th:if="${progress.completed and progress.won}">
                 <div class="finale-light"></div>
@@ -2095,6 +2317,26 @@
                         Tiếp tục màn tiếp theo
                     </a>
                     <a class="btn secondary" th:if="${nextNavigableRoom == null}" th:href="@{/leaderboard}">
+                        <i class="fas fa-trophy"></i>
+                        Đến bảng xếp hạng
+                    </a>
+                </div>
+            </div>
+
+            <div class="finale-overlay lose" th:if="${progress.completed and !progress.won}">
+                <div class="finale-light" style="background: radial-gradient(circle, rgba(239, 68, 68, 0.45), transparent);"></div>
+                <div class="lose-blast-core" aria-hidden="true"></div>
+                <div class="lose-blast-ring" aria-hidden="true"></div>
+                <div class="finale-door"><i class="fas fa-bomb"></i></div>
+                <div class="finale-text">
+                    Boom! Bẫy nổ đã kích hoạt ở cửa cuối. Chơi dở quá, làm lại đi rồi hãy khoe mình phá đảo.
+                </div>
+                <div class="finale-actions">
+                    <a class="btn secondary" th:href="@{/game/rooms/{roomId}(roomId=${room.id},replay=true)}">
+                        <i class="fas fa-rotate-right"></i>
+                        Chơi lại màn này
+                    </a>
+                    <a class="btn secondary" th:href="@{/leaderboard}">
                         <i class="fas fa-trophy"></i>
                         Đến bảng xếp hạng
                     </a>
@@ -2440,11 +2682,26 @@
             const latheSlotA = document.getElementById('lathe-slot-a');
             const latheSlotB = document.getElementById('lathe-slot-b');
             const latheCombineButton = document.getElementById('lathe-combine-btn');
+            const doorMazePanel = document.getElementById('door-maze-panel');
+            const doorMazeProgressText = document.getElementById('door-maze-progress-text');
+            const doorMazeDeadEndPanel = document.getElementById('door-maze-dead-end');
+            const doorMazeResetButton = document.getElementById('door-maze-reset-btn');
             const latheClearButton = document.getElementById('lathe-clear-btn');
             const csrfTokenInput = document.querySelector('input[name="_csrf"]');
+
+            const doorMazeAjaxAction = doorMazePanel ? (doorMazePanel.dataset.ajaxAction || '') : '';
+            const doorMazeResetAjaxAction = doorMazePanel ? (doorMazePanel.dataset.resetAction || '') : '';
+            let doorMazeCorrectDoor = doorMazePanel ? Number(doorMazePanel.dataset.correctDoor || 1) : null;
+            let doorMazeLevel = doorMazePanel ? Number(doorMazePanel.dataset.level || 0) : 0;
+            const doorMazeTotalLevels = doorMazePanel ? Number(doorMazePanel.dataset.totalLevels || 3) : 3;
+            let doorMazeDeadEnd = doorMazePanel ? String(doorMazePanel.dataset.deadEnd) === 'true' : false;
             const csrfToken = csrfTokenInput ? csrfTokenInput.value : null;
 
             let selectedCollectedItem = null;
+
+            if (doorMazePanel) {
+                showObjectDetail('door-maze-panel');
+            }
             let latheFirstItem = null;
             let latheSecondItem = null;
 
@@ -2795,6 +3052,121 @@
                 showObjectDetail('lathe-combine-panel');
             }
 
+            function updateDoorMazeIndicators(correctDoor) {
+                if (!doorMazePanel) {
+                    return;
+                }
+                doorMazePanel.querySelectorAll('.maze-door-btn').forEach((button) => {
+                    const doorIndex = Number(button.dataset.doorIndex || 0);
+                    const mark = button.querySelector('.maze-correct-mark');
+                    const isCorrect = doorIndex === Number(correctDoor);
+                    button.classList.toggle('is-correct', isCorrect);
+                    if (mark) {
+                        mark.textContent = '';
+                    }
+                });
+            }
+
+            function updateDoorMazeDeadEndState(isDeadEnd) {
+                doorMazeDeadEnd = !!isDeadEnd;
+                if (doorMazeDeadEndPanel) {
+                    doorMazeDeadEndPanel.hidden = !doorMazeDeadEnd;
+                }
+                if (!doorMazePanel) {
+                    return;
+                }
+                doorMazePanel.querySelectorAll('.maze-door-btn').forEach((button) => {
+                    button.disabled = doorMazeDeadEnd;
+                    button.style.opacity = doorMazeDeadEnd ? '0.45' : '1';
+                    button.style.pointerEvents = doorMazeDeadEnd ? 'none' : 'auto';
+                });
+            }
+
+            function updateDoorMazeProgress(level) {
+                if (!doorMazeProgressText) {
+                    return;
+                }
+                doorMazeProgressText.textContent = 'Cửa đúng: ' + (Number(level) + 1) + '/' + doorMazeTotalLevels;
+            }
+
+            async function chooseMazeDoor(doorIndex) {
+                if (!doorMazeAjaxAction) {
+                    return;
+                }
+
+                const body = new FormData();
+                body.append('doorIndex', String(doorIndex));
+
+                try {
+                    const response = await fetch(doorMazeAjaxAction, {
+                        method: 'POST',
+                        body,
+                        credentials: 'same-origin',
+                        headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
+                    });
+                    const payload = await response.json();
+
+                    if (!response.ok || !payload.success) {
+                        enqueueFeedback(payload.message || 'Không thể chọn cửa lúc này.', true);
+                        return;
+                    }
+
+                    enqueueFeedback(payload.message || 'Đã chọn cửa.', !payload.correct);
+
+                    if (payload.finished) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    if (payload.deadEnd !== undefined) {
+                        updateDoorMazeDeadEndState(!!payload.deadEnd);
+                    }
+
+                    if (payload.currentLevel !== undefined) {
+                        doorMazeLevel = Number(payload.currentLevel);
+                        updateDoorMazeProgress(doorMazeLevel);
+                    }
+                    if (payload.correctDoor !== undefined) {
+                        doorMazeCorrectDoor = Number(payload.correctDoor);
+                        updateDoorMazeIndicators(doorMazeCorrectDoor);
+                    }
+                } catch (error) {
+                    enqueueFeedback('Kết nối gián đoạn, thử chọn lại cửa.', true);
+                }
+            }
+
+            async function resetDoorMazeAfterDeadEnd() {
+                if (!doorMazeResetAjaxAction) {
+                    return;
+                }
+                try {
+                    const response = await fetch(doorMazeResetAjaxAction, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
+                    });
+                    const payload = await response.json();
+
+                    if (!response.ok || !payload.success) {
+                        enqueueFeedback(payload.message || 'Không thể quay về điểm xuất phát.', true);
+                        return;
+                    }
+
+                    if (payload.currentLevel !== undefined) {
+                        doorMazeLevel = Number(payload.currentLevel);
+                        updateDoorMazeProgress(doorMazeLevel);
+                    }
+                    if (payload.correctDoor !== undefined) {
+                        doorMazeCorrectDoor = Number(payload.correctDoor);
+                        updateDoorMazeIndicators(doorMazeCorrectDoor);
+                    }
+                    updateDoorMazeDeadEndState(false);
+                    enqueueFeedback(payload.message || 'Đã quay về điểm xuất phát.', false);
+                } catch (error) {
+                    enqueueFeedback('Kết nối gián đoạn, chưa thể quay về.', true);
+                }
+            }
+
             function onInventoryItemClick(button) {
                 const itemKey = button.dataset.itemKey;
 
@@ -2979,6 +3351,21 @@
                     }
                     submitCombine(latheFirstItem, latheSecondItem);
                 });
+            }
+
+            if (doorMazePanel) {
+                updateDoorMazeProgress(doorMazeLevel);
+                updateDoorMazeIndicators(doorMazeCorrectDoor);
+                updateDoorMazeDeadEndState(doorMazeDeadEnd);
+                doorMazePanel.querySelectorAll('.maze-door-btn').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const doorIndex = Number(button.dataset.doorIndex || 0);
+                        chooseMazeDoor(doorIndex);
+                    });
+                });
+                if (doorMazeResetButton) {
+                    doorMazeResetButton.addEventListener('click', resetDoorMazeAfterDeadEnd);
+                }
             }
 
             renderLatheItemPool();

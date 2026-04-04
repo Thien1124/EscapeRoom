@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,7 +86,17 @@ public class GamePlayService {
     private static final String META_CLICK = "meta:clicks:";
     private static final String META_START = "meta:start:";
     private static final String META_FINISH = "meta:finish:";
+    private static final String META_BAD_COMBINE = "meta:bad-combine:";
+    private static final String META_DOOR_LEVEL = "meta:door-level:";
+    private static final String META_DOOR_CORRECT = "meta:door-correct:";
+    private static final String META_DOOR_DEAD_END = "meta:door-dead-end:";
+    private static final String META_ITEM_LABEL = "meta:item-label:";
     private static final String STATE_PICKED_PREFIX = "state:picked:";
+    private static final String FLAG_DOOR_MAZE_ACTIVE = "door_maze_active";
+    private static final String FLAG_DOOR_MAZE_COMPLETED = "door_maze_completed";
+
+    private static final int DOOR_MAZE_LEVELS = 3;
+    private static final int DOOR_MAZE_OPTIONS = 3;
 
     private static final String SCENARIO_ROOM_KEYWORD = "thí nghiệm bị ngắt quãng";
 
@@ -280,13 +291,29 @@ public class GamePlayService {
     public List<CollectibleItem> getCollectedItems(String username, Long roomId) {
         PlayerRoomProgress progress = getOrCreateProgress(username, roomId);
         Set<String> collected = parseCsv(progress.getCollectedItems());
+        Map<String, String> itemLabels = parseItemLabels(parseCsv(progress.getDiscoveredClues()));
         if (isLabScenario(progress.getRoom())) {
             return collected.stream()
-                    .map(LAB_ITEM_CATALOG::get)
-                    .filter(java.util.Objects::nonNull)
+                    .map(key -> {
+                        CollectibleItem knownItem = LAB_ITEM_CATALOG.get(key);
+                        if (knownItem != null) {
+                            return knownItem;
+                        }
+                        return buildFallbackCollectible(key, itemLabels.get(key));
+                    })
                     .toList();
         }
-        return getCollectibles(roomId).stream().filter(item -> collected.contains(item.getKey())).toList();
+        Map<String, CollectibleItem> knownItems = getCollectibles(roomId).stream()
+                .collect(Collectors.toMap(CollectibleItem::getKey, item -> item, (first, second) -> first, LinkedHashMap::new));
+        return collected.stream()
+                .map(key -> {
+                    CollectibleItem knownItem = knownItems.get(key);
+                    if (knownItem != null) {
+                        return knownItem;
+                    }
+                    return buildFallbackCollectible(key, itemLabels.get(key));
+                })
+                .toList();
     }
 
     public List<String> getDiscoveredClues(String username, Long roomId) {
@@ -479,7 +506,7 @@ public class GamePlayService {
         if (isVictorianScenario(room)) {
             return combineItemsForVictorianStudy(progress, firstItemKey, secondItemKey);
         }
-        throw new IllegalArgumentException("Màn này chưa hỗ trợ cơ chế kết hợp vật phẩm.");
+        return registerUncertainCombine(progress, firstItemKey, secondItemKey);
     }
 
     private String combineItemsForNightCipher(PlayerRoomProgress progress, String firstItemKey, String secondItemKey) {
@@ -525,7 +552,7 @@ public class GamePlayService {
             return "Hoàn tất! Bạn tạo được Chìa bóng đêm cho cơ chế cuối phòng.";
         }
 
-        throw new IllegalArgumentException("Cặp vật phẩm này chưa khớp quy tắc của Mật Mã Bóng Đêm.");
+        return registerUncertainCombine(progress, firstItemKey, secondItemKey);
     }
 
     private String combineItemsForAncientVault(PlayerRoomProgress progress, String firstItemKey, String secondItemKey) {
@@ -560,7 +587,7 @@ public class GamePlayService {
             return "Bạn đã tạo thành công Chìa kho cổ vật.";
         }
 
-        throw new IllegalArgumentException("Cặp vật phẩm này chưa khớp quy tắc của Kho Cổ Vật.");
+        return registerUncertainCombine(progress, firstItemKey, secondItemKey);
     }
 
     private String combineItemsForVictorianStudy(PlayerRoomProgress progress, String firstItemKey, String secondItemKey) {
@@ -604,15 +631,72 @@ public class GamePlayService {
             return "Chìa chính đã được niêm ấn hoàn tất.";
         }
 
-        throw new IllegalArgumentException("Cặp vật phẩm này chưa khớp quy tắc của phòng Victorian.");
+        return registerUncertainCombine(progress, firstItemKey, secondItemKey);
+    }
+
+    private String registerUncertainCombine(PlayerRoomProgress progress, String firstItemKey, String secondItemKey) {
+        Set<String> collected = parseCsv(progress.getCollectedItems());
+        String normalizedFirst = canonicalizeItemKey(firstItemKey);
+        String normalizedSecond = canonicalizeItemKey(secondItemKey);
+        if (!collected.contains(normalizedFirst) || !collected.contains(normalizedSecond)) {
+            throw new IllegalArgumentException("Bạn chưa nhặt đủ hai vật phẩm này.");
+        }
+
+        Set<String> state = parseCsv(progress.getDiscoveredClues());
+        long totalWrongCombine = readMetaLong(state, META_BAD_COMBINE, 0) + 1;
+        upsertMeta(state, META_BAD_COMBINE, String.valueOf(totalWrongCombine));
+
+        String errorKey = "unstable_compound_" + totalWrongCombine;
+        String errorName = "Vat pham loi " + totalWrongCombine;
+        collected.add(errorKey);
+        upsertItemLabel(state, errorKey, errorName);
+        state.add("Kết hợp lỗi tạo ra: " + errorName);
+
+        progress.setCollectedItems(joinCsv(collected));
+        progress.setDiscoveredClues(joinCsv(state));
+        playerRoomProgressRepository.save(progress);
+        return "Bạn tạo ra " + errorName + ".";
+    }
+
+    private String buildPhantomProductName(String firstItemKey, String secondItemKey, long index) {
+        String first = toDisplayToken(firstItemKey);
+        String second = toDisplayToken(secondItemKey);
+        String[] suffixes = {
+                "Mẫu phản ứng",
+                "Hợp chất tạm",
+                "Mảnh cộng hưởng",
+                "Tinh thể lai"
+        };
+        String suffix = suffixes[(int) (Math.abs(index) % suffixes.length)];
+        return first + " - " + second + " " + suffix;
+    }
+
+    private String toDisplayToken(String rawKey) {
+        String canonical = canonicalizeItemKey(rawKey);
+        if (!hasText(canonical)) {
+            return "Vat Pham";
+        }
+        String[] parts = canonical.split("[_-]");
+        StringBuilder builder = new StringBuilder();
+        for (String part : parts) {
+            if (!hasText(part)) {
+                continue;
+            }
+            if (!builder.isEmpty()) {
+                builder.append(' ');
+            }
+            builder.append(Character.toUpperCase(part.charAt(0)));
+            if (part.length() > 1) {
+                builder.append(part.substring(1).toLowerCase(Locale.ROOT));
+            }
+        }
+        return builder.isEmpty() ? "Vat Pham" : builder.toString();
     }
 
     private void consumeAndCreate(Set<String> collected, String first, String second, String created) {
         if (!collected.contains(first) || !collected.contains(second)) {
             throw new IllegalArgumentException("Bạn chưa nhặt đủ hai vật phẩm này.");
         }
-        collected.remove(first);
-        collected.remove(second);
         collected.add(created);
     }
 
@@ -724,10 +808,164 @@ public class GamePlayService {
         int nextStep = progress.getCurrentStep() + 1;
         progress.setCurrentStep(nextStep);
         if (nextStep > maxStep) {
-            finalizeProgress(progress, true);
+            if (isDoorMazeScenario(progress.getRoom()) && !hasStateFlag(progress, FLAG_DOOR_MAZE_COMPLETED)) {
+                activateDoorMaze(progress);
+                return;
+            }
+            finalizeProgress(progress, !hasInvalidCombine(progress));
             return;
         }
         playerRoomProgressRepository.save(progress);
+    }
+
+    private boolean hasInvalidCombine(PlayerRoomProgress progress) {
+        long badCombineCount = readMetaLong(parseCsv(progress.getDiscoveredClues()), META_BAD_COMBINE, 0);
+        return badCombineCount > 0;
+    }
+
+    private void activateDoorMaze(PlayerRoomProgress progress) {
+        Set<String> state = parseCsv(progress.getDiscoveredClues());
+        setStateFlag(state, FLAG_DOOR_MAZE_ACTIVE);
+        upsertMeta(state, META_DOOR_LEVEL, "0");
+        upsertMeta(state, META_DOOR_DEAD_END, "0");
+        upsertMeta(state, META_DOOR_CORRECT, String.valueOf(randomDoorIndex()));
+        progress.setDiscoveredClues(joinCsv(state));
+        playerRoomProgressRepository.save(progress);
+    }
+
+    public Map<String, Object> getDoorMazeState(String username, Long roomId) {
+        PlayerRoomProgress progress = getOrCreateProgress(username, roomId);
+        Set<String> state = parseCsv(progress.getDiscoveredClues());
+        boolean active = state.contains(stateFlag(FLAG_DOOR_MAZE_ACTIVE)) && !Boolean.TRUE.equals(progress.getCompleted());
+        boolean deadEnd = readMetaLong(state, META_DOOR_DEAD_END, 0) == 1;
+
+        if (active && deadEnd) {
+            // If player re-enters room while in dead-end state, start a fresh round.
+            upsertMeta(state, META_DOOR_LEVEL, "0");
+            upsertMeta(state, META_DOOR_DEAD_END, "0");
+            upsertMeta(state, META_DOOR_CORRECT, String.valueOf(randomDoorIndex()));
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+            deadEnd = false;
+        }
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("active", active);
+        payload.put("currentLevel", readMetaLong(state, META_DOOR_LEVEL, 0));
+        payload.put("totalLevels", DOOR_MAZE_LEVELS);
+        payload.put("correctDoor", readMetaLong(state, META_DOOR_CORRECT, 1));
+        payload.put("deadEnd", deadEnd);
+        return payload;
+    }
+
+    @Transactional
+    public Map<String, Object> chooseDoor(String username, Long roomId, Integer doorIndex) {
+        if (doorIndex == null || doorIndex < 1 || doorIndex > DOOR_MAZE_OPTIONS) {
+            throw new IllegalArgumentException("Cửa được chọn không hợp lệ.");
+        }
+
+        PlayerRoomProgress progress = getOrCreateProgress(username, roomId);
+        if (Boolean.TRUE.equals(progress.getCompleted())) {
+            throw new IllegalArgumentException("Ván chơi đã kết thúc.");
+        }
+
+        Set<String> state = parseCsv(progress.getDiscoveredClues());
+        if (!state.contains(stateFlag(FLAG_DOOR_MAZE_ACTIVE))) {
+            throw new IllegalArgumentException("Mê cung cửa chưa được kích hoạt.");
+        }
+        if (readMetaLong(state, META_DOOR_DEAD_END, 0) == 1) {
+            throw new IllegalArgumentException("Bạn đang ở ngõ cụt. Hãy quay về điểm xuất phát để đi lại.");
+        }
+
+        incrementClick(progress);
+        state = parseCsv(progress.getDiscoveredClues());
+
+        long currentLevel = readMetaLong(state, META_DOOR_LEVEL, 0);
+        int correctDoor = (int) readMetaLong(state, META_DOOR_CORRECT, 1);
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("finished", false);
+
+        if (doorIndex != correctDoor) {
+            upsertMeta(state, META_DOOR_DEAD_END, "1");
+            progress.setDiscoveredClues(joinCsv(state));
+            playerRoomProgressRepository.save(progress);
+
+            payload.put("success", true);
+            payload.put("correct", false);
+            payload.put("deadEnd", true);
+            payload.put("currentLevel", currentLevel);
+            payload.put("totalLevels", DOOR_MAZE_LEVELS);
+            payload.put("message", "Bạn đi tới ngõ cụt. Quay về điểm xuất phát để thử lại đường khác.");
+            return payload;
+        }
+
+        long nextLevel = currentLevel + 1;
+        if (nextLevel >= DOOR_MAZE_LEVELS) {
+            state.remove(stateFlag(FLAG_DOOR_MAZE_ACTIVE));
+            setStateFlag(state, FLAG_DOOR_MAZE_COMPLETED);
+            progress.setDiscoveredClues(joinCsv(state));
+            finalizeProgress(progress, !hasInvalidCombine(progress));
+
+            payload.put("success", true);
+            payload.put("correct", true);
+            payload.put("finished", true);
+            payload.put("won", Boolean.TRUE.equals(progress.getWon()));
+            payload.put("message", Boolean.TRUE.equals(progress.getWon())
+                    ? "Bạn đã tìm đúng chuỗi cửa thoát và mở được đường ra!"
+                    : "Phản ứng sai trước đó kích hoạt bẫy nổ ở cửa cuối. Bạn đã thua.");
+            return payload;
+        }
+
+        upsertMeta(state, META_DOOR_LEVEL, String.valueOf(nextLevel));
+        upsertMeta(state, META_DOOR_DEAD_END, "0");
+        upsertMeta(state, META_DOOR_CORRECT, String.valueOf(randomDoorIndex()));
+        progress.setDiscoveredClues(joinCsv(state));
+        playerRoomProgressRepository.save(progress);
+
+        payload.put("success", true);
+        payload.put("correct", true);
+        payload.put("deadEnd", false);
+        payload.put("currentLevel", nextLevel);
+        payload.put("totalLevels", DOOR_MAZE_LEVELS);
+        payload.put("correctDoor", readMetaLong(state, META_DOOR_CORRECT, 1));
+        payload.put("message", "Đúng cửa. Tiếp tục tìm lối thoát tiếp theo.");
+        return payload;
+    }
+
+    @Transactional
+    public Map<String, Object> resetDoorMazePath(String username, Long roomId) {
+        PlayerRoomProgress progress = getOrCreateProgress(username, roomId);
+        if (Boolean.TRUE.equals(progress.getCompleted())) {
+            throw new IllegalArgumentException("Ván chơi đã kết thúc.");
+        }
+
+        Set<String> state = parseCsv(progress.getDiscoveredClues());
+        if (!state.contains(stateFlag(FLAG_DOOR_MAZE_ACTIVE))) {
+            throw new IllegalArgumentException("Mê cung cửa chưa được kích hoạt.");
+        }
+        if (readMetaLong(state, META_DOOR_DEAD_END, 0) != 1) {
+            throw new IllegalArgumentException("Bạn chưa ở ngõ cụt để quay về.");
+        }
+
+        upsertMeta(state, META_DOOR_LEVEL, "0");
+        upsertMeta(state, META_DOOR_DEAD_END, "0");
+        upsertMeta(state, META_DOOR_CORRECT, String.valueOf(randomDoorIndex()));
+        progress.setDiscoveredClues(joinCsv(state));
+        playerRoomProgressRepository.save(progress);
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("success", true);
+        payload.put("deadEnd", false);
+        payload.put("currentLevel", 0);
+        payload.put("totalLevels", DOOR_MAZE_LEVELS);
+        payload.put("correctDoor", readMetaLong(state, META_DOOR_CORRECT, 1));
+        payload.put("message", "Bạn đã quay về điểm xuất phát. Lối đúng đã đổi vị trí.");
+        return payload;
+    }
+
+    private int randomDoorIndex() {
+        return ThreadLocalRandom.current().nextInt(1, DOOR_MAZE_OPTIONS + 1);
     }
 
     private void finalizeProgress(PlayerRoomProgress progress, boolean won) {
@@ -780,7 +1018,7 @@ public class GamePlayService {
     @Transactional
     public void restartRoomProgress(String username, Long roomId) {
         PlayerRoomProgress progress = getOrCreateProgress(username, roomId);
-        if (!Boolean.TRUE.equals(progress.getCompleted()) || !Boolean.TRUE.equals(progress.getWon())) {
+        if (!Boolean.TRUE.equals(progress.getCompleted())) {
             throw new IllegalArgumentException("Chỉ có thể chơi lại phòng đã hoàn thành.");
         }
 
@@ -1012,9 +1250,7 @@ public class GamePlayService {
                     throw new IllegalArgumentException("Bạn cần bút chì và tờ giấy trắng để làm lộ mã.");
                 }
 
-                // Consume the used items and grant a clue-note item.
-                collected.remove(ITEM_PENCIL);
-                collected.remove(ITEM_WHITE_PAPER);
+                // Keep original items and also grant the clue-note item.
                 collected.add(ITEM_CODE_CLUE_NOTE);
 
                 setStateFlag(state, FLAG_PAPER_REVEALED);
@@ -1032,8 +1268,6 @@ public class GamePlayService {
             if (!collected.contains(ITEM_BLUE_SOLUTION) || !collected.contains(ITEM_GLASS_CUP)) {
                 throw new IllegalArgumentException("Bạn chưa có đủ Cốc thủy tinh và dung dịch xanh.");
             }
-            collected.remove(ITEM_BLUE_SOLUTION);
-            collected.remove(ITEM_GLASS_CUP);
             collected.add(ITEM_BLUE_MIX);
             progress.setCollectedItems(joinCsv(collected));
             playerRoomProgressRepository.save(progress);
@@ -1044,8 +1278,6 @@ public class GamePlayService {
             if (!collected.contains(ITEM_BLUE_MIX) || !collected.contains(ITEM_YELLOW_POWDER)) {
                 throw new IllegalArgumentException("Bạn cần cốc dung dịch xanh và lọ bột vàng.");
             }
-            collected.remove(ITEM_BLUE_MIX);
-            collected.remove(ITEM_YELLOW_POWDER);
             collected.add(ITEM_PURPLE_MIX);
             collected.add(ITEM_KEYCARD);
             state.add("Dung dịch đã chuyển sang màu tím.");
@@ -1056,7 +1288,7 @@ public class GamePlayService {
             return "Dung dịch đổi sang màu tím! Bây giờ có thể đổ vào phễu máy quét.";
         }
 
-        throw new IllegalArgumentException("Kết hợp này chưa tạo ra tác dụng trong kịch bản hiện tại.");
+        return registerUncertainCombine(progress, firstItemKey, secondItemKey);
     }
 
     private void handleLabInteraction(PlayerRoomProgress progress, RoomObject roomObject) {
@@ -1184,9 +1416,38 @@ public class GamePlayService {
         return STATE_PICKED_PREFIX + itemKey;
     }
 
+    private void upsertItemLabel(Set<String> state, String itemKey, String itemLabel) {
+        state.removeIf(token -> token.startsWith(META_ITEM_LABEL + itemKey + "="));
+        state.add(META_ITEM_LABEL + itemKey + "=" + itemLabel);
+    }
+
+    private Map<String, String> parseItemLabels(Set<String> state) {
+        Map<String, String> labels = new HashMap<>();
+        state.stream()
+                .filter(token -> token.startsWith(META_ITEM_LABEL))
+                .forEach(token -> {
+                    String content = token.substring(META_ITEM_LABEL.length());
+                    int separator = content.indexOf('=');
+                    if (separator <= 0 || separator >= content.length() - 1) {
+                        return;
+                    }
+                    labels.put(content.substring(0, separator), content.substring(separator + 1));
+                });
+        return labels;
+    }
+
+    private CollectibleItem buildFallbackCollectible(String key, String label) {
+        String displayName = hasText(label) ? label : toDisplayToken(key);
+        return new CollectibleItem(key, displayName, "🧪");
+    }
+
     private boolean isLabScenario(GameRoom room) {
         String roomName = room.getName() == null ? "" : room.getName().toLowerCase();
         return roomName.contains(SCENARIO_ROOM_KEYWORD) || roomName.contains("thí nghiệm bị ngắt quãng");
+    }
+
+    private boolean isDoorMazeScenario(GameRoom room) {
+        return isLabScenario(room);
     }
 
     private boolean isNightCipherScenario(GameRoom room) {

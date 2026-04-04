@@ -158,6 +158,7 @@ public class GameController {
         model.addAttribute("discoveredClues", gamePlayService.getDiscoveredClues(authentication.getName(), roomId));
         model.addAttribute("actionCount", gamePlayService.getActionCount(authentication.getName(), roomId));
         model.addAttribute("elapsedSeconds", gamePlayService.getElapsedSeconds(authentication.getName(), roomId));
+        model.addAttribute("doorMazeState", gamePlayService.getDoorMazeState(authentication.getName(), roomId));
         return "room-view";
     }
 
@@ -185,7 +186,12 @@ public class GameController {
                     answerForm.getAnswerCode());
 
             if (isCorrect) {
-                redirectAttributes.addFlashAttribute("roomSuccess", "Trả lời đúng! Vật thể đã được mở khóa.");
+                PlayerRoomProgress progress = gamePlayService.getOrCreateProgress(authentication.getName(), roomId);
+                if (Boolean.TRUE.equals(progress.getCompleted()) && !Boolean.TRUE.equals(progress.getWon())) {
+                    redirectAttributes.addFlashAttribute("roomError", "Phản ứng kết hợp sai đã kích hoạt nổ ở giai đoạn cuối. Bạn đã thua màn này.");
+                } else {
+                    redirectAttributes.addFlashAttribute("roomSuccess", "Trả lời đúng! Vật thể đã được mở khóa.");
+                }
             } else {
                 PlayerRoomProgress progress = gamePlayService.getOrCreateProgress(authentication.getName(), roomId);
                 int remaining = Math.max(0, gamePlayService.getMaxWrongAttempts() - progress.getWrongAttempts());
@@ -272,6 +278,41 @@ public class GameController {
         return payload;
     }
 
+    @PostMapping("/game/rooms/{roomId}/maze-door-ajax")
+    @ResponseBody
+    public java.util.Map<String, Object> chooseMazeDoor(@PathVariable Long roomId,
+                                                         @RequestParam Integer doorIndex,
+                                                         Authentication authentication) {
+        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+        try {
+            payload.putAll(gamePlayService.chooseDoor(authentication.getName(), roomId, doorIndex));
+        } catch (IllegalArgumentException ex) {
+            payload.put("success", false);
+            payload.put("message", ex.getMessage());
+        } catch (Exception ex) {
+            payload.put("success", false);
+            payload.put("message", "Không thể xử lý lựa chọn cửa lúc này.");
+        }
+        return payload;
+    }
+
+    @PostMapping("/game/rooms/{roomId}/maze-door-reset-ajax")
+    @ResponseBody
+    public java.util.Map<String, Object> resetMazeDoorPath(@PathVariable Long roomId,
+                                                            Authentication authentication) {
+        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+        try {
+            payload.putAll(gamePlayService.resetDoorMazePath(authentication.getName(), roomId));
+        } catch (IllegalArgumentException ex) {
+            payload.put("success", false);
+            payload.put("message", ex.getMessage());
+        } catch (Exception ex) {
+            payload.put("success", false);
+            payload.put("message", "Không thể quay về điểm xuất phát lúc này.");
+        }
+        return payload;
+    }
+
     @PostMapping("/game/rooms/{roomId}/hint-ajax")
     @ResponseBody
     public java.util.Map<String, Object> useHintAjax(@PathVariable Long roomId,
@@ -316,7 +357,12 @@ public class GameController {
                                  RedirectAttributes redirectAttributes) {
         try {
             gamePlayService.interactObject(authentication.getName(), roomId, objectId);
-            redirectAttributes.addFlashAttribute("roomSuccess", "Bạn đã tương tác thành công và mở khóa vật thể.");
+            PlayerRoomProgress progress = gamePlayService.getOrCreateProgress(authentication.getName(), roomId);
+            if (Boolean.TRUE.equals(progress.getCompleted()) && !Boolean.TRUE.equals(progress.getWon())) {
+                redirectAttributes.addFlashAttribute("roomError", "Phản ứng kết hợp sai đã kích hoạt nổ ở giai đoạn cuối. Bạn đã thua màn này.");
+            } else {
+                redirectAttributes.addFlashAttribute("roomSuccess", "Bạn đã tương tác thành công và mở khóa vật thể.");
+            }
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("roomError", ex.getMessage());
         }
