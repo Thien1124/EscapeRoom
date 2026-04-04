@@ -572,6 +572,7 @@
         function init3DTilt() {
             const gameShell = document.querySelector('.app-shell.game-shell');
             const isRoomView = !!document.querySelector('.room-page');
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
             // Keep room gameplay canvas/frame stable, no shell tilt.
             if (isRoomView && gameShell) {
@@ -579,7 +580,7 @@
                 return;
             }
             
-            if (gameShell && window.innerWidth > 768) {
+            if (gameShell && !reduceMotion && window.innerWidth > 1200) {
                 gameShell.addEventListener('mousemove', (e) => {
                     const rect = gameShell.getBoundingClientRect();
                     const x = e.clientX - rect.left;
@@ -587,8 +588,8 @@
                     const centerX = rect.width / 2;
                     const centerY = rect.height / 2;
 
-                    const rotateX = (y - centerY) / 40;
-                    const rotateY = (centerX - x) / 40;
+                    const rotateX = (y - centerY) / 120;
+                    const rotateY = (centerX - x) / 120;
 
                     gameShell.style.transform = `
                         perspective(1000px) 

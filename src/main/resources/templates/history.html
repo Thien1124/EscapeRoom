@@ -363,13 +363,14 @@
                 <th><i class="far fa-clock"></i> Thời gian</th>
                 <th><i class="fas fa-door-open"></i> Phòng</th>
                 <th><i class="fas fa-tag"></i> Chủ đề</th>
+                <th><i class="fas fa-hand-pointer"></i> Lượt click</th>
                 <th><i class="fas fa-star"></i> Điểm</th>
                 <th><i class="fas fa-flag-checkered"></i> Kết quả</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${histories == null or #lists.isEmpty(histories)}">
-                <td colspan="5">
+                <td colspan="6">
                     <div class="empty-state">
                         <i class="fas fa-inbox"></i>
                         <h3>Chưa có lịch sử chơi</h3>
@@ -389,6 +390,9 @@
                 <td>
                     <i class="fas fa-bookmark"></i>
                     <span th:text="${h.room.topic.name}"></span>
+                </td>
+                <td>
+                    <span class="badge" th:text="${h.actionCount}">0</span>
                 </td>
                 <td>
                     <span class="badge score" th:text="${h.score}">

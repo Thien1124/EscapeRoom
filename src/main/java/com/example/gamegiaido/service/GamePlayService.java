@@ -430,6 +430,7 @@ public class GamePlayService {
         state.add(pickedFlag(canonicalItemKey));
         progress.setDiscoveredClues(joinCsv(state));
         progress.setScore(progress.getScore() + COLLECT_ITEM_SCORE);
+        incrementClick(progress);
         playerRoomProgressRepository.save(progress);
         return "Đã thêm vật phẩm vào túi đồ.";
     }
