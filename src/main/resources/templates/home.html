@@ -518,6 +518,11 @@
             <h3>Lịch sử chơi</h3>
             <p>Xem lại các ván đã hoàn thành và thành tích của bạn.</p>
         </a>
+
+        <a class="card nav-card" th:href="@{/rewards}">
+            <h3>Đổi quà</h3>
+            <p>Đổi voucher và icon nhân vật bằng điểm thưởng.</p>
+        </a>
         
         <a class="card nav-card" th:if="${isAdmin}" th:href="@{/admin}">
             <h3>Quản trị dữ liệu game</h3>
@@ -535,6 +540,10 @@
             <a class="btn secondary" th:href="@{/profile}">
                 <i class="fas fa-user-edit"></i>
                 Hồ sơ
+            </a>
+            <a class="btn secondary" th:href="@{/rewards}">
+                <i class="fas fa-gift"></i>
+                Đổi quà
             </a>
         </div>
 

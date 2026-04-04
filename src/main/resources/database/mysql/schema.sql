@@ -11,6 +11,10 @@ CREATE TABLE IF NOT EXISTS player_profiles (
     id BIGINT NOT NULL AUTO_INCREMENT,
     display_name VARCHAR(80) NOT NULL,
     total_score INT NOT NULL,
+    reward_points INT NOT NULL DEFAULT 0,
+    reward_wallet_initialized BIT(1) NOT NULL DEFAULT b'0',
+    selected_character_icon VARCHAR(40) NOT NULL DEFAULT 'agent_default',
+    owned_character_icons VARCHAR(600) NOT NULL DEFAULT 'agent_default',
     total_win INT NOT NULL,
     avatar_url VARCHAR(500) NULL,
     account_id BIGINT NOT NULL,
@@ -18,6 +22,66 @@ CREATE TABLE IF NOT EXISTS player_profiles (
     CONSTRAINT uk_player_profiles_account_id UNIQUE (account_id),
     CONSTRAINT fk_player_profiles_account FOREIGN KEY (account_id) REFERENCES user_accounts(id)
 );
+
+SET @has_reward_points := (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'player_profiles'
+      AND COLUMN_NAME = 'reward_points'
+);
+SET @sql_reward_points := IF(
+    @has_reward_points = 0,
+    'ALTER TABLE player_profiles ADD COLUMN reward_points INT NOT NULL DEFAULT 0',
+    'SELECT 1'
+);
+PREPARE stmt_reward_points FROM @sql_reward_points;
+EXECUTE stmt_reward_points;
+DEALLOCATE PREPARE stmt_reward_points;
+
+SET @has_reward_wallet_initialized := (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'player_profiles'
+      AND COLUMN_NAME = 'reward_wallet_initialized'
+);
+SET @sql_reward_wallet_initialized := IF(
+    @has_reward_wallet_initialized = 0,
+    "ALTER TABLE player_profiles ADD COLUMN reward_wallet_initialized BIT(1) NOT NULL DEFAULT b'0'",
+    'SELECT 1'
+);
+PREPARE stmt_reward_wallet_initialized FROM @sql_reward_wallet_initialized;
+EXECUTE stmt_reward_wallet_initialized;
+DEALLOCATE PREPARE stmt_reward_wallet_initialized;
+
+SET @has_selected_icon := (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'player_profiles'
+      AND COLUMN_NAME = 'selected_character_icon'
+);
+SET @sql_selected_icon := IF(
+    @has_selected_icon = 0,
+    "ALTER TABLE player_profiles ADD COLUMN selected_character_icon VARCHAR(40) NOT NULL DEFAULT 'agent_default'",
+    'SELECT 1'
+);
+PREPARE stmt_selected_icon FROM @sql_selected_icon;
+EXECUTE stmt_selected_icon;
+DEALLOCATE PREPARE stmt_selected_icon;
+
+SET @has_owned_icons := (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'player_profiles'
+      AND COLUMN_NAME = 'owned_character_icons'
+);
+SET @sql_owned_icons := IF(
+    @has_owned_icons = 0,
+    "ALTER TABLE player_profiles ADD COLUMN owned_character_icons VARCHAR(600) NOT NULL DEFAULT 'agent_default'",
+    'SELECT 1'
+);
+PREPARE stmt_owned_icons FROM @sql_owned_icons;
+EXECUTE stmt_owned_icons;
+DEALLOCATE PREPARE stmt_owned_icons;
 
 CREATE TABLE IF NOT EXISTS quiz_topics (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -110,3 +174,46 @@ CREATE TABLE IF NOT EXISTS play_histories (
     CONSTRAINT fk_play_histories_player FOREIGN KEY (player_id) REFERENCES player_profiles(id),
     CONSTRAINT fk_play_histories_room FOREIGN KEY (room_id) REFERENCES game_rooms(id)
 );
+
+CREATE TABLE IF NOT EXISTS reward_vouchers (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    code VARCHAR(60) NOT NULL,
+    name VARCHAR(140) NOT NULL,
+    brand VARCHAR(80) NOT NULL,
+    points_cost INT NOT NULL,
+    total_stock INT NOT NULL,
+    remaining_stock INT NOT NULL,
+    expires_at DATE NOT NULL,
+    active BIT(1) NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uk_reward_vouchers_code UNIQUE (code)
+);
+
+CREATE TABLE IF NOT EXISTS voucher_redemptions (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    player_id BIGINT NOT NULL,
+    voucher_id BIGINT NOT NULL,
+    points_spent INT NOT NULL,
+    issued_code VARCHAR(100) NOT NULL,
+    redeemed_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uk_voucher_redemptions_issued_code UNIQUE (issued_code),
+    CONSTRAINT uk_voucher_redeem_player_voucher UNIQUE (player_id, voucher_id),
+    CONSTRAINT fk_voucher_redemptions_player FOREIGN KEY (player_id) REFERENCES player_profiles(id),
+    CONSTRAINT fk_voucher_redemptions_voucher FOREIGN KEY (voucher_id) REFERENCES reward_vouchers(id)
+);
+
+SET @has_issued_code := (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'voucher_redemptions'
+      AND COLUMN_NAME = 'issued_code'
+);
+SET @sql_issued_code := IF(
+    @has_issued_code = 0,
+    "ALTER TABLE voucher_redemptions ADD COLUMN issued_code VARCHAR(100) NOT NULL DEFAULT 'PENDING-CODE'",
+    'SELECT 1'
+);
+PREPARE stmt_issued_code FROM @sql_issued_code;
+EXECUTE stmt_issued_code;
+DEALLOCATE PREPARE stmt_issued_code;

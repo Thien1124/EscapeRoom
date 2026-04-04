@@ -91,7 +91,7 @@ public class GameController {
         if (replay) {
             try {
                 gamePlayService.restartRoomProgress(authentication.getName(), roomId);
-                redirectAttributes.addFlashAttribute("roomSuccess", "Đã bắt đầu chơi lại phòng để cải thiện điểm.");
+                redirectAttributes.addFlashAttribute("roomSuccess", "Đã bắt đầu chơi lại phòng.");
                 return "redirect:/game/rooms/" + roomId;
             } catch (IllegalArgumentException ex) {
                 redirectAttributes.addFlashAttribute("roomError", ex.getMessage());
@@ -145,8 +145,10 @@ public class GameController {
         model.addAttribute("nextRoom", nextRoom);
         model.addAttribute("previousRoom", previousRoom);
         model.addAttribute("nextNavigableRoom", nextNavigableRoom);
-        model.addAttribute("maxWrongAttempts", gamePlayService.getMaxWrongAttempts());
+        model.addAttribute("maxWrongAttempts", gamePlayService.getMaxWrongAttempts(authentication.getName()));
         model.addAttribute("playerName", progress.getPlayer().getDisplayName());
+        model.addAttribute("playerIconClass", gamePlayService.getSelectedCharacterIconClass(authentication.getName()));
+        model.addAttribute("playerIconTierClass", gamePlayService.getSelectedCharacterIconTierClass(authentication.getName()));
         model.addAttribute("inlineQuestion", inlineQuestion);
         model.addAttribute("inlineQuestionObjectId", inlineQuestionObjectId);
         model.addAttribute("answerForm", new AnswerForm());
@@ -188,8 +190,12 @@ public class GameController {
                 redirectAttributes.addFlashAttribute("roomSuccess", "Trả lời đúng! Vật thể đã được mở khóa.");
             } else {
                 PlayerRoomProgress progress = gamePlayService.getOrCreateProgress(authentication.getName(), roomId);
-                int remaining = Math.max(0, gamePlayService.getMaxWrongAttempts() - progress.getWrongAttempts());
-                redirectAttributes.addFlashAttribute("roomError", "Sai đáp án, bạn còn " + remaining + " lượt. Nhấn H trong game để xem gợi ý.");
+                if (Boolean.TRUE.equals(progress.getCompleted()) && Boolean.FALSE.equals(progress.getWon())) {
+                    redirectAttributes.addFlashAttribute("roomError", "Bạn đã hết lượt sai và thua màn này. Hãy chơi lại để tiếp tục.");
+                } else {
+                    int remaining = Math.max(0, gamePlayService.getMaxWrongAttempts(authentication.getName()) - progress.getWrongAttempts());
+                    redirectAttributes.addFlashAttribute("roomError", "Sai đáp án, bạn còn " + remaining + " lượt. Nhấn H trong game để xem gợi ý.");
+                }
             }
             return "redirect:/game/rooms/" + roomId;
         } catch (IllegalArgumentException ex) {

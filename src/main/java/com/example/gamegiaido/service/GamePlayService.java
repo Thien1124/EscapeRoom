@@ -42,14 +42,15 @@ public class GamePlayService {
     private final QuizQuestionRepository quizQuestionRepository;
     private final PlayerRoomProgressRepository playerRoomProgressRepository;
     private final PlayHistoryRepository playHistoryRepository;
+    private final CharacterIconService characterIconService;
 
-    private static final int MAX_WRONG_ATTEMPTS = 5;
+    private static final int BASE_MAX_WRONG_ATTEMPTS = 5;
     private static final int BASE_ROOM_SCORE = 100;
     private static final int QUIZ_CORRECT_SCORE = 0;
     private static final int INTERACTION_SCORE = 0;
-    private static final int QUIZ_WRONG_PENALTY = 2;
+    private static final int BASE_QUIZ_WRONG_PENALTY = 2;
     private static final int COLLECT_ITEM_SCORE = 0;
-    private static final int HINT_PENALTY = 5;
+    private static final int BASE_HINT_PENALTY = 5;
 
     private static final String FLAG_PAPER_REVEALED = "paper_revealed";
     private static final String FLAG_CABINET_OPEN = "cabinet_open";
@@ -97,7 +98,8 @@ public class GamePlayService {
                            RoomKeyConfigRepository roomKeyConfigRepository,
                            QuizQuestionRepository quizQuestionRepository,
                            PlayerRoomProgressRepository playerRoomProgressRepository,
-                           PlayHistoryRepository playHistoryRepository) {
+                           PlayHistoryRepository playHistoryRepository,
+                           CharacterIconService characterIconService) {
         this.playerProfileRepository = playerProfileRepository;
         this.gameRoomRepository = gameRoomRepository;
         this.roomObjectRepository = roomObjectRepository;
@@ -105,6 +107,7 @@ public class GamePlayService {
         this.quizQuestionRepository = quizQuestionRepository;
         this.playerRoomProgressRepository = playerRoomProgressRepository;
         this.playHistoryRepository = playHistoryRepository;
+        this.characterIconService = characterIconService;
     }
 
     @Transactional
@@ -120,7 +123,7 @@ public class GamePlayService {
                     progress.setPlayer(player);
                     progress.setRoom(room);
                     progress.setCurrentStep(1);
-                    progress.setScore(BASE_ROOM_SCORE);
+                    progress.setScore(getInitialRoomScore(player));
                     progress.setCompleted(false);
                     Set<String> state = parseCsv(progress.getDiscoveredClues());
                     upsertMeta(state, META_CLICK, "0");
@@ -237,7 +240,8 @@ public class GamePlayService {
             advanceProgress(progress, roomId);
         } else {
             progress.setWrongAttempts(progress.getWrongAttempts() + 1);
-            progress.setScore(Math.max(0, progress.getScore() - QUIZ_WRONG_PENALTY));
+            int wrongPenalty = getWrongPenalty(progress.getPlayer());
+            progress.setScore(Math.max(0, progress.getScore() - wrongPenalty));
 
             List<String> hints = getSearchHints(roomId);
             if (!hints.isEmpty()) {
@@ -250,7 +254,7 @@ public class GamePlayService {
                 }
             }
 
-            if (progress.getWrongAttempts() >= MAX_WRONG_ATTEMPTS) {
+            if (progress.getWrongAttempts() >= getMaxWrongAttempts(progress.getPlayer())) {
                 finalizeProgress(progress, false);
             }
             playerRoomProgressRepository.save(progress);
@@ -755,12 +759,18 @@ public class GamePlayService {
                 .map(PlayHistory::getScore)
                 .orElse(null);
 
+        int earnedScore = 0;
         if (won) {
             if (previousBestWinScore == null) {
-                player.setTotalScore(player.getTotalScore() + progress.getScore());
+                earnedScore = progress.getScore();
             } else if (progress.getScore() > previousBestWinScore) {
-                player.setTotalScore(player.getTotalScore() + (progress.getScore() - previousBestWinScore));
+                earnedScore = progress.getScore() - previousBestWinScore;
             }
+        }
+
+        if (earnedScore > 0) {
+            player.setTotalScore(player.getTotalScore() + earnedScore);
+            player.setRewardPoints(player.getRewardPoints() + earnedScore);
         }
         if (won) {
             player.setTotalWin(player.getTotalWin() + 1);
@@ -780,8 +790,8 @@ public class GamePlayService {
     @Transactional
     public void restartRoomProgress(String username, Long roomId) {
         PlayerRoomProgress progress = getOrCreateProgress(username, roomId);
-        if (!Boolean.TRUE.equals(progress.getCompleted()) || !Boolean.TRUE.equals(progress.getWon())) {
-            throw new IllegalArgumentException("Chỉ có thể chơi lại phòng đã hoàn thành.");
+        if (!Boolean.TRUE.equals(progress.getCompleted())) {
+            throw new IllegalArgumentException("Chỉ có thể chơi lại phòng đã kết thúc.");
         }
 
         progress.setCurrentStep(1);
@@ -789,7 +799,7 @@ public class GamePlayService {
         progress.setWon(null);
         progress.setResultFinalized(false);
         progress.setWrongAttempts(0);
-        progress.setScore(BASE_ROOM_SCORE);
+        progress.setScore(getInitialRoomScore(progress.getPlayer()));
         progress.setCollectedItems("");
 
         Set<String> state = new LinkedHashSet<>();
@@ -799,8 +809,9 @@ public class GamePlayService {
         playerRoomProgressRepository.save(progress);
     }
 
-    public int getMaxWrongAttempts() {
-        return MAX_WRONG_ATTEMPTS;
+    public int getMaxWrongAttempts(String username) {
+        PlayerProfile profile = getPlayer(username);
+        return getMaxWrongAttempts(profile);
     }
 
     @Transactional
@@ -815,7 +826,8 @@ public class GamePlayService {
                 ? "Hãy quan sát các hotspot đang phát sáng để tìm manh mối."
                 : hints.get((int) (System.currentTimeMillis() % hints.size()));
 
-        progress.setScore(Math.max(0, progress.getScore() - HINT_PENALTY));
+        int hintPenalty = getHintPenalty(progress.getPlayer());
+        progress.setScore(Math.max(0, progress.getScore() - hintPenalty));
         incrementClick(progress);
 
         Set<String> discovered = parseCsv(progress.getDiscoveredClues());
@@ -826,8 +838,38 @@ public class GamePlayService {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("hint", hintMessage);
         payload.put("score", progress.getScore());
-        payload.put("penalty", HINT_PENALTY);
+        payload.put("penalty", hintPenalty);
         return payload;
+    }
+
+    public String getSelectedCharacterIconClass(String username) {
+        PlayerProfile profile = getPlayer(username);
+        return characterIconService.iconClass(profile.getSelectedCharacterIcon());
+    }
+
+    public String getSelectedCharacterIconTierClass(String username) {
+        PlayerProfile profile = getPlayer(username);
+        return characterIconService.iconTierClass(profile.getSelectedCharacterIcon());
+    }
+
+    private int getInitialRoomScore(PlayerProfile player) {
+        return BASE_ROOM_SCORE;
+    }
+
+    private int getWrongPenalty(PlayerProfile player) {
+        return BASE_QUIZ_WRONG_PENALTY + getIconDifficultyLevel(player);
+    }
+
+    private int getHintPenalty(PlayerProfile player) {
+        return BASE_HINT_PENALTY + getIconDifficultyLevel(player) * 3;
+    }
+
+    private int getMaxWrongAttempts(PlayerProfile player) {
+        return Math.max(2, BASE_MAX_WRONG_ATTEMPTS - getIconDifficultyLevel(player));
+    }
+
+    private int getIconDifficultyLevel(PlayerProfile player) {
+        return characterIconService.difficultyLevel(player.getSelectedCharacterIcon());
     }
 
     public int getActionCount(String username, Long roomId) {

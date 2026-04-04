@@ -1337,6 +1337,41 @@
             z-index: 40;
         }
 
+        .simple-scene-player i {
+            text-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+        }
+
+        .simple-scene-player.player-icon-mid i {
+            color: #7dd3fc;
+            filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.55));
+        }
+
+        .simple-scene-player.player-icon-high i {
+            color: #c4b5fd;
+            filter: drop-shadow(0 0 14px rgba(168, 85, 247, 0.6));
+        }
+
+        .simple-scene-player.player-icon-high::after,
+        .simple-scene-player.player-icon-legend::after {
+            content: '✦';
+            position: absolute;
+            top: -12px;
+            right: -8px;
+            color: #fde68a;
+            font-size: 1.1rem;
+            animation: iconSparkle 1.5s ease-in-out infinite;
+        }
+
+        .simple-scene-player.player-icon-legend i {
+            color: #fef08a;
+            filter: drop-shadow(0 0 16px rgba(250, 204, 21, 0.75));
+        }
+
+        @keyframes iconSparkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8) translateY(0); }
+            50% { opacity: 1; transform: scale(1.15) translateY(-4px); }
+        }
+
         @keyframes playerIdle {
             0%, 100% { transform: translateX(-50%) translateY(0); }
             50% { transform: translateX(-50%) translateY(-5px); }
@@ -1943,8 +1978,8 @@
             </form>
 
             <!-- Player -->
-            <div class="simple-scene-player" aria-hidden="true">
-                <i class="fas fa-user-secret"></i>
+            <div class="simple-scene-player" th:classappend="${playerIconTierClass}" aria-hidden="true">
+                <i th:class="${playerIconClass}"></i>
             </div>
             <div class="simple-scene-player-name" th:text="${playerName}">Player</div>
 
@@ -2097,6 +2132,40 @@
                     <a class="btn secondary" th:if="${nextNavigableRoom == null}" th:href="@{/leaderboard}">
                         <i class="fas fa-trophy"></i>
                         Đến bảng xếp hạng
+                    </a>
+                </div>
+            </div>
+
+            <div class="finale-overlay" th:if="${progress.completed and !progress.won}">
+                <div class="finale-light"></div>
+                <div class="finale-door" style="color:#ef4444; border-color:rgba(239,68,68,0.5); box-shadow:0 0 30px rgba(239,68,68,0.45);">
+                    <i class="fas fa-door-closed"></i>
+                </div>
+                <div class="finale-character" style="color:#fca5a5;">
+                    <i class="fas fa-user-slash"></i>
+                </div>
+                <div class="finale-text" style="color:#fecaca;">
+                    <i class="fas fa-heart-crack"></i>
+                    Bạn đã thua vì hết lượt sai.
+                </div>
+                <div class="finale-stats">
+                    <span>
+                        <i class="fas fa-mouse-pointer"></i>
+                        <span th:text="${'Số click: ' + actionCount}">Số click: 0</span>
+                    </span>
+                    <span>
+                        <i class="fas fa-stopwatch"></i>
+                        <span th:text="${'Thời gian: ' + elapsedSeconds + ' giây'}">Thời gian: 0 giây</span>
+                    </span>
+                </div>
+                <div class="finale-actions">
+                    <a class="btn secondary" th:href="@{/game/rooms/{roomId}(roomId=${room.id},replay=true)}">
+                        <i class="fas fa-rotate-right"></i>
+                        Chơi lại màn này
+                    </a>
+                    <a class="btn secondary" th:href="@{/game/start}">
+                        <i class="fas fa-map"></i>
+                        Chọn lại màn chơi
                     </a>
                 </div>
             </div>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-main :: layout('Đổi quà', ~{::section})}">
+<section>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .rewards-wrap { display: grid; gap: 1.4rem; }
+        .rewards-hero { padding: 1.5rem; border-radius: 18px; background: rgba(7, 20, 44, 0.72); border: 1px solid rgba(255,255,255,0.16); color: #eef3ff; }
+        .rewards-hero h1 { margin: 0 0 0.4rem; font-size: 1.9rem; }
+        .rewards-hero p { margin: 0; opacity: 0.9; }
+        .reward-badge { display: inline-flex; margin-top: 0.9rem; padding: 0.45rem 0.9rem; border-radius: 999px; background: rgba(52, 211, 153, 0.2); border: 1px solid rgba(52, 211, 153, 0.5); color: #9df6d0; font-weight: 700; }
+
+        .notice { padding: 0.9rem 1rem; border-radius: 12px; font-weight: 600; }
+        .notice.success { background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.45); color: #b8ffe0; }
+        .notice.error { background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.45); color: #ffd0d0; }
+
+        .reward-section { background: rgba(12, 20, 42, 0.86); border-radius: 18px; border: 1px solid rgba(255,255,255,0.15); padding: 1.2rem; }
+        .reward-section h2 { margin: 0 0 1rem; color: #eaf0ff; }
+
+        .reward-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+        .reward-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; padding: 1rem; display: grid; gap: 0.65rem; position: relative; overflow: hidden; }
+        .reward-item.selected { border-color: rgba(16,185,129,0.65); box-shadow: 0 0 20px rgba(16,185,129,0.22); }
+        .reward-item.disabled { opacity: 0.65; }
+        .reward-item-head { display: flex; align-items: center; gap: 0.7rem; color: #fff; }
+        .reward-icon { width: 46px; height: 46px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.3rem; background: linear-gradient(135deg, rgba(99,102,241,0.35), rgba(14,165,233,0.35)); box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
+        .reward-item.tier-mid .reward-icon { box-shadow: 0 8px 24px rgba(59,130,246,0.35), 0 0 16px rgba(56,189,248,0.25); }
+        .reward-item.tier-high .reward-icon { box-shadow: 0 10px 26px rgba(124,58,237,0.45), 0 0 18px rgba(236,72,153,0.3); }
+        .reward-item.tier-legend .reward-icon { box-shadow: 0 12px 30px rgba(245,158,11,0.45), 0 0 22px rgba(250,204,21,0.35); }
+        .reward-item.tier-high::after,
+        .reward-item.tier-legend::after {
+            content: '';
+            position: absolute;
+            inset: -60% auto auto -30%;
+            width: 60%;
+            height: 220%;
+            transform: rotate(18deg);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: sparkleSweep 3.2s linear infinite;
+            pointer-events: none;
+        }
+        .reward-item.tier-legend::after { background: linear-gradient(90deg, transparent, rgba(253,224,71,0.35), transparent); }
+        @keyframes sparkleSweep {
+            0% { left: -35%; }
+            100% { left: 130%; }
+        }
+        .reward-meta { display: flex; justify-content: space-between; gap: 0.5rem; color: #c8d3f0; font-size: 0.88rem; }
+        .reward-action form { margin: 0; }
+        .reward-action .btn { width: 100%; padding: 0.7rem 0.9rem; border-radius: 10px; border: 1px solid transparent; cursor: pointer; color: #fff; font-weight: 700; }
+        .btn-buy { background: linear-gradient(135deg, #2563eb, #4f46e5); }
+        .btn-equip { background: rgba(71,85,105,0.8); border-color: rgba(255,255,255,0.25); }
+        .btn-used { background: rgba(16,185,129,0.24); border-color: rgba(16,185,129,0.5); }
+
+        .history-list { display: grid; gap: 0.7rem; }
+        .history-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 0.8rem 1rem; }
+        .history-code { font-weight: 800; color: #fde68a; }
+        .history-meta { display: flex; gap: 1rem; color: #c9d4ef; font-size: 0.88rem; flex-wrap: wrap; margin-top: 0.3rem; }
+    </style>
+
+    <div class="rewards-wrap">
+        <div class="rewards-hero">
+            <h1>Đổi quà</h1>
+            <p>Đổi icon nhân vật và voucher thương hiệu lớn bằng điểm thưởng.</p>
+            <span class="reward-badge" th:text="${'Điểm thưởng hiện tại: ' + profile.rewardPoints}">Điểm thưởng</span>
+        </div>
+
+        <div class="notice success" th:if="${rewardSuccess}" th:text="${rewardSuccess}"></div>
+        <div class="notice error" th:if="${rewardError}" th:text="${rewardError}"></div>
+
+        <div class="reward-section">
+            <h2>Icon nhân vật</h2>
+            <div class="reward-grid">
+                <article class="reward-item" th:each="icon : ${characterIcons}"
+                         th:classappend="${(icon.selected ? ' selected' : '') + (icon.cost >= 700 ? ' tier-legend' : (icon.cost >= 400 ? ' tier-high' : (icon.cost >= 200 ? ' tier-mid' : '')))}">
+                    <div class="reward-item-head">
+                        <span class="reward-icon"><i th:class="${icon.iconClass}"></i></span>
+                        <strong th:text="${icon.name}">Icon</strong>
+                    </div>
+                    <div class="reward-meta">
+                        <span th:text="${'Giá: ' + icon.cost + ' điểm'}"></span>
+                        <span th:text="${'Độ khó +' + icon.difficultyLevel}"></span>
+                    </div>
+                    <div class="reward-action">
+                        <span th:if="${icon.selected}" class="btn btn-used">Đang dùng</span>
+                        <form th:if="${icon.owned and !icon.selected}" method="post" th:action="@{/rewards/icons/equip}">
+                            <input type="hidden" name="iconKey" th:value="${icon.key}">
+                            <button class="btn btn-equip" type="submit">Chọn icon</button>
+                        </form>
+                        <form th:if="${!icon.owned}" method="post" th:action="@{/rewards/icons/buy}">
+                            <input type="hidden" name="iconKey" th:value="${icon.key}">
+                            <button class="btn btn-buy" type="submit">Mua icon</button>
+                        </form>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <div class="reward-section">
+            <h2>Voucher nhãn hàng lớn</h2>
+            <div class="reward-grid">
+                <article class="reward-item" th:each="voucher : ${vouchers}"
+                         th:classappend="${voucher.redeemed or voucher.expired or voucher.remainingStock <= 0} ? ' disabled' : ''">
+                    <div class="reward-item-head">
+                        <span class="reward-icon"><i class="fas fa-ticket"></i></span>
+                        <strong th:text="${voucher.name}">Voucher</strong>
+                    </div>
+                    <div class="reward-meta">
+                        <span th:text="${voucher.brand}">Brand</span>
+                        <span th:text="${'Kho: ' + voucher.remainingStock}">Kho</span>
+                    </div>
+                    <div class="reward-meta">
+                        <span th:text="${'Giá: ' + voucher.pointsCost + ' điểm'}"></span>
+                        <span th:text="${'Hạn: ' + #temporals.format(voucher.expiresAt, 'dd/MM/yyyy')}"></span>
+                    </div>
+                    <div class="reward-action">
+                        <span th:if="${voucher.redeemed}" class="btn btn-used">Đã đổi</span>
+                        <span th:if="${!voucher.redeemed and voucher.expired}" class="btn btn-equip">Đã hết hạn</span>
+                        <span th:if="${!voucher.redeemed and !voucher.expired and voucher.remainingStock <= 0}" class="btn btn-equip">Hết kho</span>
+                        <form th:if="${!voucher.redeemed and !voucher.expired and voucher.remainingStock > 0}" method="post" th:action="@{/rewards/vouchers/redeem}">
+                            <input type="hidden" name="voucherId" th:value="${voucher.id}">
+                            <button class="btn btn-buy" type="submit">Đổi voucher</button>
+                        </form>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <div class="reward-section">
+            <h2>Mã voucher đã đổi</h2>
+            <div class="history-list" th:if="${!#lists.isEmpty(redeemedVouchers)}">
+                <div class="history-item" th:each="rv : ${redeemedVouchers}">
+                    <div><strong th:text="${rv.voucherName}">Voucher</strong> · <span th:text="${rv.brand}">Brand</span></div>
+                    <div>Mã của bạn: <span class="history-code" th:text="${rv.issuedCode}">CODE</span></div>
+                    <div class="history-meta">
+                        <span th:text="${'Đã dùng điểm: ' + rv.pointsSpent}"></span>
+                        <span th:text="${'Đổi lúc: ' + #temporals.format(rv.redeemedAt, 'dd/MM/yyyy HH:mm')}"></span>
+                        <span th:text="${'Hạn dùng: ' + #temporals.format(rv.expiresAt, 'dd/MM/yyyy')}"></span>
+                    </div>
+                </div>
+            </div>
+            <div th:if="${#lists.isEmpty(redeemedVouchers)}" class="reward-meta">
+                <span>Bạn chưa đổi voucher nào.</span>
+            </div>
+        </div>
+    </div>
+</section>
+</html>

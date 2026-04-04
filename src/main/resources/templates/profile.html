@@ -247,6 +247,17 @@
             box-shadow: 0 10px 30px var(--pf-accent-glow);
         }
 
+        .pf-stat-badge.reward {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(6, 182, 212, 0.1));
+            border: 1px solid rgba(6, 182, 212, 0.45);
+            color: #67e8f9;
+        }
+
+        .pf-stat-badge.reward:hover {
+            box-shadow: 0 10px 30px var(--pf-secondary-glow);
+        }
+
+
         /* ==================== FORM CARDS ==================== */
         .pf-card {
             background: var(--pf-card);
@@ -738,6 +749,10 @@
                     <i class="fas fa-coins"></i>
                     <span>Tổng điểm: <strong th:text="${profile.totalScore}">0</strong></span>
                 </div>
+                <div class="pf-stat-badge reward">
+                    <i class="fas fa-gift"></i>
+                    <span>Điểm thưởng: <strong th:text="${profile.rewardPoints}">0</strong></span>
+                </div>
                 <div class="pf-stat-badge wins">
                     <i class="fas fa-trophy"></i>
                     <span>Số trận thắng: <strong th:text="${profile.totalWin}">0</strong></span>
@@ -764,6 +779,12 @@
         </div>
         <div class="notice error" th:if="${passwordError}">
             <span th:text="${passwordError}"></span>
+        </div>
+        <div class="notice success" th:if="${redeemSuccess}">
+            <span th:text="${redeemSuccess}"></span>
+        </div>
+        <div class="notice error" th:if="${redeemError}">
+            <span th:text="${redeemError}"></span>
         </div>
 
         <form th:action="@{/profile}" th:object="${updateProfileForm}" method="post" class="pf-form">
@@ -806,6 +827,44 @@
                     <i class="fas fa-home"></i>
                     Quay lại trang chủ
                 </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- ==================== REWARD CARD ==================== -->
+    <div class="pf-card">
+        <div class="pf-card-header">
+            <div class="pf-card-icon">
+                <i class="fas fa-gift"></i>
+            </div>
+            <h2>Đổi điểm thưởng</h2>
+        </div>
+
+        <form th:action="@{/profile/redeem}" th:object="${redeemRewardForm}" method="post" class="pf-form">
+            <div class="field">
+                <label>
+                    <i class="fas fa-coins"></i>
+                    Số điểm muốn đổi
+                </label>
+                <div class="input-wrapper">
+                    <i class="fas fa-arrow-right-arrow-left input-icon"></i>
+                    <input type="number" min="1" step="1" th:field="*{points}" placeholder="Nhập số điểm cần đổi...">
+                </div>
+                <small th:if="${#fields.hasErrors('points')}" th:errors="*{points}"></small>
+            </div>
+
+            <div class="security-info">
+                <i class="fas fa-circle-info"></i>
+                <div>
+                    <strong>Quy đổi 1:1:</strong> 1 điểm chơi hợp lệ sẽ cộng 1 điểm thưởng. Khi đổi thưởng chỉ trừ <strong>điểm thưởng</strong>, không làm thay đổi điểm trên bảng xếp hạng.
+                </div>
+            </div>
+
+            <div class="pf-actions">
+                <button type="submit">
+                    <i class="fas fa-hand-holding-heart"></i>
+                    Đổi thưởng
+                </button>
             </div>
         </form>
     </div>
@@ -959,24 +1018,10 @@
             strengthText.style.color = color === 'weak' ? '#ef4444' : (color === 'medium' ? '#f59e0b' : '#10b981');
         }
 
-        // Add 3D tilt effect to cards
+        // Keep profile cards stable; avoid mousemove tilt to reduce visual discomfort.
         document.querySelectorAll('.pf-card').forEach(card => {
-            card.addEventListener('mousemove', (e) => {
-                if (window.innerWidth < 768) return;
-                
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const rotateX = (y - centerY) / 30;
-                const rotateY = (centerX - x) / 30;
-                
-                card.style.transform = `translateY(-5px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-            });
-
             card.addEventListener('mouseleave', () => {
-                card.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+                card.style.transform = '';
             });
         });
 

@@ -24,6 +24,18 @@ public class PlayerProfile {
     private Integer totalScore = 0;
 
     @Column(nullable = false)
+    private Integer rewardPoints = 0;
+
+    @Column(nullable = false)
+    private Boolean rewardWalletInitialized = true;
+
+    @Column(nullable = false, length = 40)
+    private String selectedCharacterIcon = "agent_default";
+
+    @Column(nullable = false, length = 600)
+    private String ownedCharacterIcons = "agent_default";
+
+    @Column(nullable = false)
     private Integer totalWin = 0;
 
     @Column(length = 500)
@@ -53,12 +65,44 @@ public class PlayerProfile {
         this.totalScore = totalScore;
     }
 
+    public Integer getRewardPoints() {
+        return rewardPoints;
+    }
+
+    public void setRewardPoints(Integer rewardPoints) {
+        this.rewardPoints = rewardPoints;
+    }
+
     public Integer getTotalWin() {
         return totalWin;
     }
 
     public void setTotalWin(Integer totalWin) {
         this.totalWin = totalWin;
+    }
+
+    public Boolean getRewardWalletInitialized() {
+        return rewardWalletInitialized;
+    }
+
+    public void setRewardWalletInitialized(Boolean rewardWalletInitialized) {
+        this.rewardWalletInitialized = rewardWalletInitialized;
+    }
+
+    public String getSelectedCharacterIcon() {
+        return selectedCharacterIcon;
+    }
+
+    public void setSelectedCharacterIcon(String selectedCharacterIcon) {
+        this.selectedCharacterIcon = selectedCharacterIcon;
+    }
+
+    public String getOwnedCharacterIcons() {
+        return ownedCharacterIcons;
+    }
+
+    public void setOwnedCharacterIcons(String ownedCharacterIcons) {
+        this.ownedCharacterIcons = ownedCharacterIcons;
     }
 
     public String getAvatarUrl() {

@@ -1,6 +1,7 @@
 package com.example.gamegiaido.controller;
 
 import com.example.gamegiaido.dto.ChangePasswordForm;
+import com.example.gamegiaido.dto.RedeemRewardForm;
 import com.example.gamegiaido.dto.UpdateProfileForm;
 import com.example.gamegiaido.model.PlayerProfile;
 import com.example.gamegiaido.service.PlayerProfileService;
@@ -29,10 +30,7 @@ public class ProfileController {
         UpdateProfileForm form = new UpdateProfileForm();
         form.setDisplayName(profile.getDisplayName());
         form.setAvatarUrl(profile.getAvatarUrl());
-
-        model.addAttribute("profile", profile);
-        model.addAttribute("updateProfileForm", form);
-        model.addAttribute("changePasswordForm", new ChangePasswordForm());
+        prepareProfilePageModel(model, profile, form, new ChangePasswordForm(), new RedeemRewardForm());
         return "profile";
     }
 
@@ -44,8 +42,7 @@ public class ProfileController {
                                 RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             PlayerProfile profile = playerProfileService.getByUsername(authentication.getName());
-            model.addAttribute("profile", profile);
-            model.addAttribute("changePasswordForm", new ChangePasswordForm());
+            prepareProfilePageModel(model, profile, updateProfileForm, new ChangePasswordForm(), new RedeemRewardForm());
             return "profile";
         }
 
@@ -65,8 +62,7 @@ public class ProfileController {
             UpdateProfileForm updateProfileForm = new UpdateProfileForm();
             updateProfileForm.setDisplayName(profile.getDisplayName());
             updateProfileForm.setAvatarUrl(profile.getAvatarUrl());
-            model.addAttribute("profile", profile);
-            model.addAttribute("updateProfileForm", updateProfileForm);
+            prepareProfilePageModel(model, profile, updateProfileForm, changePasswordForm, new RedeemRewardForm());
             return "profile";
         }
 
@@ -77,5 +73,41 @@ public class ProfileController {
             redirectAttributes.addFlashAttribute("passwordError", ex.getMessage());
         }
         return "redirect:/profile";
+    }
+
+    @PostMapping("/profile/redeem")
+    public String redeemRewards(Authentication authentication,
+                                @Valid @ModelAttribute("redeemRewardForm") RedeemRewardForm redeemRewardForm,
+                                BindingResult bindingResult,
+                                Model model,
+                                RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            PlayerProfile profile = playerProfileService.getByUsername(authentication.getName());
+            UpdateProfileForm updateProfileForm = new UpdateProfileForm();
+            updateProfileForm.setDisplayName(profile.getDisplayName());
+            updateProfileForm.setAvatarUrl(profile.getAvatarUrl());
+            prepareProfilePageModel(model, profile, updateProfileForm, new ChangePasswordForm(), redeemRewardForm);
+            return "profile";
+        }
+
+        try {
+            int remain = playerProfileService.redeemRewardPoints(authentication.getName(), redeemRewardForm.getPoints());
+            redirectAttributes.addFlashAttribute("redeemSuccess",
+                    "Đổi thưởng thành công " + redeemRewardForm.getPoints() + " điểm. Còn lại " + remain + " điểm thưởng.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("redeemError", ex.getMessage());
+        }
+        return "redirect:/profile";
+    }
+
+    private void prepareProfilePageModel(Model model,
+                                         PlayerProfile profile,
+                                         UpdateProfileForm updateProfileForm,
+                                         ChangePasswordForm changePasswordForm,
+                                         RedeemRewardForm redeemRewardForm) {
+        model.addAttribute("profile", profile);
+        model.addAttribute("updateProfileForm", updateProfileForm);
+        model.addAttribute("changePasswordForm", changePasswordForm);
+        model.addAttribute("redeemRewardForm", redeemRewardForm);
     }
 }
